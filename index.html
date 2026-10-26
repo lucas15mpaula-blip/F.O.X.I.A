@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8">
+<html lang="pt-BR" translate="no"><meta name="google" content="notranslate"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>F.O.X.I.A</title>
 <style>
@@ -27,9 +27,22 @@ button{cursor:pointer}
 #mic.on{background:var(--r);animation:p .6s infinite alternate}
 label{font-size:13px;display:flex;align-items:center;gap:4px}
 #pf,#cp,#rp,#kp{position:fixed;inset:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}#pf[hidden],#cp[hidden],#rp[hidden],#kp[hidden]{display:none}#kp input{font-size:16px}#kp select{font-size:16px}#rb{display:none}#pf h2{margin:0;font-size:18px}textarea{background:var(--pn);color:var(--fg);border:1px solid var(--ln);border-radius:10px;padding:8px;font:inherit;font-size:16px;min-height:70px}#pf input{font-size:16px}
+#cb,#gb{font-size:20px;padding:6px 10px;flex:none}
+#gb{margin-left:auto}
+#gp{position:fixed;inset:0;z-index:6;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+#gp[hidden]{display:none}
+#gp h2{margin:8px 0 0;font-size:17px}
+#gp select,#gp button,#gp textarea{font-size:16px}
+.fl{font-size:13px;opacity:.7}
+.ch.on{background:var(--b);border-color:var(--b)}
+#pf,#kp{z-index:7}
+#cp{inset:0 auto 0 0;width:min(82%,320px);z-index:9;box-shadow:0 0 40px #000;background:#080f26}
+#bd{display:none;position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.55)}
+#cp:not([hidden])+#bd{display:block}
 </style></head>
 <body>
 <header>
+<button id="cb" aria-label="Conversas">☰</button>
 <svg id="mk" viewBox="0 0 200 240" width="64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bb8ff"/><stop offset="1" stop-color="#2450d8"/></linearGradient></defs>
 <path d="M55 20L85 62Q100 56 115 62L145 20Q158 70 150 110Q140 150 118 190Q108 215 100 222Q92 215 82 190Q60 150 50 110Q42 70 55 20Z" fill="url(#g)"/>
 <path d="M57 30L82 62 62 72Q54 55 57 30ZM143 30L118 62 138 72Q146 55 143 30Z" fill="#050a1c"/>
@@ -38,10 +51,11 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <path d="M100 82Q90 104 94 122L96 172Q98 206 100 210Q102 206 104 172L106 122Q110 104 100 82Z" fill="#ff3b4e"/>
 <ellipse cx="100" cy="216" rx="9" ry="5" fill="#050a1c"/></svg>
 <div><h1>F.O.X.I.A</h1><div id="st"></div></div>
+<button id="gb" aria-label="Configurações">⚙</button>
 </header>
 <canvas id="fx"></canvas>
 <div id="pf" hidden><h2>Me conheça</h2><input id="p1" placeholder="Como devo te chamar?"><textarea id="p2" placeholder="Sobre você (estudos, trabalho, gostos…)"></textarea><textarea id="p3" placeholder="Seus objetivos"></textarea><textarea id="p4" placeholder="Sua rotina"></textarea><div class="row" style="padding:0"><button id="ps">Salvar</button><button id="pc">Fechar</button></div></div>
-<div id="cp" hidden><h2>Chats</h2><button id="cn">+ Novo chat</button><div id="cl"></div><button id="cc">Fechar</button></div>
+<div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><div id="cl"></div><button id="cc">Fechar</button></div><div id="bd"></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc">Fechar</button></div>
 <div id="kp" hidden><h2>IAs (as chaves ficam só neste aparelho)</h2>
 <input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)">
@@ -49,12 +63,16 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="log"></div>
-<div class="bar">
-<select id="mode" aria-label="Modo de pesquisa"><option value="auto">Pesquisa: Auto</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
-<select id="auto" aria-label="Mensagens próprias"><option value="0">Msgs próprias: off</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
-<select id="sk" aria-label="Habilidade"><option value="">Habilidade: nenhuma</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label><input type="checkbox" id="tts" checked>voz</label>
-<button id="kb">IAs</button><button id="cb">Chats</button><button id="rb">Pesquisas</button><button id="pb">Perfil</button><button id="fg">Esquecer</button>
-</div>
+<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar memória e conversas">🗑️</button><button id="rb">Pesquisas</button></div>
+<div id="gp" hidden><h2>Configurações</h2>
+<button id="pb">Perfil</button><button id="kb">IAs e chaves</button>
+<span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
+<span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
+<h2>Comportamento da IA</h2>
+<div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
+<textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
+<div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc">Fechar</button></div></div>
+
 <div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
@@ -129,7 +147,7 @@ padrao:['default','Explique o suficiente para entender, em 1 a 3 parágrafos cur
 expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Avise em uma frase que você não navegou na internet e respondeu com seu conhecimento.']};
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
 const n=q.split(/\s+/).length;if(/profund|detalh|analis|expert|completo/i.test(q)||n>30)return 'expert';return n<6?'simples':'padrao'}
-const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
@@ -160,7 +178,7 @@ rec.onend=()=>{rec=null;$('mic').classList.remove('on')};
 try{rec.start();$('mic').classList.add('on')}catch(e){rec=null}};
 let busy=false;function enviar(){const q=$('q').value.trim();if(!q||busy)return;$('q').value='';if(rec)rec.stop();add('u',q);resp(q)}
 $('go').onclick=enviar;$('q').onkeydown=e=>{if(e.key=='Enter')enviar()};
-$('fg').onclick=()=>{const b=$('fg');if(b.dataset.c){M={fatos:[],padroes:[],persona:P0,hist:[],n:0,perfil:M.perfil};save();pintar();delete b.dataset.c;b.textContent='Esquecer'}else{b.dataset.c=1;b.textContent='Confirmar?'}};
+$('fg').onclick=()=>{const b=$('fg');if(b.dataset.c){M={fatos:[],padroes:[],persona:P0,hist:[],n:0,perfil:M.perfil};save();pintar();delete b.dataset.c;b.textContent='🗑️'}else{b.dataset.c=1;b.textContent='Apagar tudo?'}};
 addEventListener('resize',fit);fit();status();loop();word('FOXIA');
 /* v3: chats, arquivos, pesquisas, voz e memória */
 var IND='';let PQ=[],AX=[],VZ=null;
@@ -219,4 +237,11 @@ document.body.classList.remove('think');busy=false}
 setTimeout(carregarPesq,2500);
 pintar();
 </script>
-<script>pedir=()=>{};</script></body></html>
+<script>pedir=()=>{};
+function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
+$('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
+$('gc').onclick=()=>{$('gp').hidden=true};
+$('bd').onclick=()=>{$('cp').hidden=true};
+document.querySelectorAll('.ch').forEach(b=>b.onclick=()=>{if(b.dataset.p)$('cmp').value=b.dataset.p;else $('cmp').focus();mark(b)});
+$('cs').onclick=()=>{M.comp=$('cmp').value.trim();save();ind('comportamento salvo');$('gp').hidden=true};
+</script></body></html>
