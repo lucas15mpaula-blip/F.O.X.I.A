@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>F.O.X.I.A</title>
+<style>
+:root{--bg:#050a1c;--fg:#dbe6ff;--b:#3b82ff;--r:#ff3b4e;--pn:#0c1634;--ln:#1d3a7a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px 0}
+#mk{filter:drop-shadow(0 0 10px var(--b));flex:none}
+.think #mk{animation:p .9s infinite alternate}
+@keyframes p{to{filter:drop-shadow(0 0 20px var(--r))}}
+h1{margin:0;font-size:18px;letter-spacing:3px;background:linear-gradient(90deg,var(--b),var(--r));-webkit-background-clip:text;background-clip:text;color:transparent}
+#st{font-size:12px;opacity:.7;margin-top:2px}
+#fx{width:100%;height:110px;flex:none;display:block}
+#log{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:6px 10px;gap:8px}
+.m{padding:8px 12px;border-radius:12px;max-width:88%;white-space:pre-wrap;line-height:1.4;overflow-wrap:anywhere}
+.u{align-self:flex-end;background:#12306e}
+.k{align-self:flex-start;background:var(--pn);border-left:3px solid var(--r)}
+.bar,.row{display:flex;gap:6px;padding:6px 10px;align-items:center;flex-wrap:wrap}
+select,input,button{background:var(--pn);color:var(--fg);border:1px solid var(--ln);border-radius:10px;padding:8px;font:inherit}
+select,button{font-size:13px}
+input#q{flex:1;min-width:0;font-size:16px}
+button{cursor:pointer}
+#go{background:var(--r);border-color:var(--r);color:#fff}
+#mic.on{background:var(--r);animation:p .6s infinite alternate}
+label{font-size:13px;display:flex;align-items:center;gap:4px}
+#pf,#cp,#rp,#kp{position:fixed;inset:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}#pf[hidden],#cp[hidden],#rp[hidden],#kp[hidden]{display:none}#kp input{font-size:16px}#kp select{font-size:16px}#rb{display:none}#pf h2{margin:0;font-size:18px}textarea{background:var(--pn);color:var(--fg);border:1px solid var(--ln);border-radius:10px;padding:8px;font:inherit;font-size:16px;min-height:70px}#pf input{font-size:16px}
+</style></head>
+<body>
+<header>
+<svg id="mk" viewBox="0 0 200 240" width="64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bb8ff"/><stop offset="1" stop-color="#2450d8"/></linearGradient></defs>
+<path d="M55 20L85 62Q100 56 115 62L145 20Q158 70 150 110Q140 150 118 190Q108 215 100 222Q92 215 82 190Q60 150 50 110Q42 70 55 20Z" fill="url(#g)"/>
+<path d="M57 30L82 62 62 72Q54 55 57 30ZM143 30L118 62 138 72Q146 55 143 30Z" fill="#050a1c"/>
+<path d="M60 108L93 121Q80 133 62 121ZM140 108L107 121Q120 133 138 121Z" fill="#050a1c"/>
+<g fill="none" stroke="#ff3b4e" stroke-width="4" stroke-linecap="round"><path d="M88 62Q100 76 112 62"/><path d="M56 100Q60 140 88 168M50 112Q56 150 82 182M66 90Q70 118 92 140M144 100Q140 140 112 168M150 112Q144 150 118 182M134 90Q130 118 108 140"/></g>
+<path d="M100 82Q90 104 94 122L96 172Q98 206 100 210Q102 206 104 172L106 122Q110 104 100 82Z" fill="#ff3b4e"/>
+<ellipse cx="100" cy="216" rx="9" ry="5" fill="#050a1c"/></svg>
+<div><h1>F.O.X.I.A</h1><div id="st"></div></div>
+</header>
+<canvas id="fx"></canvas>
+<div id="pf" hidden><h2>Me conheça</h2><input id="p1" placeholder="Como devo te chamar?"><textarea id="p2" placeholder="Sobre você (estudos, trabalho, gostos…)"></textarea><textarea id="p3" placeholder="Seus objetivos"></textarea><textarea id="p4" placeholder="Sua rotina"></textarea><div class="row" style="padding:0"><button id="ps">Salvar</button><button id="pc">Fechar</button></div></div>
+<div id="cp" hidden><h2>Chats</h2><button id="cn">+ Novo chat</button><div id="cl"></div><button id="cc">Fechar</button></div>
+<div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc">Fechar</button></div>
+<div id="kp" hidden><h2>IAs (as chaves ficam só neste aparelho)</h2>
+<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)">
+<input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-2.5-flash)">
+<select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option></select>
+<div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
+<div id="log"></div>
+<div class="bar">
+<select id="mode" aria-label="Modo de pesquisa"><option value="auto">Pesquisa: Auto</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
+<select id="auto" aria-label="Mensagens próprias"><option value="0">Msgs próprias: off</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
+<select id="sk" aria-label="Habilidade"><option value="">Habilidade: nenhuma</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label><input type="checkbox" id="tts" checked>voz</label>
+<button id="kb">IAs</button><button id="cb">Chats</button><button id="rb">Pesquisas</button><button id="pb">Perfil</button><button id="fg">Esquecer</button>
+</div>
+<div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
+<script>
+(function(){
+const $$=i=>document.getElementById(i);
+const K=()=>{try{return JSON.parse(localStorage.getItem('foxia_k'))||{}}catch(e){return{}}};
+const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
+const b64=b=>new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(',')[1]);f.readAsDataURL(b)});
+async function cl(k,m,t,im,web){const b={model:m,max_tokens:2000,messages:[{role:'user',content:[...im.map(i=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:i}})),{type:'text',text:t}]}]};if(web)b.tools=[{type:'web_search_20250305',name:'web_search',max_uses:5}];
+const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
+const j=await r.json();if(!r.ok)throw er(r.status,j);return j.content.filter(x=>x.type=='text').map(x=>x.text).join('')}
+async function op(k,m,t,im){const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
+const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
+async function ge(k,m,t,im){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}]})});
+const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
+const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk},t=o.modelTier||'default';
+const base=t=='quick'?['g','o','c']:['c','o','g'];
+const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
+if(!ord.length){$$('kp').hidden=false;const e=new Error('sem chave');e.code='sem_chave';throw e}
+const im=await Promise.all((o.images||[]).map(b64));let err;
+for(const p of ord){try{const txt=p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):await ge(keys.g,k.gm||'gemini-2.5-flash',input,im);
+o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){err=e}}
+throw err};
+sample.limits=async()=>({images:true});
+sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
+const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
+window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
+const F=['ck','ok','gk','cm','om','gm'];
+function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
+$$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
+$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{localStorage.setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
+$$('ke').onclick=()=>dl('foxia-backup.json',localStorage.getItem('kit')||'{}');
+$$('ki').onclick=()=>$$('kf').click();
+$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);localStorage.setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
+const k0=K();if(!(k0.ck||k0.ok||k0.gk))$$('kp').hidden=false;
+})();
+</script>
+<script>
+const $=i=>document.getElementById(i);
+const P0='Curiosa, direta e levemente brincalhona.';
+let M;try{M=JSON.parse(localStorage.getItem('kit'))}catch(e){}
+M=M||{fatos:[],padroes:[],persona:P0,hist:[],n:0};
+let DB,DOC,sv;
+const save=()=>{sync();M.t=Date.now();try{localStorage.setItem('kit',JSON.stringify(M))}catch(e){}clearTimeout(sv);sv=setTimeout(()=>{prune();if(DOC)DOC.set(JSON.parse(JSON.stringify(M))).then(()=>ind('salvo na nuvem')).catch(e=>ind('erro ao salvar na nuvem: '+(e&&e.code||'?')));else ind('salvo só neste aparelho')},800)};
+const SK={resumir:'Habilidade: resuma o texto do usuário em tópicos curtos.',escrever:'Habilidade: escreva o texto pedido, pronto para usar.',revisar:'Habilidade: revise e corrija o texto do usuário; mostre a versão final primeiro e depois até 3 mudanças.',plano:'Habilidade: monte um plano de ação em passos curtos, com prioridade.'};
+const perfilTxt=()=>{const p=M.perfil||{};return [p.nome&&'chamar de '+p.nome,p.sobre,p.metas&&'objetivos: '+p.metas,p.rotina&&'rotina: '+p.rotina].filter(Boolean).join('; ')||'não informado'};
+function pintar(){$('log').textContent='';if(M.hist.length)M.hist.slice(-20).forEach(m=>add(m.r,m.t));else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
+$('pb').onclick=()=>{$('pf').hidden=false};$('pc').onclick=()=>{$('pf').hidden=true};
+$('ps').onclick=()=>{M.perfil={nome:$('p1').value.trim(),sobre:$('p2').value.trim(),metas:$('p3').value.trim(),rotina:$('p4').value.trim()};save();$('pf').hidden=true};
+/* memória fora do navegador (db), com o navegador como reserva */
+(async()=>{try{DB=await claude.use('db');const u=await claude.use('user');if(!DB||!u)return;const id=await u.id();if(!id)return;DOC=DB.doc('data/users/'+id+'/mem');carregarPesq();const s=await DOC.get();if(s.exists){const r=JSON.parse(JSON.stringify(s.data()));if((r.t||0)>(M.t||0)){M=r;try{localStorage.setItem('kit',JSON.stringify(M))}catch(e){}pintar()}}else if(M.t){DOC.set(JSON.parse(JSON.stringify(M))).catch(()=>{})}}catch(e){}})();
+const status=()=>{$('st').textContent='memória: '+M.fatos.length+' fatos · '+M.padroes.length+' padrões'+(typeof IND=='string'&&IND?' · '+IND:'')};
+function add(r,t){const d=document.createElement('div');d.className='m '+r;d.textContent=t;$('log').append(d);$('log').scrollTop=1e9;return d}
+/* partículas que formam palavras */
+const cv=$('fx'),cx=cv.getContext('2d');let Pt=[],T=[];
+function fit(){cv.width=innerWidth;cv.height=110}
+function word(w){const o=document.createElement('canvas');o.width=cv.width;o.height=110;const c=o.getContext('2d');
+c.font='bold '+Math.min(64,o.width/(w.length*.75))+'px system-ui';c.textAlign='center';c.fillText(w,o.width/2,72);
+const d=c.getImageData(0,0,o.width,110).data;T=[];
+for(let y=0;y<110;y+=4)for(let x=0;x<o.width;x+=4)if(d[(y*o.width+x)*4+3]>128)T.push([x,y]);
+while(Pt.length<T.length)Pt.push({x:Math.random()*cv.width,y:Math.random()*110})}
+function loop(){cx.clearRect(0,0,cv.width,110);const n=Date.now()/900;
+Pt.forEach((p,i)=>{const t=T.length?T[i%T.length]:[cv.width/2,55];p.x+=(t[0]-p.x)*.08+Math.sin(i+n)*.3;p.y+=(t[1]-p.y)*.08+Math.cos(i+n)*.3;cx.fillStyle=i%5?'#4f8cff':'#ff3b4e';cx.fillRect(p.x,p.y,2,2)});
+requestAnimationFrame(loop)}
+function formar(t){const ws=t.replace(/[^\p{L}\s]/gu,'').split(/\s+/).filter(w=>w.length>3).slice(0,8);
+ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*700))}
+/* voz de saída */
+function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}
+/* modos de pesquisa */
+const MODOS={
+simples:['quick','Explique apenas o que é, em no máximo 3 frases simples, sem se aprofundar.'],
+padrao:['default','Explique o suficiente para entender, em 1 a 3 parágrafos curtos, com um exemplo.'],
+expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Avise em uma frase que você não navegou na internet e respondeu com seu conhecimento.']};
+function escolher(q){const m=$('mode').value;if(m!='auto')return m;
+const n=q.split(/\s+/).length;if(/profund|detalh|analis|expert|completo/i.test(q)||n>30)return 'expert';return n<6?'simples':'padrao'}
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
+async function resp(q){
+const s=await window.claude?.use('sample');
+if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
+busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');document.body.classList.add('think');
+try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
+out.textContent=r.text;M.hist.push({r:'u',t:q},{r:'k',t:r.text});M.hist=M.hist.slice(-60);M.n++;save();falar(r.text);formar(r.text);if(M.n%4==0)aprender()}
+catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco.':'Não consegui responder agora.'}
+document.body.classList.remove('think');busy=false}
+/* memória, padrões e personalidade */
+async function aprender(){try{const s=await window.claude?.use('sample');if(!s)return;
+const j=await s.json('Atualize a memória de uma IA sobre o usuário com base na conversa. Memória atual: '+JSON.stringify({fatos:M.fatos,padroes:M.padroes,persona:M.persona})+'\nConversa recente:\n'+hist(8)+'\nResponda só JSON: {"fatos":[até 12 fatos curtos],"padroes":[até 6 hábitos ou interesses recorrentes],"persona":"2 frases descrevendo a personalidade da IA, que evolui para combinar com o usuário"}',{cache:false});
+if(j&&j.fatos){M.fatos=j.fatos.slice(0,12).map(String);M.padroes=(j.padroes||[]).slice(0,6).map(String);M.persona=String(j.persona||M.persona);save();status()}}catch(e){}}
+/* mensagens por conta própria (só com a página aberta) */
+let tm;
+async function proativa(){if(document.hidden||busy)return;try{const s=await window.claude?.use('sample');if(!s)return;
+const r=await s(ctx()+'Escreva por conta própria uma mensagem curta (1 a 2 frases) para o usuário: uma dica, curiosidade ligada aos interesses dele ou um lembrete gentil. Não repita o que já disse.\nConversa recente:\n'+hist(6),{modelTier:'quick',cache:false});
+add('k','✦ '+r.text);M.hist.push({r:'k',t:r.text});save();falar(r.text);formar(r.text)}catch(e){}}
+$('auto').onchange=()=>{clearInterval(tm);const v=+$('auto').value;if(v)tm=setInterval(proativa,v*60000)};
+/* voz de entrada (fala vira texto) */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+$('mic').onclick=()=>{if(!SR){add('k','Este navegador não tem reconhecimento de voz.');return}
+if(rec){rec.stop();return}
+rec=new SR();rec.lang='pt-BR';rec.interimResults=true;rec.continuous=true;
+rec.onresult=e=>{$('q').value=[...e.results].map(r=>r[0].transcript).join(' ')};
+rec.onerror=e=>add('k','Microfone indisponível ('+e.error+'). Verifique a permissão.');
+rec.onend=()=>{rec=null;$('mic').classList.remove('on')};
+try{rec.start();$('mic').classList.add('on')}catch(e){rec=null}};
+let busy=false;function enviar(){const q=$('q').value.trim();if(!q||busy)return;$('q').value='';if(rec)rec.stop();add('u',q);resp(q)}
+$('go').onclick=enviar;$('q').onkeydown=e=>{if(e.key=='Enter')enviar()};
+$('fg').onclick=()=>{const b=$('fg');if(b.dataset.c){M={fatos:[],padroes:[],persona:P0,hist:[],n:0,perfil:M.perfil};save();pintar();delete b.dataset.c;b.textContent='Esquecer'}else{b.dataset.c=1;b.textContent='Confirmar?'}};
+addEventListener('resize',fit);fit();status();loop();word('FOXIA');
+/* v3: chats, arquivos, pesquisas, voz e memória */
+var IND='';let PQ=[],AX=[],VZ=null;
+function ind(t){IND=t;status()}
+function C(){M.chats=M.chats||[];M.cur=M.cur||'c0';let c=M.chats.find(x=>x.id==M.cur);if(!c){c={id:M.cur,title:'Novo chat',h:[]};M.chats.push(c)}return c}
+function sync(){const c=C(),h=M.hist||[];c.h=h.slice(-30).map(m=>({r:m.r,t:String(m.t).slice(0,1500)}));const u=h.find(m=>m.r=='u');c.title=u?String(u.t).slice(0,28):'Novo chat';c.tm=Date.now()}
+function prune(){while(JSON.stringify(M).length>190000&&M.chats.length>1){const i=M.chats.findIndex(x=>x.id!=M.cur);if(i<0)break;M.chats.splice(i,1)}}
+/* vários chats */
+function lista(){const l=$('cl');l.textContent='';M.chats.slice().sort((a,b)=>(b.tm||0)-(a.tm||0)).forEach(c=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const b=document.createElement('button');b.style.cssText='flex:1;text-align:left';b.textContent=(c.id==M.cur?'● ':'')+c.title;b.onclick=()=>abrir(c.id);const d=document.createElement('button');d.textContent='🗑';d.onclick=()=>apagar(c.id);r.append(b,d);l.append(r)})}
+function abrir(id){sync();const c=M.chats.find(x=>x.id==id);if(!c)return;M.cur=id;M.hist=c.h.slice();save();pintar();$('cp').hidden=true}
+function apagar(id){M.chats=M.chats.filter(x=>x.id!=id);if(id==M.cur){const o=M.chats[0];if(o){M.cur=o.id;M.hist=o.h.slice()}else{M.cur='c'+Date.now();M.hist=[]}}save();
