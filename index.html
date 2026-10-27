@@ -58,9 +58,9 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><div id="cl"></div><button id="cc">Fechar</button></div><div id="bd"></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc">Fechar</button></div>
 <div id="kp" hidden><h2>IAs (as chaves ficam só neste aparelho)</h2>
-<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)">
-<input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-2.5-flash)">
-<select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option></select>
+<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)">
+<input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)">
+<select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="log"></div>
 <div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar memória e conversas">🗑️</button><button id="rb">Pesquisas</button></div>
@@ -79,34 +79,36 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 const $$=i=>document.getElementById(i);
 const K=()=>{try{return JSON.parse(localStorage.getItem('foxia_k'))||{}}catch(e){return{}}};
 const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
+const ft=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000);return fetch(u,{...o,signal:c.signal}).finally(()=>clearTimeout(t))};
 const b64=b=>new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(',')[1]);f.readAsDataURL(b)});
 async function cl(k,m,t,im,web){const b={model:m,max_tokens:2000,messages:[{role:'user',content:[...im.map(i=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:i}})),{type:'text',text:t}]}]};if(web)b.tools=[{type:'web_search_20250305',name:'web_search',max_uses:5}];
-const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
+const r=await ft('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.content.filter(x=>x.type=='text').map(x=>x.text).join('')}
-async function op(k,m,t,im){const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
+async function gq(k,m,t,im){if(im.length)throw new Error('não lê imagens');const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:t}]})});const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
+async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
-async function ge(k,m,t,im){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}]})});
+async function ge(k,m,t,im){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}]})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
-const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk},t=o.modelTier||'default';
-const base=t=='quick'?['g','o','c']:['c','o','g'];
+const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';
+const base=t=='quick'?['q','g','o','c']:['c','o','q','g'];
 const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
 if(!ord.length){$$('kp').hidden=false;const e=new Error('sem chave');e.code='sem_chave';throw e}
 const im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-for(const p of ord){try{const txt=p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):await ge(keys.g,k.gm||'gemini-2.5-flash',input,im);
-o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini'})[p]+': '+(e.message||e);errs.push(e.message);err=e}}
+for(const p of ord){try{o.onText&&o.onText({text:'… '+({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]});const txt=p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'llama-3.3-70b-versatile',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im);
+o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 err.message=errs.join(' | ');throw err};
 sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
 window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
-const F=['ck','ok','gk','cm','om','gm'];
+const F=['ck','ok','gk','qk','cm','om','gm','qm'];
 function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
 $$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{localStorage.setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
 $$('ke').onclick=()=>dl('foxia-backup.json',localStorage.getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
 $$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);localStorage.setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
-const k0=K();if(!(k0.ck||k0.ok||k0.gk))$$('kp').hidden=false;
+const k0=K();if(!(k0.ck||k0.ok||k0.gk||k0.qk))$$('kp').hidden=false;
 })();
 </script>
 <script>
