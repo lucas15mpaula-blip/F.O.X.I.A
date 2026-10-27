@@ -36,6 +36,8 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .fl{font-size:13px;opacity:.7}
 .ch.on{background:var(--b);border-color:var(--b)}
 #pf,#kp{z-index:7}
+#ac{position:fixed;inset:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 16px;display:flex;flex-direction:column;gap:10px;overflow:auto}#ac[hidden]{display:none}#ac input,#ac button{font-size:16px}
+.ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:2px 9px;font-size:14px;opacity:.75;border-radius:8px}
 .dots{display:inline-flex;gap:6px;align-items:center;height:20px}
 .dots i{width:9px;height:9px;border-radius:50%;background:var(--b);animation:pul 1s infinite ease-in-out}
 .dots i:nth-child(2){background:var(--r);animation-delay:.15s}
@@ -69,12 +71,14 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc">Fechar</button></div></div>
+<div id="ac" hidden><h2>F.O.X.I.A</h2><p class="fl">Crie uma conta para guardar suas chaves e memória protegidas por senha <b>neste aparelho</b>. Se esquecer a senha, não há como recuperar os dados.</p><input id="au" placeholder="Usuário" autocapitalize="none" autocomplete="off"><input id="ap" type="password" placeholder="Senha"><div class="fl" id="am"></div><div class="row" style="padding:0"><button id="ai">Entrar</button><button id="an">Criar conta</button></div><button id="ag">Continuar sem conta</button></div>
 <div id="log"></div>
-<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
+<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="web" checked>Acesso à web (ler links e pesquisar)</label><button id="ab">Conta</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
@@ -83,8 +87,29 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
+const S=sessionStorage,L=localStorage;let AK=null,T;const US=S.getItem('sess');
+const b2=a=>btoa(String.fromCharCode(...new Uint8Array(a))),u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),$$=i=>document.getElementById(i);
+async function dk(pw,salt){const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
+async function enc(k,o){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(o)));return{iv:b2(iv),d:b2(c)}}
+async function dec(k,o){return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:u8(o.iv)},k,u8(o.d))))}
+window.ST=()=>{const b=US?S:L;return{getItem:k=>b.getItem(k),setItem:(k,v)=>{b.setItem(k,v);if(US){clearTimeout(T);T=setTimeout(flush,600)}}}};
+async function flush(){try{if(!US)return;if(!AK)AK=await crypto.subtle.importKey('raw',u8(S.getItem('sk')),'AES-GCM',true,['encrypt','decrypt']);const a=JSON.parse(L.getItem('acct:'+US));a.v=await enc(AK,{kit:S.getItem('kit'),keys:S.getItem('foxia_k')});L.setItem('acct:'+US,JSON.stringify(a))}catch(e){}}
+async function fin(u,k,d){S.setItem('sess',u);S.setItem('sk',b2(await crypto.subtle.exportKey('raw',k)));['kit','foxia_k'].forEach((n,i)=>{const v=i?d.keys:d.kit;v?S.setItem(n,v):S.removeItem(n)});L.removeItem('guest');location.reload()}
+async function entrar(u,pw,novo){u=u.trim().toLowerCase();if(!u||!pw)throw new Error('Preencha usuário e senha.');const id='acct:'+u;let a=L.getItem(id);
+if(novo){if(a)throw new Error('Esse usuário já existe.');if(pw.length<6)throw new Error('Use uma senha com 6 ou mais caracteres.');const salt=crypto.getRandomValues(new Uint8Array(16)),k=await dk(pw,salt),d={kit:L.getItem('kit'),keys:L.getItem('foxia_k')};L.setItem(id,JSON.stringify({salt:b2(salt),v:await enc(k,d)}));L.removeItem('kit');L.removeItem('foxia_k');return fin(u,k,d)}
+if(!a)throw new Error('Usuário não encontrado.');a=JSON.parse(a);const k=await dk(pw,u8(a.salt));let d;try{d=await dec(k,a.v)}catch(e){throw new Error('Senha incorreta.')}return fin(u,k,d)}
+const go=novo=>async()=>{$$('am').textContent='Aguarde…';try{await entrar($$('au').value,$$('ap').value,novo)}catch(e){$$('am').textContent=e.message}};
+$$('ai').onclick=go(false);$$('an').onclick=go(true);
+$$('ag').onclick=()=>{L.setItem('guest','1');$$('ac').hidden=true};
+if(!US&&L.getItem('guest')!='1')$$('ac').hidden=false;
+$$('ab').textContent=US?'Sair da conta ('+US+')':'Entrar ou criar conta';
+$$('ab').onclick=async()=>{if(US){await flush();['sess','sk','kit','foxia_k'].forEach(n=>S.removeItem(n));location.reload()}else{L.removeItem('guest');$$('gp').hidden=true;$$('ac').hidden=false}};
+})();
+</script>
+<script>
+(function(){
 const $$=i=>document.getElementById(i);
-const K=()=>{try{return JSON.parse(localStorage.getItem('foxia_k'))||{}}catch(e){return{}}};
+const K=()=>{try{return JSON.parse(ST().getItem('foxia_k'))||{}}catch(e){return{}}};
 const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
 const ft=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000);return fetch(u,{...o,signal:c.signal}).finally(()=>clearTimeout(t))};
 const b64=b=>new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(',')[1]);f.readAsDataURL(b)});
@@ -94,20 +119,20 @@ const j=await r.json();if(!r.ok)throw er(r.status,j);return j.content.filter(x=>
 async function gq0(k,m,t,im){if(im.length)throw new Error('não lê imagens');const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:t}]})});const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
 async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
-async function ge0(k,m,t,im){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}]})});
+async function ge0(k,m,t,im,w){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}],tools:w?[{google_search:{}}]:undefined})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
 async function lm(u,h){const r=await ft(u,{headers:h});const j=await r.json();if(!r.ok)throw er(r.status,j);return j}
 async function mq(k){const j=await lm('https://api.groq.com/openai/v1/models',{authorization:'Bearer '+k});const ids=(j.data||[]).map(x=>x.id);for(const p of ['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant'])if(ids.includes(p))return p;return ids.find(i=>!/whisper|tts|guard|orpheus|embed|prompt/i.test(i))}
 async function mg(k){const j=await lm('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{'x-goog-api-key':k});const v=x=>parseFloat(x.name.match(/gemini-([\d.]+)/)[1]);const f=(j.models||[]).filter(x=>/models\/gemini-[\d.]+-flash$/.test(x.name)&&(x.supportedGenerationMethods||[]).includes('generateContent')).sort((a,b)=>v(b)-v(a));return f.length?f[0].name.replace('models/',''):null}
 async function gq(k,m,t,im){try{return await gq0(k,m||await mq(k),t,im)}catch(e){if(m&&(e.code=='http_404'||/does not exist|model/i.test(e.message)))return await gq0(k,await mq(k),t,im);throw e}}
-async function ge(k,m,t,im){try{return await ge0(k,m,t,im)}catch(e){if(e.code=='http_404'||/n[ãa]o est[áa] mais dispon|no longer available|not found/i.test(e.message)){const a=await mg(k);if(a&&a!=m)return await ge0(k,a,t,im)}throw e}}
+async function ge(k,m,t,im,w){try{return await ge0(k,m,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,m,t,im,false);if(e.code=='http_404'||/n[ãa]o est[áa] mais dispon|no longer available|not found/i.test(e.message)){const a=await mg(k);if(a&&a!=m)return await ge0(k,a,t,im,w)}throw e}}
 const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){if(i<2&&/^http_5\d\d$/.test(e.code||''))await new Promise(r=>setTimeout(r,(window.FOXIA_RT||2500)*(i+1)));else throw e}}};
 const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';
 const base=t=='quick'?['q','g','o','c']:['c','o','q','g'];
-const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
+const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);if(o.web)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(!ord.length){$$('kp').hidden=false;const e=new Error('sem chave');e.code='sem_chave';throw e}
 const im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im));
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im,o.web));
 if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 err.message=errs.join(' | ');throw err};
 sample.limits=async()=>({images:true});
@@ -117,27 +142,27 @@ window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filen
 const F=['ck','ok','gk','qk','cm','om','gm','qm'];
 function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
-$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{localStorage.setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
-$$('ke').onclick=()=>dl('foxia-backup.json',localStorage.getItem('kit')||'{}');
+$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
+$$('ke').onclick=()=>dl('foxia-backup.json',ST().getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
-$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);localStorage.setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
+$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
 const k0=K();if(!(k0.ck||k0.ok||k0.gk||k0.qk))$$('kp').hidden=false;
 })();
 </script>
 <script>
 const $=i=>document.getElementById(i);
 const P0='Curiosa, direta e levemente brincalhona.';
-let M;try{M=JSON.parse(localStorage.getItem('kit'))}catch(e){}
+let M;try{M=JSON.parse(ST().getItem('kit'))}catch(e){}
 M=M||{fatos:[],padroes:[],persona:P0,hist:[],n:0};
 let DB,DOC,sv;
-const save=()=>{sync();M.t=Date.now();window.SV=true;try{localStorage.setItem('kit',JSON.stringify(M));window.SV=localStorage.getItem('kit')!=null}catch(e){window.SV=false}clearTimeout(sv);sv=setTimeout(()=>{prune();if(DOC)DOC.set(JSON.parse(JSON.stringify(M))).then(()=>ind('salvo na nuvem')).catch(e=>ind('erro ao salvar na nuvem: '+(e&&e.code||'?')));else ind(window.SV===false?'⚠ o navegador bloqueou o salvamento (aba anônima ou dados desativados)':'salvo neste aparelho')},800)};
+const save=()=>{sync();M.t=Date.now();window.SV=true;try{ST().setItem('kit',JSON.stringify(M));window.SV=ST().getItem('kit')!=null}catch(e){window.SV=false}clearTimeout(sv);sv=setTimeout(()=>{prune();if(DOC)DOC.set(JSON.parse(JSON.stringify(M))).then(()=>ind('salvo na nuvem')).catch(e=>ind('erro ao salvar na nuvem: '+(e&&e.code||'?')));else ind(window.SV===false?'⚠ o navegador bloqueou o salvamento (aba anônima ou dados desativados)':'salvo neste aparelho')},800)};
 const SK={resumir:'Habilidade: resuma o texto do usuário em tópicos curtos.',escrever:'Habilidade: escreva o texto pedido, pronto para usar.',revisar:'Habilidade: revise e corrija o texto do usuário; mostre a versão final primeiro e depois até 3 mudanças.',plano:'Habilidade: monte um plano de ação em passos curtos, com prioridade.'};
 const perfilTxt=()=>{const p=M.perfil||{};return [p.nome&&'chamar de '+p.nome,p.sobre,p.metas&&'objetivos: '+p.metas,p.rotina&&'rotina: '+p.rotina].filter(Boolean).join('; ')||'não informado'};
 function pintar(){$('log').textContent='';if(M.hist.length)M.hist.slice(-20).forEach(m=>add(m.r,m.t));else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
 $('pb').onclick=()=>{$('pf').hidden=false};$('pc').onclick=()=>{$('pf').hidden=true};
 $('ps').onclick=()=>{M.perfil={nome:$('p1').value.trim(),sobre:$('p2').value.trim(),metas:$('p3').value.trim(),rotina:$('p4').value.trim()};save();$('pf').hidden=true};
 /* memória fora do navegador (db), com o navegador como reserva */
-(async()=>{try{DB=await claude.use('db');const u=await claude.use('user');if(!DB||!u)return;const id=await u.id();if(!id)return;DOC=DB.doc('data/users/'+id+'/mem');carregarPesq();const s=await DOC.get();if(s.exists){const r=JSON.parse(JSON.stringify(s.data()));if((r.t||0)>(M.t||0)){M=r;try{localStorage.setItem('kit',JSON.stringify(M))}catch(e){}pintar()}}else if(M.t){DOC.set(JSON.parse(JSON.stringify(M))).catch(()=>{})}}catch(e){}})();
+(async()=>{try{DB=await claude.use('db');const u=await claude.use('user');if(!DB||!u)return;const id=await u.id();if(!id)return;DOC=DB.doc('data/users/'+id+'/mem');carregarPesq();const s=await DOC.get();if(s.exists){const r=JSON.parse(JSON.stringify(s.data()));if((r.t||0)>(M.t||0)){M=r;try{ST().setItem('kit',JSON.stringify(M))}catch(e){}pintar()}}else if(M.t){DOC.set(JSON.parse(JSON.stringify(M))).catch(()=>{})}}catch(e){}})();
 const status=()=>{$('st').textContent='memória: '+M.fatos.length+' fatos · '+M.padroes.length+' padrões'+(typeof IND=='string'&&IND?' · '+IND:'')};
 function add(r,t){const d=document.createElement('div');d.className='m '+r;d.textContent=t;$('log').append(d);$('log').scrollTop=1e9;return d}
 /* partículas que formam palavras */
@@ -240,11 +265,11 @@ const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
-const o={modelTier:tier,cache:false,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
+if($('web').checked)ca+=await sites(q);const o={modelTier:tier,cache:false,web:$('web').checked&&(escolher(q)=='expert'||/atual|hoje|not[ií]cia|recente|pesquis|pre[çc]o|202\d/i.test(q)),onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q+'\nFOXIA:',o);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);
-M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);
+M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
 catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco. ('+(e.message||'')+')':'Não consegui responder agora. Motivo: '+(e&&e.message||e)}
@@ -276,6 +301,27 @@ rec.onerror=e=>{if(e.error=='not-allowed'||e.error=='service-not-allowed')add('k
 rec.onend=()=>{rec=null;$('mic').classList.remove('on')};
 rec.start();$('mic').classList.add('on')}
 $('mic').onclick=()=>{if(!SR){add('k','Este navegador não tem reconhecimento de voz.');return}if(rec){rec.stop();return}try{mstart()}catch(e){rec=null}};
+/* respostas por voz, ações nas mensagens e leitura de sites */
+function dizer(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(VZ)u.voice=VZ;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
+function falar(t){if($('tts').checked)dizer(t)}
+const SEMANEXO=t=>t.replace(/\s*\[anexos:[^\]]*\]$/,'');
+function acoes(d,i,r){const a=document.createElement('div');a.className='ac';const mk=(x,ti,f)=>{const b=document.createElement('button');b.textContent=x;b.title=ti;b.onclick=f;a.append(b)};
+if(r=='u')mk('✎','Editar',()=>editar(i));else{mk('🔈','Ouvir',()=>{if(window.speechSynthesis&&speechSynthesis.speaking)speechSynthesis.cancel();else dizer(d.dataset.t||'')});if(i==M.hist.length-1)mk('↻','Refazer',refazer)}d.append(a)}
+function editar(i){if(busy)return;const m=M.hist[i];if(!m)return;M.hist=M.hist.slice(0,i);save();pintar();$('q').value=SEMANEXO(m.t);$('q').focus()}
+function refazer(){if(busy)return;const h=M.hist;if(h.length<2||h[h.length-1].r!='k')return;const u=h[h.length-2];M.hist=h.slice(0,-2);save();pintar();add('u',u.t);resp(SEMANEXO(u.t))}
+function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const o=Math.max(0,h.length-20);h.slice(o).forEach((m,k)=>{const d=add(m.r,m.t);d.dataset.t=m.t;acoes(d,o+k,m.r)})}else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
+async function sites(q){const us=(q.match(/https?:\/\/[^\s)]+/g)||[]).slice(0,3);let r='';for(const u of us){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);const x=await fetch('https://r.jina.ai/'+u,{signal:c.signal});clearTimeout(t);r+='\n[Conteúdo do site '+u+']\n'+(await x.text()).slice(0,8000)+'\n[Fim do site]\n'}catch(e){r+='\n[Não consegui abrir '+u+']\n'}}return r}
+/* microfone: grava e transcreve com o Whisper do Groq; sem chave do Groq, usa o reconhecimento do Chrome */
+let MR=null,CH=[];
+async function transcrever(bl){const k=JSON.parse(ST().getItem('foxia_k')||'{}'),h={authorization:'Bearer '+k.qk};const ml=await(await fetch('https://api.groq.com/openai/v1/models',{headers:h})).json();const ids=(ml.data||[]).map(x=>x.id).filter(i=>/whisper/i.test(i)),m=ids.find(i=>/turbo/i.test(i))||ids[0];if(!m)throw new Error('sem modelo de voz na sua conta Groq');
+const f=new FormData();f.append('file',bl,'voz.webm');f.append('model',m);f.append('language','pt');f.append('response_format','text');const r=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:h,body:f});if(!r.ok)throw new Error((await r.text()).slice(0,160));return(await r.text()).trim()}
+$('mic').onclick=async()=>{if(MR){MR.stop();return}
+const k=JSON.parse(ST().getItem('foxia_k')||'{}');
+if(k.qk&&navigator.mediaDevices&&window.MediaRecorder){try{const st=await navigator.mediaDevices.getUserMedia({audio:true});CH=[];MR=new MediaRecorder(st);MR.ondataavailable=e=>e.data.size&&CH.push(e.data);
+MR.onstop=async()=>{st.getTracks().forEach(t=>t.stop());$('mic').classList.remove('on');const bl=new Blob(CH,{type:MR.mimeType||'audio/webm'});MR=null;$('q').placeholder='Transcrevendo…';try{const t=await transcrever(bl);$('q').value=(($('q').value?$('q').value.trim()+' ':'')+t).trim()}catch(e){add('k','Não consegui transcrever: '+e.message)}$('q').placeholder='Fale com a raposa…'};
+MR.start();$('mic').classList.add('on');$('q').placeholder='Gravando… toque no 🎤 para parar';return}catch(e){add('k','Microfone indisponível: '+(e.name=='NotAllowedError'?'permita o microfone para este site nas configurações do Chrome.':e.message));return}}
+if(!SR){add('k','Para usar o microfone, coloque a chave do Groq em IAs ou use um navegador com reconhecimento de voz.');return}
+if(rec){rec.stop();return}try{mstart()}catch(e){rec=null}};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
