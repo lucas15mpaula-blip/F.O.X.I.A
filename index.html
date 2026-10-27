@@ -269,6 +269,13 @@ if(!M.hist.length){ind('este chat já está vazio');return}
 if(b.dataset.c){clearTimeout(b._t);delete b.dataset.c;b.textContent='🗑️';const id=M.cur;M.chats=(M.chats||[]).filter(x=>x.id!=id);const o=M.chats.slice().sort((a,c)=>(c.tm||0)-(a.tm||0))[0];if(o){M.cur=o.id;M.hist=o.h.slice()}else{M.cur='c'+Date.now();M.hist=[]}save();pintar();ind('chat apagado')}
 else{b.dataset.c=1;b.textContent='Apagar este chat?';b._t=setTimeout(()=>{delete b.dataset.c;b.textContent='🗑️'},4000)}};
 $('mw').onclick=()=>{const b=$('mw');if(b.dataset.c){delete b.dataset.c;b.textContent='Limpar toda a memória';M.fatos=[];M.padroes=[];M.persona=P0;save();memv();status()}else{b.dataset.c=1;b.textContent='Toque de novo para confirmar'}};
+/* microfone: uma frase por vez; usa só o último trecho para não repetir */
+function mstart(){rec=new SR();rec.lang='pt-BR';rec.interimResults=true;rec.continuous=false;const base=$('q').value?$('q').value.trim()+' ':'';
+rec.onresult=e=>{$('q').value=(base+e.results[e.results.length-1][0].transcript).trim()};
+rec.onerror=e=>{if(e.error=='not-allowed'||e.error=='service-not-allowed')add('k','Microfone bloqueado. Permita o microfone para este site nas configurações do Chrome.');else if(e.error!='no-speech'&&e.error!='aborted')add('k','Microfone indisponível ('+e.error+').')};
+rec.onend=()=>{rec=null;$('mic').classList.remove('on')};
+rec.start();$('mic').classList.add('on')}
+$('mic').onclick=()=>{if(!SR){add('k','Este navegador não tem reconhecimento de voz.');return}if(rec){rec.stop();return}try{mstart()}catch(e){rec=null}};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
