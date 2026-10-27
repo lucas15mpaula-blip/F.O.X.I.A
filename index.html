@@ -36,6 +36,11 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .fl{font-size:13px;opacity:.7}
 .ch.on{background:var(--b);border-color:var(--b)}
 #pf,#kp{z-index:7}
+.dots{display:inline-flex;gap:6px;align-items:center;height:20px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--b);animation:pul 1s infinite ease-in-out}
+.dots i:nth-child(2){background:var(--r);animation-delay:.15s}
+.dots i:nth-child(3){animation-delay:.3s}
+@keyframes pul{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-8px);opacity:1}}
 #mp{position:fixed;inset:0;z-index:7;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}#mp[hidden]{display:none}#mp h2{margin:0;font-size:18px}#mp input{font-size:16px}
 #cp{inset:0 auto 0 0;width:min(82%,320px);z-index:9;box-shadow:0 0 40px #000;background:#080f26}
 #bd{display:none;position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.55)}
@@ -63,9 +68,9 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)">
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
-<div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mc">Fechar</button></div></div>
+<div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc">Fechar</button></div></div>
 <div id="log"></div>
-<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar memória e conversas">🗑️</button><button id="rb">Pesquisas</button></div>
+<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
@@ -102,7 +107,7 @@ const base=t=='quick'?['q','g','o','c']:['c','o','q','g'];
 const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
 if(!ord.length){$$('kp').hidden=false;const e=new Error('sem chave');e.code='sem_chave';throw e}
 const im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-for(const p of ord){try{o.onText&&o.onText({text:'… '+({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]});const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im));
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im));
 if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 err.message=errs.join(' | ');throw err};
 sample.limits=async()=>({images:true});
@@ -162,7 +167,7 @@ const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).joi
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');document.body.classList.add('think');
+busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
 out.textContent=r.text;M.hist.push({r:'u',t:q},{r:'k',t:r.text});M.hist=M.hist.slice(-60);M.n++;save();falar(r.text);formar(r.text);if(M.n%4==0)aprender()}
 catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco. ('+(e.message||'')+')':'Não consegui responder agora. Motivo: '+(e&&e.message||e)}
@@ -233,7 +238,7 @@ $('q').value='';if(rec)rec.stop();const a=AX;AX=[];chips();add('u',(q||'(arquivo
 async function resp(q,a=[]){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');document.body.classList.add('think');
+busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
 const o={modelTier:tier,cache:false,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
@@ -259,6 +264,11 @@ pintar();
 function memv(){const l=$('ml');l.textContent=M.fatos.length?'':'Ainda não guardei nada.';M.fatos.forEach((f,i)=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const t=document.createElement('span');t.style.flex='1';t.textContent=f;const d=document.createElement('button');d.textContent='✕';d.onclick=()=>{M.fatos.splice(i,1);save();memv();status()};r.append(t,d);l.append(r)})}
 $('mv').onclick=()=>{memv();$('mp').hidden=false};$('mc').onclick=()=>{$('mp').hidden=true};
 $('ma').onclick=()=>{const v=$('mn').value.trim();if(v){M.fatos.push(v.slice(0,200));M.fatos=M.fatos.slice(-40);save();$('mn').value='';memv();status()}};
+$('fg').onclick=()=>{const b=$('fg');
+if(!M.hist.length){ind('este chat já está vazio');return}
+if(b.dataset.c){clearTimeout(b._t);delete b.dataset.c;b.textContent='🗑️';const id=M.cur;M.chats=(M.chats||[]).filter(x=>x.id!=id);const o=M.chats.slice().sort((a,c)=>(c.tm||0)-(a.tm||0))[0];if(o){M.cur=o.id;M.hist=o.h.slice()}else{M.cur='c'+Date.now();M.hist=[]}save();pintar();ind('chat apagado')}
+else{b.dataset.c=1;b.textContent='Apagar este chat?';b._t=setTimeout(()=>{delete b.dataset.c;b.textContent='🗑️'},4000)}};
+$('mw').onclick=()=>{const b=$('mw');if(b.dataset.c){delete b.dataset.c;b.textContent='Limpar toda a memória';M.fatos=[];M.padroes=[];M.persona=P0;save();memv();status()}else{b.dataset.c=1;b.textContent='Toque de novo para confirmar'}};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
