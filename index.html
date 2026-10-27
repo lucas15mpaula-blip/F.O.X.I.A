@@ -36,6 +36,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .fl{font-size:13px;opacity:.7}
 .ch.on{background:var(--b);border-color:var(--b)}
 #pf,#kp{z-index:7}
+#mp{position:fixed;inset:0;z-index:7;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}#mp[hidden]{display:none}#mp h2{margin:0;font-size:18px}#mp input{font-size:16px}
 #cp{inset:0 auto 0 0;width:min(82%,320px);z-index:9;box-shadow:0 0 40px #000;background:#080f26}
 #bd{display:none;position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.55)}
 #cp:not([hidden])+#bd{display:block}
@@ -62,10 +63,11 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)">
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
+<div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mc">Fechar</button></div></div>
 <div id="log"></div>
 <div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><label title="Voz"><input type="checkbox" id="tts" checked>🔊</label><button id="fg" aria-label="Apagar memória e conversas">🗑️</button><button id="rb">Pesquisas</button></div>
 <div id="gp" hidden><h2>Configurações</h2>
-<button id="pb">Perfil</button><button id="kb">IAs e chaves</button>
+<button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <h2>Comportamento da IA</h2>
@@ -155,7 +157,7 @@ padrao:['default','Explique o suficiente para entender, em 1 a 3 parágrafos cur
 expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Avise em uma frase que você não navegou na internet e respondeu com seu conhecimento.']};
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
 const n=q.split(/\s+/).length;if(/profund|detalh|analis|expert|completo/i.test(q)||n>30)return 'expert';return n<6?'simples':'padrao'}
-const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
@@ -237,14 +239,14 @@ const o={modelTier:tier,cache:false,onText:t=>{out.textContent=limpa(t.text);$('
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q+'\nFOXIA:',o);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);
-M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);
+M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
 catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco. ('+(e.message||'')+')':'Não consegui responder agora. Motivo: '+(e&&e.message||e)}
 document.body.classList.remove('think');busy=false}
 function outras(){const r=[];(M.chats||[]).filter(c=>c.id!=M.cur).sort((a,b)=>(b.tm||0)-(a.tm||0)).slice(0,4).forEach(c=>c.h.filter(m=>m.r=='u').slice(-3).forEach(m=>r.push(String(m.t).slice(0,160))));return r.length?r.join(' | '):'nenhum'}
 async function aprender(){try{const s=await window.claude?.use('sample');if(!s)return;
-const r=await s('Você mantém a memória de longo prazo de uma IA sobre o usuário. Fatos já conhecidos: '+JSON.stringify(M.fatos)+'\nConversa recente:\n'+hist(6)+'\nListe SOMENTE o que for novo e duradouro sobre o usuário e ainda não estiver nos fatos conhecidos (nome, idade, gostos, objetivos, rotina, pessoas importantes, preferências). Responda SOMENTE um objeto JSON, sem texto extra: {"novos":["fato curto"],"padroes":["hábito ou interesse recorrente"],"persona":"2 frases sobre a personalidade que a IA deve ter com este usuário, ou vazio se nada mudou"}. Use listas vazias se não houver nada novo.',{cache:false,modelTier:'quick'});
+const r=await s('Você mantém a memória de longo prazo de uma IA sobre o usuário. Fatos já conhecidos: '+JSON.stringify(M.fatos)+'\nConversa recente:\n'+hist(6)+'\nListe SOMENTE o que for novo e duradouro sobre o usuário e ainda não estiver nos fatos conhecidos (nome, idade, gostos, objetivos, rotina, pessoas importantes, preferências). Se o usuário pedir para lembrar, guardar ou anotar algo (um código, uma data, um nome), inclua isso exatamente como um fato. Responda SOMENTE um objeto JSON, sem texto extra: {"novos":["fato curto"],"padroes":["hábito ou interesse recorrente"],"persona":"2 frases sobre a personalidade que a IA deve ter com este usuário, ou vazio se nada mudou"}. Use listas vazias se não houver nada novo.',{cache:false,modelTier:'quick'});
 const j=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]);
 const nv=(Array.isArray(j.novos)?j.novos:[]).map(x=>String(x).trim()).filter(x=>x&&!M.fatos.includes(x));
 const pd=(Array.isArray(j.padroes)?j.padroes:[]).map(x=>String(x).trim()).filter(x=>x&&!M.padroes.includes(x));
@@ -254,6 +256,9 @@ setTimeout(carregarPesq,2500);
 pintar();
 </script>
 <script>pedir=()=>{};try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+function memv(){const l=$('ml');l.textContent=M.fatos.length?'':'Ainda não guardei nada.';M.fatos.forEach((f,i)=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const t=document.createElement('span');t.style.flex='1';t.textContent=f;const d=document.createElement('button');d.textContent='✕';d.onclick=()=>{M.fatos.splice(i,1);save();memv();status()};r.append(t,d);l.append(r)})}
+$('mv').onclick=()=>{memv();$('mp').hidden=false};$('mc').onclick=()=>{$('mp').hidden=true};
+$('ma').onclick=()=>{const v=$('mn').value.trim();if(v){M.fatos.push(v.slice(0,200));M.fatos=M.fatos.slice(-40);save();$('mn').value='';memv();status()}};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
