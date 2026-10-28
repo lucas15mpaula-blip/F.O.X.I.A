@@ -37,6 +37,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .ch.on{background:var(--b);border-color:var(--b)}
 #pf,#kp{z-index:7}
 #ac{position:fixed;inset:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 16px;display:flex;flex-direction:column;gap:10px;overflow:auto}#ac[hidden]{display:none}#ac input,#ac button{font-size:16px}
+.cd{margin-top:8px;padding:8px;border:1px solid var(--ln);border-radius:10px;white-space:pre-wrap}.cd button{margin:8px 6px 0 0}
 .ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:2px 9px;font-size:14px;opacity:.75;border-radius:8px}
 .dots{display:inline-flex;gap:6px;align-items:center;height:20px}
 .dots i{width:9px;height:9px;border-radius:50%;background:var(--b);animation:pul 1s infinite ease-in-out}
@@ -66,19 +67,19 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><div id="cl"></div><button id="cc">Fechar</button></div><div id="bd"></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc">Fechar</button></div>
 <div id="kp" hidden><h2>IAs (as chaves ficam só neste aparelho)</h2>
-<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)">
+<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="gid" placeholder="ID de cliente do Google (e-mail e agenda)">
 <input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)">
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc">Fechar</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc">Fechar</button></div></div>
-<div id="ac" hidden><h2>F.O.X.I.A</h2><p class="fl">Crie uma conta para guardar suas chaves e memória protegidas por senha <b>neste aparelho</b>. Se esquecer a senha, não há como recuperar os dados.</p><input id="au" placeholder="Usuário" autocapitalize="none" autocomplete="off"><input id="ap" type="password" placeholder="Senha"><div class="fl" id="am"></div><div class="row" style="padding:0"><button id="ai">Entrar</button><button id="an">Criar conta</button></div><button id="ag">Continuar sem conta</button></div>
+<div id="ac" hidden><h2>F.O.X.I.A</h2><p class="fl">Crie uma conta para guardar suas chaves e memória protegidas por senha <b>neste aparelho</b>. Se esquecer a senha, não há como recuperar os dados.</p><input id="au" placeholder="Usuário" autocapitalize="none" autocomplete="off"><input id="ap" type="password" placeholder="Senha"><div class="fl" id="am"></div><div class="row" style="padding:0"><button id="ai">Entrar</button><button id="an">Criar conta</button></div><button id="ag">Continuar sem conta</button><button id="ii">Importar conta (arquivo)</button><input type="file" id="if" hidden accept=".json"><input id="ig" placeholder="ID de cliente do Google (para restaurar de outro aparelho)"><button id="rg">Restaurar do Google</button></div>
 <div id="log"></div>
 <div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="web" checked>Acesso à web (ler links e pesquisar)</label><button id="ab">Conta</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="web" checked>Acesso à web (ler links e pesquisar)</label><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
@@ -93,17 +94,22 @@ async function dk(pw,salt){const m=await crypto.subtle.importKey('raw',new TextE
 async function enc(k,o){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(o)));return{iv:b2(iv),d:b2(c)}}
 async function dec(k,o){return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:u8(o.iv)},k,u8(o.d))))}
 window.ST=()=>{const b=US?S:L;return{getItem:k=>b.getItem(k),setItem:(k,v)=>{b.setItem(k,v);if(US){clearTimeout(T);T=setTimeout(flush,600)}}}};
-async function flush(){try{if(!US)return;if(!AK)AK=await crypto.subtle.importKey('raw',u8(S.getItem('sk')),'AES-GCM',true,['encrypt','decrypt']);const a=JSON.parse(L.getItem('acct:'+US));a.v=await enc(AK,{kit:S.getItem('kit'),keys:S.getItem('foxia_k')});L.setItem('acct:'+US,JSON.stringify(a))}catch(e){}}
+async function flush(){try{if(!US)return;if(!AK)AK=await crypto.subtle.importKey('raw',u8(S.getItem('sk')),'AES-GCM',true,['encrypt','decrypt']);const a=JSON.parse(L.getItem('acct:'+US));a.v=await enc(AK,{kit:S.getItem('kit'),keys:S.getItem('foxia_k')});L.setItem('acct:'+US,JSON.stringify(a));if(window.nuvem)window.nuvem(US)}catch(e){}}
 async function fin(u,k,d){S.setItem('sess',u);S.setItem('sk',b2(await crypto.subtle.exportKey('raw',k)));['kit','foxia_k'].forEach((n,i)=>{const v=i?d.keys:d.kit;v?S.setItem(n,v):S.removeItem(n)});L.removeItem('guest');location.reload()}
-async function entrar(u,pw,novo){u=u.trim().toLowerCase();if(!u||!pw)throw new Error('Preencha usuário e senha.');const id='acct:'+u;let a=L.getItem(id);
+async function entrar(u,pw,novo){u=u.trim().toLowerCase();if(!u||!pw)throw new Error('Preencha usuário e senha.');if(novo&&!/^[a-z0-9._-]{3,30}$/.test(u))throw new Error('Usuário: 3 a 30 caracteres (letras minúsculas, números, ponto, traço ou _).');const id='acct:'+u;let a=L.getItem(id);
 if(novo){if(a)throw new Error('Esse usuário já existe.');if(pw.length<6)throw new Error('Use uma senha com 6 ou mais caracteres.');const salt=crypto.getRandomValues(new Uint8Array(16)),k=await dk(pw,salt),d={kit:L.getItem('kit'),keys:L.getItem('foxia_k')};L.setItem(id,JSON.stringify({salt:b2(salt),v:await enc(k,d)}));L.removeItem('kit');L.removeItem('foxia_k');return fin(u,k,d)}
-if(!a)throw new Error('Usuário não encontrado.');a=JSON.parse(a);const k=await dk(pw,u8(a.salt));let d;try{d=await dec(k,a.v)}catch(e){throw new Error('Senha incorreta.')}return fin(u,k,d)}
+if(!a)throw new Error('Usuário não encontrado neste navegador. As contas ficam salvas só onde foram criadas; use Importar conta para trazer uma de outro lugar.');a=JSON.parse(a);const k=await dk(pw,u8(a.salt));let d;try{d=await dec(k,a.v)}catch(e){throw new Error('Senha incorreta.')}return fin(u,k,d)}
 const go=novo=>async()=>{$$('am').textContent='Aguarde…';try{await entrar($$('au').value,$$('ap').value,novo)}catch(e){$$('am').textContent=e.message}};
+const nomes=Object.keys(L).filter(k=>k.startsWith('acct:')).map(k=>k.slice(5)),ant=L.getItem('foxia_seen');L.setItem('foxia_seen',new Date().toLocaleString('pt-BR'));
+$$('am').textContent=(nomes.length?'Contas neste navegador: '+nomes.join(', '):'Nenhuma conta encontrada neste navegador')+' · Última visita aqui: '+(ant||'nenhuma registrada');
+$$('ii').onclick=()=>$$('if').click();
+$$('if').onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!j.nome||!j.blob||!j.blob.salt)throw 0;L.setItem('acct:'+j.nome,JSON.stringify(j.blob));$$('am').textContent='Conta "'+j.nome+'" importada. Agora é só entrar.'}catch(x){$$('am').textContent='Arquivo de conta inválido.'}};
+$$('ae').hidden=!US;$$('ae').onclick=async()=>{if(!US)return;await flush();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({nome:US,blob:JSON.parse(L.getItem('acct:'+US))})]));a.download='foxia-conta-'+US+'.json';document.body.append(a);a.click();a.remove()};
 $$('ai').onclick=go(false);$$('an').onclick=go(true);
 $$('ag').onclick=()=>{L.setItem('guest','1');$$('ac').hidden=true};
 if(!US&&L.getItem('guest')!='1')$$('ac').hidden=false;
 $$('ab').textContent=US?'Sair da conta ('+US+')':'Entrar ou criar conta';
-$$('ab').onclick=async()=>{if(US){await flush();['sess','sk','kit','foxia_k'].forEach(n=>S.removeItem(n));location.reload()}else{L.removeItem('guest');$$('gp').hidden=true;$$('ac').hidden=false}};
+$$('ab').onclick=async()=>{if(US){await flush();if(window.nuvemJa)await window.nuvemJa(US);['sess','sk','kit','foxia_k'].forEach(n=>S.removeItem(n));location.reload()}else{L.removeItem('guest');$$('gp').hidden=true;$$('ac').hidden=false}};
 })();
 </script>
 <script>
@@ -139,10 +145,10 @@ sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
 window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
-const F=['ck','ok','gk','qk','cm','om','gm','qm'];
+const F=['ck','ok','gk','qk','gid','cm','om','gm','qm'];
 function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
-$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
+$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}try{if(k.gid)localStorage.setItem('foxia_gid',k.gid)}catch(e){}$$('kp').hidden=true};
 $$('ke').onclick=()=>dl('foxia-backup.json',ST().getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
 $$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
@@ -244,7 +250,7 @@ $('at').onclick=()=>$('fi').click();
 $('fi').onchange=async e=>{for(const f of e.target.files){try{if(f.type.startsWith('image/'))AX.push({n:f.name,img:await peq(f)});else if(f.type.startsWith('text/')||/\.(txt|md|csv|json|html|js|py|xml|log)$/i.test(f.name))AX.push({n:f.name,tx:(await f.text()).slice(0,12000)});else add('k','Ainda não leio '+f.name+' (PDF e vídeo ficam para a próxima versão). Aceito fotos e arquivos de texto.')}catch(x){add('k','Não consegui ler '+f.name)}}e.target.value='';chips()};
 /* arquivos gerados */
 const ARQ=' Se o usuário pedir um arquivo de texto (txt, md, csv, html, json ou código), entregue-o uma única vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou. Você não gera PDF, Word, Excel nem vídeo.';
-const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1');
+const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1').replace(/<<<ACAO[\s\S]*?(>>>|$)/g,'');
 function fx(el,t){const re=/<<<ARQUIVO\s+([^>\n]+?)\s*>>>\n?([\s\S]*?)<<<FIM>>>/g;let m;while(m=re.exec(t)){const n=m[1].trim(),c=m[2];const b=document.createElement('button');b.style.cssText='display:block;margin-top:6px';b.textContent='⬇ '+n;b.onclick=async()=>{try{const d=await claude.use('downloads');if(!d){ind('download indisponível');return}await d.save({filename:n,data:c})}catch(e){ind('não consegui baixar: '+(e&&e.code||'erro'))}};el.append(b)}}
 /* pesquisas feitas pelo Claude (salvas no banco) */
 async function carregarPesq(){try{if(!DB)return;const q=await DB.collection('pesquisas').get();PQ=q.docs.map(d=>d.data()).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,20)}catch(e){}}
@@ -267,8 +273,8 @@ busy=true;const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.inner
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
 if($('web').checked)ca+=await sites(q);const o={modelTier:tier,cache:false,web:$('web').checked&&(escolher(q)=='expert'||/atual|hoje|not[ií]cia|recente|pesquis|pre[çc]o|202\d/i.test(q)),onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
-const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q+'\nFOXIA:',o);
-const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);
+const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q+'\nFOXIA:',o);
+const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
@@ -322,6 +328,41 @@ MR.onstop=async()=>{st.getTracks().forEach(t=>t.stop());$('mic').classList.remov
 MR.start();$('mic').classList.add('on');$('q').placeholder='Gravando… toque no 🎤 para parar';return}catch(e){add('k','Microfone indisponível: '+(e.name=='NotAllowedError'?'permita o microfone para este site nas configurações do Chrome.':e.message));return}}
 if(!SR){add('k','Para usar o microfone, coloque a chave do Groq em IAs ou use um navegador com reconhecimento de voz.');return}
 if(rec){rec.stop();return}try{mstart()}catch(e){rec=null}};
+/* conectores Google: e-mail e agenda (sempre com confirmação) */
+const ESC1='https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events',ESCD='https://www.googleapis.com/auth/drive.appdata',TK={};
+const GID=()=>JSON.parse(ST().getItem('foxia_k')||'{}').gid||localStorage.getItem('foxia_gid')||'';
+function gsi(){if(!document.querySelector('script[src*="gsi/client"]')){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';document.head.append(s)}}
+if(GID())gsi();
+function gtoken(sc=ESC1){return new Promise((ok,no)=>{const id=GID();if(!id)return no(new Error('Cole o ID de cliente do Google em IAs e chaves.'));const c=TK[sc];if(c&&Date.now()<c.x)return ok(c.t);
+if(!(window.google&&google.accounts&&google.accounts.oauth2))return no(new Error('O login do Google ainda não carregou. Aguarde um instante e tente de novo.'));
+google.accounts.oauth2.initTokenClient({client_id:id,scope:sc,callback:r=>{if(r.error)return no(new Error(r.error_description||r.error));TK[sc]={t:r.access_token,x:Date.now()+(r.expires_in-60)*1000};ok(r.access_token)},error_callback:e=>no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'))}).requestAccessToken()})}
+const b64=s=>{let x='';new TextEncoder().encode(s).forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
+async function gapi(u,corpo){const t=await gtoken();const r=await fetch(u,{method:'POST',headers:{authorization:'Bearer '+t,'content-type':'application/json'},body:JSON.stringify(corpo)});if(!r.ok){if(r.status==401)delete TK[ESC1];throw new Error((await r.text()).slice(0,200))}}
+const enviarEmail=a=>gapi('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{raw:b64('To: '+a.para+'\r\nSubject: =?UTF-8?B?'+b64(a.assunto)+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+b64(a.corpo)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')});
+const criarEvento=a=>{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;return gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events',{summary:a.titulo,description:a.descricao||'',location:a.local||'',start:{dateTime:a.inicio,timeZone:tz},end:{dateTime:a.fim,timeZone:tz}})};
+const ACAO=()=>JSON.parse(ST().getItem('foxia_k')||'{}').gid?' Se o usuário pedir para enviar e-mail ou marcar compromisso na agenda, responda com UM bloco <<<ACAO {"tipo":"email","para":"x@y.com","assunto":"...","corpo":"..."} >>> ou <<<ACAO {"tipo":"evento","titulo":"...","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""} >>> (JSON válido, em uma linha) mais uma frase curta. Nunca diga que já enviou ou criou: o usuário confirma num cartão. Se faltar o e-mail, a data ou a hora, pergunte antes. Agora é '+new Date().toString()+'.':'';
+function cartoes(el,t){const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}
+const em=a.tipo=='email';if(em?!(a.para&&a.assunto&&a.corpo):!(a.tipo=='evento'&&a.titulo&&a.inicio&&a.fim))continue;
+const c=document.createElement('div');c.className='cd';c.textContent=em?'✉ Enviar e-mail\nPara: '+a.para+'\nAssunto: '+a.assunto+'\n\n'+a.corpo:'📅 Criar evento\n'+a.titulo+'\nInício: '+a.inicio+'\nFim: '+a.fim+(a.local?'\nLocal: '+a.local:'');
+const ok=document.createElement('button'),no=document.createElement('button');ok.textContent=em?'Enviar':'Criar evento';no.textContent='Cancelar';
+ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Aguarde…';try{await(em?enviarEmail(a):criarEvento(a));c.textContent=em?'✅ E-mail enviado para '+a.para:'✅ Evento criado: '+a.titulo}catch(e){c.textContent='⚠ Não deu certo: '+e.message}};
+no.onclick=()=>c.remove();c.append(ok,no);el.append(c)}}
+$('gcon').onclick=()=>gtoken().then(()=>{ind('Google conectado');$('gp').hidden=true}).catch(e=>add('k','Google: '+e.message));
+/* backup da conta no Google Drive (pasta oculta do app; só o arquivo criptografado) */
+const DR='https://www.googleapis.com';
+async function dget(u,t){const r=await fetch(u,{headers:{authorization:'Bearer '+t}});if(!r.ok)throw new Error((await r.text()).slice(0,160));return r}
+async function driveUp(user){const t=await gtoken(ESCD),nome='foxia-'+user+'.json',blob=localStorage.getItem('acct:'+user);if(!blob)throw new Error('conta local não encontrada');
+const f=(await(await dget(DR+'/drive/v3/files?spaces=appDataFolder&fields=files(id)&q='+encodeURIComponent("name='"+nome+"'"),t)).json()).files||[];let r;
+if(f.length)r=await fetch(DR+'/upload/drive/v3/files/'+f[0].id+'?uploadType=media',{method:'PATCH',headers:{authorization:'Bearer '+t,'content-type':'application/json'},body:blob});
+else{const bd='fx'+Date.now();r=await fetch(DR+'/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{authorization:'Bearer '+t,'content-type':'multipart/related; boundary='+bd},body:'--'+bd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({name:nome,parents:['appDataFolder']})+'\r\n--'+bd+'\r\nContent-Type: application/json\r\n\r\n'+blob+'\r\n--'+bd+'--'})}
+if(!r.ok)throw new Error((await r.text()).slice(0,160))}
+async function driveRestore(){const t=await gtoken(ESCD);const fs=((await(await dget(DR+'/drive/v3/files?spaces=appDataFolder&pageSize=50&fields=files(id,name)',t)).json()).files||[]).filter(f=>/^foxia-.+\.json$/.test(f.name));const ns=[];for(const f of fs){const tx=await(await dget(DR+'/drive/v3/files/'+f.id+'?alt=media',t)).text();JSON.parse(tx);const n=f.name.slice(6,-5);localStorage.setItem('acct:'+n,tx);ns.push(n)}return ns}
+let NT;window.nuvem=u=>{if(localStorage.getItem('foxia_bk')!='1')return;clearTimeout(NT);NT=setTimeout(async()=>{const c=TK[ESCD];if(!(c&&Date.now()<c.x)){ind('backup no Google pendente: toque em Sincronizar agora');return}try{await driveUp(u);ind('backup no Google: ok')}catch(e){ind('backup no Google falhou')}},15000)};
+window.nuvemJa=async u=>{if(localStorage.getItem('foxia_bk')!='1')return;try{await driveUp(u)}catch(e){}};
+$('sy').onclick=async()=>{const u=sessionStorage.getItem('sess');if(!u){add('k','Entre em uma conta para sincronizar.');return}$('sy').textContent='Sincronizando…';try{await driveUp(u);ind('backup no Google: ok');add('k','Backup salvo no seu Google Drive (pasta oculta do app).')}catch(e){add('k','Backup no Google falhou: '+e.message)}$('sy').textContent='Sincronizar agora'};
+$('bk').checked=localStorage.getItem('foxia_bk')=='1';$('bk').onchange=()=>{localStorage.setItem('foxia_bk',$('bk').checked?'1':'0');if($('bk').checked)gtoken(ESCD).then(()=>ind('Google Drive autorizado')).catch(e=>add('k','Google: '+e.message))};
+$('ig').value=localStorage.getItem('foxia_gid')||'';$('ig').onchange=()=>{localStorage.setItem('foxia_gid',$('ig').value.trim());gsi()};
+$('rg').onclick=async()=>{try{$('am').textContent='Procurando suas contas no Google Drive…';const ns=await driveRestore();$('am').textContent=ns.length?'Contas restauradas: '+ns.join(', ')+'. Agora entre com a senha.':'Nenhum backup encontrado nesse Google.'}catch(e){$('am').textContent='Não consegui restaurar: '+e.message}};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
