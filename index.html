@@ -79,7 +79,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="web" checked>Acesso à web (ler links e pesquisar)</label><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="web" checked>Acesso à web (ler links e pesquisar)</label><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="nce">Criar eventos na agenda sem pedir confirmação</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ncm">Enviar e-mails sem pedir confirmação</label><button id="sy">Sincronizar agora</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
@@ -190,7 +190,7 @@ function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=n
 const MODOS={
 simples:['quick','Explique apenas o que é, em no máximo 3 frases simples, sem se aprofundar.'],
 padrao:['default','Explique o suficiente para entender, em 1 a 3 parágrafos curtos, com um exemplo.'],
-expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Avise em uma frase que você não navegou na internet e respondeu com seu conhecimento.']};
+expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Se não pesquisou nem abriu sites, avise em uma frase que respondeu com seu conhecimento.']};
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
 const n=q.split(/\s+/).length;if(/profund|detalh|analis|expert|completo/i.test(q)||n>30)return 'expert';return n<6?'simples':'padrao'}
 const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
@@ -274,7 +274,7 @@ try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[A
 if($('web').checked)ca+=await sites(q);const o={modelTier:tier,cache:false,web:$('web').checked&&(escolher(q)=='expert'||/atual|hoje|not[ií]cia|recente|pesquis|pre[çc]o|202\d/i.test(q)),onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q+'\nFOXIA:',o);
-const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);
+const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text,q);
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
@@ -314,7 +314,7 @@ const SEMANEXO=t=>t.replace(/\s*\[anexos:[^\]]*\]$/,'');
 function acoes(d,i,r){const a=document.createElement('div');a.className='ac';const mk=(x,ti,f)=>{const b=document.createElement('button');b.textContent=x;b.title=ti;b.onclick=f;a.append(b)};
 if(r=='u')mk('✎','Editar',()=>editar(i));else{mk('🔈','Ouvir',()=>{if(window.speechSynthesis&&speechSynthesis.speaking)speechSynthesis.cancel();else dizer(d.dataset.t||'')});if(i==M.hist.length-1)mk('↻','Refazer',refazer)}d.append(a)}
 function editar(i){if(busy)return;const m=M.hist[i];if(!m)return;M.hist=M.hist.slice(0,i);save();pintar();$('q').value=SEMANEXO(m.t);$('q').focus()}
-function refazer(){if(busy)return;const h=M.hist;if(h.length<2||h[h.length-1].r!='k')return;const u=h[h.length-2];M.hist=h.slice(0,-2);save();pintar();add('u',u.t);resp(SEMANEXO(u.t))}
+function refazer(){if(busy)return;const h=M.hist;if(h.length<2||h[h.length-1].r!='k')return;let j=h.length-1;while(j>=0&&h[j].r!='u')j--;if(j<0)return;const u=h[j];M.hist=h.slice(0,j);save();pintar();add('u',u.t);resp(SEMANEXO(u.t))}
 function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const o=Math.max(0,h.length-20);h.slice(o).forEach((m,k)=>{const d=add(m.r,m.t);d.dataset.t=m.t;acoes(d,o+k,m.r)})}else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
 async function sites(q){const us=(q.match(/https?:\/\/[^\s)]+/g)||[]).slice(0,3);let r='';for(const u of us){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);const x=await fetch('https://r.jina.ai/'+u,{signal:c.signal});clearTimeout(t);r+='\n[Conteúdo do site '+u+']\n'+(await x.text()).slice(0,8000)+'\n[Fim do site]\n'}catch(e){r+='\n[Não consegui abrir '+u+']\n'}}return r}
 /* microfone: grava e transcreve com o Whisper do Groq; sem chave do Groq, usa o reconhecimento do Chrome */
@@ -329,7 +329,7 @@ MR.start();$('mic').classList.add('on');$('q').placeholder='Gravando… toque no
 if(!SR){add('k','Para usar o microfone, coloque a chave do Groq em IAs ou use um navegador com reconhecimento de voz.');return}
 if(rec){rec.stop();return}try{mstart()}catch(e){rec=null}};
 /* conectores Google: e-mail e agenda (sempre com confirmação) */
-const ESC1='https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events',ESCD='https://www.googleapis.com/auth/drive.appdata',TK={};
+const ESC1='https://mail.google.com/ https://www.googleapis.com/auth/calendar.events',ESCD='https://www.googleapis.com/auth/drive.appdata',TK={};
 const GID=()=>JSON.parse(ST().getItem('foxia_k')||'{}').gid||localStorage.getItem('foxia_gid')||'';
 function gsi(){if(!document.querySelector('script[src*="gsi/client"]')){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';document.head.append(s)}}
 if(GID())gsi();
@@ -337,16 +337,79 @@ function gtoken(sc=ESC1){return new Promise((ok,no)=>{const id=GID();if(!id)retu
 if(!(window.google&&google.accounts&&google.accounts.oauth2))return no(new Error('O login do Google ainda não carregou. Aguarde um instante e tente de novo.'));
 google.accounts.oauth2.initTokenClient({client_id:id,scope:sc,callback:r=>{if(r.error)return no(new Error(r.error_description||r.error));TK[sc]={t:r.access_token,x:Date.now()+(r.expires_in-60)*1000};ok(r.access_token)},error_callback:e=>no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'))}).requestAccessToken()})}
 const b64=s=>{let x='';new TextEncoder().encode(s).forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
-async function gapi(u,corpo){const t=await gtoken();const r=await fetch(u,{method:'POST',headers:{authorization:'Bearer '+t,'content-type':'application/json'},body:JSON.stringify(corpo)});if(!r.ok){if(r.status==401)delete TK[ESC1];throw new Error((await r.text()).slice(0,200))}}
-const enviarEmail=a=>gapi('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{raw:b64('To: '+a.para+'\r\nSubject: =?UTF-8?B?'+b64(a.assunto)+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+b64(a.corpo)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')});
-const criarEvento=a=>{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;return gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events',{summary:a.titulo,description:a.descricao||'',location:a.local||'',start:{dateTime:a.inicio,timeZone:tz},end:{dateTime:a.fim,timeZone:tz}})};
-const ACAO=()=>JSON.parse(ST().getItem('foxia_k')||'{}').gid?' Se o usuário pedir para enviar e-mail ou marcar compromisso na agenda, responda com UM bloco <<<ACAO {"tipo":"email","para":"x@y.com","assunto":"...","corpo":"..."} >>> ou <<<ACAO {"tipo":"evento","titulo":"...","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""} >>> (JSON válido, em uma linha) mais uma frase curta. Nunca diga que já enviou ou criou: o usuário confirma num cartão. Se faltar o e-mail, a data ou a hora, pergunte antes. Agora é '+new Date().toString()+'.':'';
-function cartoes(el,t){const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}
-const em=a.tipo=='email';if(em?!(a.para&&a.assunto&&a.corpo):!(a.tipo=='evento'&&a.titulo&&a.inicio&&a.fim))continue;
-const c=document.createElement('div');c.className='cd';c.textContent=em?'✉ Enviar e-mail\nPara: '+a.para+'\nAssunto: '+a.assunto+'\n\n'+a.corpo:'📅 Criar evento\n'+a.titulo+'\nInício: '+a.inicio+'\nFim: '+a.fim+(a.local?'\nLocal: '+a.local:'');
-const ok=document.createElement('button'),no=document.createElement('button');ok.textContent=em?'Enviar':'Criar evento';no.textContent='Cancelar';
-ok.onclick=async()=>{ok.disabled=no.disabled=true;ok.textContent='Aguarde…';try{await(em?enviarEmail(a):criarEvento(a));c.textContent=em?'✅ E-mail enviado para '+a.para:'✅ Evento criado: '+a.titulo}catch(e){c.textContent='⚠ Não deu certo: '+e.message}};
-no.onclick=()=>c.remove();c.append(ok,no);el.append(c)}}
+async function gcall(m,u,body,sc){sc=sc||ESC1;const t=await gtoken(sc);const r=await fetch(u,{method:m,headers:Object.assign({authorization:'Bearer '+t},body?{'content-type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});if(!r.ok){if(r.status==401)delete TK[sc];throw new Error((await r.text()).slice(0,300))}return r.status==204?{}:await r.json().catch(()=>({}))}
+const mime=a=>b64('To: '+(a.para||'')+'\r\nSubject: =?UTF-8?B?'+b64(a.assunto||'')+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+b64(a.corpo||'')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const GM='https://gmail.googleapis.com/gmail/v1/users/me/',CAL='https://www.googleapis.com/calendar/v3/calendars/primary/events';
+const MD='?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Subject&metadataHeaders=Date';
+const hd=(m,n)=>((m.payload&&m.payload.headers||[]).find(h=>h.name.toLowerCase()==n)||{}).value||'';
+const d64=s=>{try{return new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)))}catch(e){return''}};
+function txt(p){if(!p)return'';if(p.mimeType=='text/plain'&&p.body&&p.body.data)return d64(p.body.data);for(const x of p.parts||[]){const t=txt(x);if(t)return t}if(p.mimeType=='text/html'&&p.body&&p.body.data)return d64(p.body.data).replace(/<(style|script)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');return''}
+const lim=(n,x)=>Math.min(Math.max(+x||10,1),n);
+const resumo=m=>({id:m.id,de:hd(m,'from'),para:hd(m,'to'),assunto:hd(m,'subject'),data:hd(m,'date'),trecho:m.snippet,marcadores:m.labelIds});
+const iso=s=>new Date(s).toISOString(),tzn=()=>Intl.DateTimeFormat().resolvedOptions().timeZone;
+const evr=e=>({id:e.id,titulo:e.summary,inicio:(e.start||{}).dateTime||(e.start||{}).date,fim:(e.end||{}).dateTime||(e.end||{}).date,local:e.location,descricao:(e.description||'').slice(0,300)});
+const evb=a=>{const b={};if(a.titulo)b.summary=a.titulo;if('descricao' in a)b.description=a.descricao;if('local' in a)b.location=a.local;if(a.inicio)b.start={dateTime:a.inicio,timeZone:tzn()};if(a.fim)b.end={dateTime:a.fim,timeZone:tzn()};return b};
+async function abrirSite(u){if(!/^https?:\/\//i.test(u))u='https://'+u;
+const baixa=async url=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),25000);try{const x=await fetch(url,{signal:c.signal});if(!x.ok)throw new Error('http '+x.status);return await x.text()}finally{clearTimeout(t)}};
+const lp=h=>h.replace(/<(style|script|noscript)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+try{return(await baixa('https://r.jina.ai/'+u)).slice(0,9000)}catch(e){}
+try{return lp(await baixa(u)).slice(0,9000)}catch(e){}
+try{return lp(await baixa('https://api.allorigins.win/raw?url='+encodeURIComponent(u))).slice(0,9000)}catch(e){}
+throw new Error('não consegui abrir '+u)}
+/* ferramentas: g = precisa do Google; w = escrita/exclusão (pede confirmação num cartão) */
+const T={
+email_listar:{g:1,f:async a=>{const l=await gcall('GET',GM+'messages?maxResults='+lim(25,a.max)+(a.q?'&q='+encodeURIComponent(a.q):''));return await Promise.all((l.messages||[]).map(x=>gcall('GET',GM+'messages/'+x.id+MD).then(resumo)))}},
+email_ler:{g:1,f:async a=>{const m=await gcall('GET',GM+'messages/'+a.id+'?format=full');return Object.assign(resumo(m),{corpo:txt(m.payload).slice(0,6000)})}},
+rascunho_listar:{g:1,f:async a=>{const l=await gcall('GET',GM+'drafts?maxResults='+lim(25,a.max));return await Promise.all((l.drafts||[]).map(x=>gcall('GET',GM+'drafts/'+x.id+'?format=metadata').then(d=>Object.assign(resumo(d.message||{}),{id:x.id}))))}},
+rascunho_ler:{g:1,f:async a=>{const d=await gcall('GET',GM+'drafts/'+a.id+'?format=full');return Object.assign(resumo(d.message||{}),{id:d.id,corpo:txt((d.message||{}).payload).slice(0,6000)})}},
+marcadores_listar:{g:1,f:async()=>((await gcall('GET',GM+'labels')).labels||[]).map(l=>({id:l.id,nome:l.name}))},
+agenda_listar:{g:1,f:async a=>{const q=['singleEvents=true','orderBy=startTime','maxResults=25','timeMin='+encodeURIComponent(iso(a.inicio||new Date()))];if(a.fim)q.push('timeMax='+encodeURIComponent(iso(a.fim)));if(a.q)q.push('q='+encodeURIComponent(a.q));return((await gcall('GET',CAL+'?'+q.join('&'))).items||[]).map(evr)}},
+site:{f:a=>abrirSite(String(a.url||''))},
+pesquisa:{f:async a=>'Pesquisa na web feita para: '+a.q+' (use o que você encontrou na web)'},
+email_enviar:{g:1,w:1,t:'✉ Enviar e-mail',b:'Enviar',ok:'E-mail enviado',n:['para','assunto','corpo'],f:a=>gcall('POST',GM+'messages/send',{raw:mime(a)})},
+email_excluir:{g:1,w:1,t:'🗑 Excluir e-mail',b:'Excluir',ok:'E-mail excluído',n:['id'],f:a=>a.permanente?gcall('DELETE',GM+'messages/'+a.id):gcall('POST',GM+'messages/'+a.id+'/trash')},
+email_restaurar:{g:1,w:1,t:'♻ Restaurar e-mail da lixeira',b:'Restaurar',ok:'E-mail restaurado',n:['id'],f:a=>gcall('POST',GM+'messages/'+a.id+'/untrash')},
+email_modificar:{g:1,w:1,t:'🏷 Alterar e-mail (marcadores)',b:'Aplicar',ok:'E-mail alterado',n:['id'],f:a=>gcall('POST',GM+'messages/'+a.id+'/modify',{addLabelIds:a.adicionar||[],removeLabelIds:a.remover||[]})},
+marcador_criar:{g:1,w:1,t:'🏷 Criar marcador',b:'Criar',ok:'Marcador criado',n:['nome'],f:a=>gcall('POST',GM+'labels',{name:a.nome,labelListVisibility:'labelShow',messageListVisibility:'show'})},
+rascunho_criar:{g:1,w:1,t:'📝 Criar rascunho',b:'Salvar rascunho',ok:'Rascunho salvo',n:['assunto','corpo'],f:a=>gcall('POST',GM+'drafts',{message:{raw:mime(a)}})},
+rascunho_editar:{g:1,w:1,t:'📝 Editar rascunho',b:'Salvar alterações',ok:'Rascunho atualizado',n:['id','corpo'],f:a=>gcall('PUT',GM+'drafts/'+a.id,{message:{raw:mime(a)}})},
+rascunho_enviar:{g:1,w:1,t:'✉ Enviar rascunho',b:'Enviar',ok:'Rascunho enviado',n:['id'],f:a=>gcall('POST',GM+'drafts/send',{id:a.id})},
+rascunho_excluir:{g:1,w:1,t:'🗑 Excluir rascunho',b:'Excluir',ok:'Rascunho excluído',n:['id'],f:a=>gcall('DELETE',GM+'drafts/'+a.id)},
+evento:{g:1,w:1,t:'📅 Criar evento',b:'Criar evento',ok:'Evento criado',n:['titulo','inicio','fim'],f:a=>gcall('POST',CAL,evb(a))},
+evento_editar:{g:1,w:1,t:'📅 Editar evento',b:'Salvar alterações',ok:'Evento atualizado',n:['id'],f:a=>gcall('PATCH',CAL+'/'+a.id,evb(a))},
+evento_excluir:{g:1,w:1,t:'🗑 Excluir evento',b:'Excluir',ok:'Evento excluído',n:['id'],f:a=>gcall('DELETE',CAL+'/'+a.id)}};
+T.email=T.email_enviar;T._erro={f:async a=>a.msg};T.evento.auto='foxia_ae';T.email_enviar.auto='foxia_am';T.rascunho_enviar.auto='foxia_am';
+const ACAO=()=>{const gid=!!GID(),web=$('web').checked;if(!gid&&!web)return'';
+let s=' FERRAMENTAS: para usar uma, escreva um bloco <<<ACAO {json válido em uma linha} >>> (até 3 por resposta). Leituras, pesquisas e sites rodam sozinhos e o resultado volta para você continuar a resposta; escritas, edições e exclusões viram um cartão que o usuário confirma, então nunca diga que já fez. Em editar ou excluir inclua "rotulo" (assunto ou título legível). Para editar ou excluir algo, primeiro liste ou leia para obter o id. Se faltar dado essencial, pergunte antes. Agora é '+new Date().toString()+'.';
+if(gid)s+=' E-MAIL (Gmail): {"tipo":"email_listar","q":"busca estilo Gmail, ex.: is:unread from:fulano","max":10} · {"tipo":"email_ler","id":""} · {"tipo":"email_enviar","para":"","assunto":"","corpo":""} · {"tipo":"email_excluir","id":"","permanente":false,"rotulo":""} (vai para a lixeira; use permanente:true só se o usuário pedir exclusão definitiva) · {"tipo":"email_restaurar","id":""} · {"tipo":"email_modificar","id":"","adicionar":["STARRED"],"remover":["UNREAD"],"rotulo":""} (marcadores: UNREAD, STARRED, INBOX, IMPORTANT ou ids de marcadores_listar; arquivar = remover INBOX) · {"tipo":"marcadores_listar"} · {"tipo":"marcador_criar","nome":""}. RASCUNHOS (para mudar um rascunho existente use rascunho_listar e depois rascunho_editar com o id; rascunho_criar só cria um novo): {"tipo":"rascunho_listar","max":10} · {"tipo":"rascunho_ler","id":""} · {"tipo":"rascunho_criar","para":"","assunto":"","corpo":""} · {"tipo":"rascunho_editar","id":"","para":"","assunto":"","corpo":"","rotulo":""} (mande o rascunho completo já com as mudanças) · {"tipo":"rascunho_enviar","id":"","rotulo":""} · {"tipo":"rascunho_excluir","id":"","rotulo":""}. AGENDA (para alterar, remarcar ou mudar um evento que já existe, use SEMPRE agenda_listar primeiro e depois evento_editar com o id; "evento" só cria um evento NOVO e nunca deve ser usado para alterar um existente): {"tipo":"agenda_listar","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","q":""} · {"tipo":"evento","titulo":"","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""} · {"tipo":"evento_editar","id":"","titulo":"","inicio":"","fim":"","local":"","descricao":"","rotulo":""} (só os campos que mudam) · {"tipo":"evento_excluir","id":"","rotulo":""}.';
+if(web)s+=' WEB (use por conta própria, sem pedir permissão, sempre que ajudar): {"tipo":"site","url":"https://..."} abre qualquer página e devolve o texto (siga links em novos passos) · {"tipo":"pesquisa","q":"termos"} pesquisa na web.';
+return s};
+const pronto=()=>{const c=TK[ESC1];return !!(c&&Date.now()<c.x)};
+function cartoes(el,t,q,dp){dp=dp||0;const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;const ls=[];
+while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}if(a.tipo=='evento'&&a.id)a.tipo='evento_editar';const f=T[a.tipo];if(!f||a.tipo=='_erro')continue;
+if(!f.w){if(ls.length<3)ls.push(a);continue}
+if(a.tipo=='evento'&&dp==0&&/\b(edit|mud|alter|troc|remarc|reagend|mov[ae]|adiar|adie|antecip|atras|corrig|corrij|ajust)/i.test((q||'')+' '+M.hist.filter(m=>m.r=='u').slice(-3).map(m=>m.t).join(' '))){ls.push({tipo:'_erro',msg:'Você usou "evento", que cria um evento NOVO, mas o usuário parece querer alterar um existente. Use agenda_listar para achar o id e depois evento_editar. Se na verdade for um evento novo, emita "evento" de novo.'});continue}
+if((f.n||[]).some(k=>!a[k])){ls.push({tipo:'_erro',msg:'Faltaram campos obrigatórios ('+f.n.join(', ')+') em '+a.tipo+'. Se precisar do id, use a ferramenta de listar antes.'});continue}
+const c=document.createElement('div');c.className='cd';
+const ln=Object.entries(a).filter(e=>!['tipo','id','permanente','rotulo'].includes(e[0])).map(e=>e[0]+': '+(Array.isArray(e[1])?e[1].join(', '):e[1]));
+c.textContent=f.t+(a.permanente?' — ⚠ PERMANENTE, sem volta':'')+'\n'+(a.rotulo?a.rotulo+'\n':'')+ln.join('\n');
+const ok=document.createElement('button'),no=document.createElement('button');ok.textContent=f.b;no.textContent='Cancelar';
+const exec=async()=>{ok.disabled=no.disabled=true;ok.textContent='Aguarde…';try{await f.f(a);c.textContent='✅ '+f.ok+(a.rotulo?': '+a.rotulo:'')}catch(e){c.textContent='⚠ Não deu certo: '+e.message}};ok.onclick=exec;
+no.onclick=()=>c.remove();c.append(ok,no);el.append(c);
+if(f.auto&&localStorage.getItem(f.auto)=='1'&&pronto())exec()}
+if(ls.length)setTimeout(()=>seguir(el,ls,q,dp),0)}
+function seguir(el,ls,q,dp){
+if(dp>=5){add('k','Parei por aqui depois de vários passos seguidos. Me diga se devo continuar.');return}
+const run=async()=>{busy=true;const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
+try{let res='';for(const a of ls){let v;try{v=JSON.stringify(await T[a.tipo].f(a))}catch(e){v='ERRO: '+(e.message||e)}res+=JSON.stringify(a)+' => '+String(v).slice(0,12000)+'\n'}
+const s=await window.claude.use('sample');
+const r=await s(ctx()+ARQ+ACAO()+'\n\nConversa:\n'+hist(10)+'\n[Resultados das ferramentas que você pediu]\n'+res+'[Fim dos resultados]\nFOXIA (responda ao usuário usando os resultados, sem repetir o que já disse; se precisar de outra ferramenta, emita outro bloco ACAO):',{modelTier:'default',cache:false,web:ls.some(a=>a.tipo=='pesquisa'),onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}});
+const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);M.hist.push({r:'k',t:lt});M.hist=M.hist.slice(-60);save();falar(lt);formar(lt);out.dataset.t=lt;
+document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());acoes(out,M.hist.length-1,'k');
+cartoes(out,r.text,q,dp+1)}
+catch(e){out.textContent='Não consegui continuar. Motivo: '+(e&&e.message||e)}
+document.body.classList.remove('think');busy=false};
+if(ls.some(a=>T[a.tipo].g)&&!pronto()){const c=document.createElement('div');c.className='cd';c.textContent='🔐 Preciso da sua permissão do Google para continuar.';const b=document.createElement('button');b.textContent='Permitir e continuar';b.onclick=()=>{c.remove();run()};c.append(b);el.append(c)}else run()}
 $('gcon').onclick=()=>gtoken().then(()=>{ind('Google conectado');$('gp').hidden=true}).catch(e=>add('k','Google: '+e.message));
 /* backup da conta no Google Drive (pasta oculta do app; só o arquivo criptografado) */
 const DR='https://www.googleapis.com';
@@ -363,6 +426,8 @@ $('sy').onclick=async()=>{const u=sessionStorage.getItem('sess');if(!u){add('k',
 $('bk').checked=localStorage.getItem('foxia_bk')=='1';$('bk').onchange=()=>{localStorage.setItem('foxia_bk',$('bk').checked?'1':'0');if($('bk').checked)gtoken(ESCD).then(()=>ind('Google Drive autorizado')).catch(e=>add('k','Google: '+e.message))};
 $('ig').value=localStorage.getItem('foxia_gid')||'';$('ig').onchange=()=>{localStorage.setItem('foxia_gid',$('ig').value.trim());gsi()};
 $('rg').onclick=async()=>{try{$('am').textContent='Procurando suas contas no Google Drive…';const ns=await driveRestore();$('am').textContent=ns.length?'Contas restauradas: '+ns.join(', ')+'. Agora entre com a senha.':'Nenhum backup encontrado nesse Google.'}catch(e){$('am').textContent='Não consegui restaurar: '+e.message}};
+$('nce').checked=localStorage.getItem('foxia_ae')=='1';$('nce').onchange=()=>localStorage.setItem('foxia_ae',$('nce').checked?'1':'0');
+$('ncm').checked=localStorage.getItem('foxia_am')=='1';$('ncm').onchange=()=>localStorage.setItem('foxia_am',$('ncm').checked?'1':'0');
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
