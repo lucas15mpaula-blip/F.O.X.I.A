@@ -2,6 +2,8 @@
 <html lang="pt-BR" translate="no"><meta name="google" content="notranslate"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>F.O.X.I.A</title>
+<script>window.EMB={groq:'',gemini:'',openai:'',claude:''}</script>
+<script src="chaves.js"></script>
 <style>
 :root{--bg:#050a1c;--fg:#dbe6ff;--b:#3b82ff;--r:#ff3b4e;--pn:#0c1634;--ln:#1d3a7a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -70,7 +72,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><div id="cl"></div><button id="cc" class="x" aria-label="Fechar">✕</button></div><div id="bd"></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
 <div id="kp" hidden><h2>IAs (as chaves ficam só neste aparelho)</h2>
-<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)">
+<input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="svu" placeholder="Servidor Cloudflare (https://….workers.dev), opcional"><input id="svt" type="password" placeholder="Token de acesso do servidor">
 <input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)">
 <select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
@@ -120,7 +122,13 @@ $$('ab').onclick=async()=>{if(US){await flush();if(window.nuvemJa)await window.n
 const $$=i=>document.getElementById(i);
 const K=()=>{try{return JSON.parse(ST().getItem('foxia_k'))||{}}catch(e){return{}}};
 const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
-const ft=(u,o)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000);return fetch(u,{...o,signal:c.signal}).finally(()=>clearTimeout(t))};
+const SRVC=()=>{const k=K();return k.svu&&k.svt?{u:k.svu.trim().replace(/\/+$/,''),t:k.svt.trim()}:null};
+const PB=[['https://api.groq.com','groq'],['https://generativelanguage.googleapis.com','gemini'],['https://api.openai.com','openai'],['https://api.anthropic.com','claude']];
+async function srvInit(){const S=SRVC();if(!S){window.SRVOK=null;return null}if(window.SRVOK)return window.SRVOK;try{const r=await fetch(S.u+'/status',{headers:{'x-foxia-token':S.t}});if(!r.ok)throw 0;window.SRVOK=await r.json()}catch(e){window.SRVOK=null}return window.SRVOK}
+const ft=(u,o={})=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000),S=SRVC();let h=o.headers||{};
+if(S&&JSON.stringify(h).includes('__srv')){const m=PB.find(x=>u.startsWith(x[0]));if(m){const nh={};if(h['content-type'])nh['content-type']=h['content-type'];nh['x-foxia-token']=S.t;h=nh;u=S.u+'/'+m[1]+u.slice(m[0].length)}}
+return fetch(u,{...o,headers:h,signal:c.signal}).finally(()=>clearTimeout(t))};
+window.ftx=ft;window.srvInit=srvInit;
 const b64=b=>new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(',')[1]);f.readAsDataURL(b)});
 async function cl(k,m,t,im,web){const b={model:m,max_tokens:2000,messages:[{role:'user',content:[...im.map(i=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:i}})),{type:'text',text:t}]}]};if(web)b.tools=[{type:'web_search_20250305',name:'web_search',max_uses:5}];
 const r=await ft('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
@@ -136,7 +144,7 @@ async function mg(k){const j=await lm('https://generativelanguage.googleapis.com
 async function gq(k,m,t,im){try{return await gq0(k,m||await mq(k),t,im)}catch(e){if(m&&(e.code=='http_404'||/does not exist|model/i.test(e.message)))return await gq0(k,await mq(k),t,im);throw e}}
 async function ge(k,m,t,im,w){try{return await ge0(k,m,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,m,t,im,false);if(e.code=='http_404'||/n[ãa]o est[áa] mais dispon|no longer available|not found/i.test(e.message)){const a=await mg(k);if(a&&a!=m)return await ge0(k,a,t,im,w)}throw e}}
 const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){if(i<2&&/^http_5\d\d$/.test(e.code||''))await new Promise(r=>setTimeout(r,(window.FOXIA_RT||2500)*(i+1)));else throw e}}};
-const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';
+const sample=async(input,o={})=>{const k=K(),E=window.EMB||{},keys={c:k.ck||E.claude,o:k.ok||E.openai,g:k.gk||E.gemini,q:k.qk||E.groq},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv'}}
 const base=t=='quick'?['q','g','o','c']:['c','o','q','g'];
 const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);if(o.web)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(!ord.length){$$('kp').hidden=false;const e=new Error('sem chave');e.code='sem_chave';throw e}
@@ -148,14 +156,14 @@ sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
 window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
-const F=['ck','ok','gk','qk','cm','om','gm','qm'];
+const F=['ck','ok','gk','qk','svu','svt','cm','om','gm','qm'];
 function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
-$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}$$('kp').hidden=true};
+$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}window.SRVOK=undefined;$$('kp').hidden=true};
 $$('ke').onclick=()=>dl('foxia-backup.json',ST().getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
 $$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
-const k0=K();if(!(k0.ck||k0.ok||k0.gk||k0.qk))$$('kp').hidden=false;
+const k0=K();if(!(k0.ck||k0.ok||k0.gk||k0.qk||k0.svu||(window.EMB&&(window.EMB.groq||window.EMB.gemini||window.EMB.openai||window.EMB.claude))))$$('kp').hidden=false;
 })();
 </script>
 <script>
@@ -322,11 +330,11 @@ function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const 
 async function sites(q){const us=(q.match(/https?:\/\/[^\s)]+/g)||[]).slice(0,3);let r='';for(const u of us){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);const x=await fetch('https://r.jina.ai/'+u,{signal:c.signal});clearTimeout(t);r+='\n[Conteúdo do site '+u+']\n'+(await x.text()).slice(0,8000)+'\n[Fim do site]\n'}catch(e){r+='\n[Não consegui abrir '+u+']\n'}}return r}
 /* microfone: grava e transcreve com o Whisper do Groq; sem chave do Groq, usa o reconhecimento do Chrome */
 let MR=null,CH=[];
-async function transcrever(bl){const k=JSON.parse(ST().getItem('foxia_k')||'{}'),h={authorization:'Bearer '+k.qk};const ml=await(await fetch('https://api.groq.com/openai/v1/models',{headers:h})).json();const ids=(ml.data||[]).map(x=>x.id).filter(i=>/whisper/i.test(i)),m=ids.find(i=>/turbo/i.test(i))||ids[0];if(!m)throw new Error('sem modelo de voz na sua conta Groq');
-const f=new FormData();f.append('file',bl,'voz.webm');f.append('model',m);f.append('language','pt');f.append('response_format','text');const r=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:h,body:f});if(!r.ok)throw new Error((await r.text()).slice(0,160));return(await r.text()).trim()}
+async function transcrever(bl){const k=JSON.parse(ST().getItem('foxia_k')||'{}'),h={authorization:'Bearer '+(k.qk||(window.EMB&&window.EMB.groq)||'__srv')};const ml=await(await ftx('https://api.groq.com/openai/v1/models',{headers:h})).json();const ids=(ml.data||[]).map(x=>x.id).filter(i=>/whisper/i.test(i)),m=ids.find(i=>/turbo/i.test(i))||ids[0];if(!m)throw new Error('sem modelo de voz na sua conta Groq');
+const f=new FormData();f.append('file',bl,'voz.webm');f.append('model',m);f.append('language','pt');f.append('response_format','text');const r=await ftx('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:h,body:f});if(!r.ok)throw new Error((await r.text()).slice(0,160));return(await r.text()).trim()}
 $('mic').onclick=async()=>{if(MR){MR.stop();return}
-const k=JSON.parse(ST().getItem('foxia_k')||'{}');
-if(k.qk&&navigator.mediaDevices&&window.MediaRecorder){try{const st=await navigator.mediaDevices.getUserMedia({audio:true});CH=[];MR=new MediaRecorder(st);MR.ondataavailable=e=>e.data.size&&CH.push(e.data);
+await window.srvInit();const k=JSON.parse(ST().getItem('foxia_k')||'{}');
+if((k.qk||(window.EMB&&window.EMB.groq)||(window.SRVOK&&window.SRVOK.groq))&&navigator.mediaDevices&&window.MediaRecorder){try{const st=await navigator.mediaDevices.getUserMedia({audio:true});CH=[];MR=new MediaRecorder(st);MR.ondataavailable=e=>e.data.size&&CH.push(e.data);
 MR.onstop=async()=>{st.getTracks().forEach(t=>t.stop());$('mic').classList.remove('on');const bl=new Blob(CH,{type:MR.mimeType||'audio/webm'});MR=null;$('q').placeholder='Transcrevendo…';try{const t=await transcrever(bl);$('q').value=(($('q').value?$('q').value.trim()+' ':'')+t).trim()}catch(e){add('k','Não consegui transcrever: '+e.message)}$('q').placeholder='Fale com a raposa…'};
 MR.start();$('mic').classList.add('on');$('q').placeholder='Gravando… toque no 🎤 para parar';return}catch(e){add('k','Microfone indisponível: '+(e.name=='NotAllowedError'?'permita o microfone para este site nas configurações do Chrome.':e.message));return}}
 if(!SR){add('k','Para usar o microfone, coloque a chave do Groq em IAs ou use um navegador com reconhecimento de voz.');return}
