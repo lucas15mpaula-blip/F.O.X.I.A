@@ -40,6 +40,15 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 #ac{position:fixed;inset:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 16px;display:flex;flex-direction:column;gap:10px;overflow:auto}#ac[hidden]{display:none}#ac input,#ac button{font-size:16px}
 .x{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:40px;height:40px;padding:0;font-size:20px;line-height:1;border-radius:50%;z-index:2}
 #cc{right:auto;left:calc(min(82vw,320px) - 52px)}
+#jp{position:fixed;inset:0;z-index:10;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}#jp[hidden]{display:none}#jp input,#jp textarea{font-size:16px}
+.sh{position:fixed;inset:0;z-index:12}.sh[hidden]{display:none}.shb{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.shc{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow:auto;background:#0b1430;border-radius:22px 22px 0 0;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--ln)}
+.gr{width:44px;height:5px;border-radius:3px;background:#3a4668;margin:4px auto 10px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:12px}.top b{flex:1;text-align:center;margin-right:40px;font-size:17px}.top button{width:40px;height:40px;padding:0;border-radius:50%;font-size:18px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tiles button{height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:16px;font-size:14px;background:var(--pn)}.tiles span{font-size:26px}
+.lin{box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;margin-top:10px;padding:12px 14px;border-radius:16px;background:var(--pn);border:1px solid var(--ln);color:var(--fg);text-align:left;font-size:16px}
+.lin span{font-size:20px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#16224a;flex:none}.lin div{flex:1;min-width:0}.lin small{display:block;opacity:.6;font-size:13px;margin-top:2px}.lin i{font-style:normal;opacity:.6;font-size:20px}
+.tg{appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:14px;background:#3a4668;position:relative;flex:none;border:0;padding:0}.tg::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}.tg:checked{background:var(--b)}.tg:checked::after{left:23px}
 .nt{font-size:12px;opacity:.6;margin-top:6px}
 .cd{margin-top:8px;padding:8px;border:1px solid var(--ln);border-radius:10px;white-space:pre-wrap}.cd button{margin:8px 6px 0 0}
 .ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:2px 9px;font-size:14px;opacity:.75;border-radius:8px}
@@ -69,6 +78,14 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <canvas id="fx"></canvas>
 <div id="pf" hidden><h2>Me conheça</h2><input id="p1" placeholder="Como devo te chamar?"><textarea id="p2" placeholder="Sobre você (estudos, trabalho, gostos…)"></textarea><textarea id="p3" placeholder="Seus objetivos"></textarea><textarea id="p4" placeholder="Sua rotina"></textarea><div class="row" style="padding:0"><button id="ps">Salvar</button><button id="pc" class="x" aria-label="Fechar">✕</button></div></div>
 <div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><button id="np">+ Novo projeto</button><div id="cl"></div><button id="cc" class="x" aria-label="Fechar">✕</button></div><div id="bd"></div>
+<div id="sh" class="sh" hidden><div id="shb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="shx" aria-label="Fechar">✕</button><b>Adicionar à conversa</b></div>
+<div class="tiles"><button id="tc"><span>📷</span>Câmera</button><button id="tf"><span>🖼</span>Fotos</button><button id="ta"><span>📄</span>Arquivos</button></div>
+<button class="lin" id="lp"><span>📁</span><div>Adicionar ao projeto<small id="lps">Nenhum</small></div><i>›</i></button>
+<label class="lin"><span>🌐</span><div>Busca na web</div><input type="checkbox" id="sw" class="tg"></label>
+<button class="lin" id="lc"><span>🧩</span><div>Conectores<small>Gmail e Agenda</small></div><i>›</i></button>
+<button class="lin" id="lm"><span>🧠</span><div>Memória<small>Ver e editar o que ela sabe</small></div><i>›</i></button></div></div>
+<div id="sp" class="sh" hidden><div id="spb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="spx" aria-label="Fechar">✕</button><b>Mover para projeto</b></div><div id="spl"></div></div></div>
+<div id="jp" hidden><h2 id="jt">Novo projeto</h2><input id="jn" placeholder="Nome do projeto"><textarea id="ji" placeholder="Instruções do projeto (valem para todos os chats dele)"></textarea><div class="row" style="padding:0"><button id="js">Salvar</button><button id="jd">Excluir projeto</button></div><button id="jc" class="x" aria-label="Fechar">✕</button></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
 <div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Cole o <b>token</b> do seu servidor (o mesmo valor do <b>ACCESS_TOKEN</b> da Cloudflare) e toque em <b>Salvar</b>. Não precisa de mais nada.</p><input id="svu" placeholder="Servidor Cloudflare (https://….workers.dev), opcional"><input id="svt" type="password" placeholder="Token de acesso (a senha do seu servidor)"><details><summary class="fl" style="cursor:pointer">Avançado: usar chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
@@ -87,7 +104,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
 <div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc" class="x" aria-label="Fechar">✕</button></div></div>
 
-<div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
+<div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
 const S=sessionStorage,L=localStorage;let AK=null,T;const US=S.getItem('sess');
@@ -159,7 +176,7 @@ $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
 $$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}window.SRVOK=undefined;$$('kp').hidden=true};
 $$('ke').onclick=()=>dl('foxia-backup.json',ST().getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
-$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){alert('Arquivo de backup inválido')}};
+$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){ind('⚠ arquivo de backup inválido')}};
 const k0=K();$$('svu').hidden=!!window.FOXIA_SRV;if(!(k0.ck||k0.ok||k0.gk||k0.qk||SRVC()))$$('kp').hidden=false;
 })();
 </script>
@@ -183,15 +200,15 @@ function add(r,t){const d=document.createElement('div');d.className='m '+r;d.tex
 const cv=$('fx'),cx=cv.getContext('2d');let Pt=[],T=[];
 function fit(){cv.width=innerWidth;cv.height=110}
 function word(w){const o=document.createElement('canvas');o.width=cv.width;o.height=110;const c=o.getContext('2d');
-c.font='900 '+Math.min(84,o.width*.84/(w.length*.72))+'px system-ui, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(w,o.width/2,58);
+c.font='bold '+Math.min(64,o.width/(w.length*.75))+'px system-ui';c.textAlign='center';c.fillText(w,o.width/2,72);
 const d=c.getImageData(0,0,o.width,110).data;T=[];
-for(let y=0;y<110;y+=3)for(let x=0;x<o.width;x+=3)if(d[(y*o.width+x)*4+3]>110)T.push([x,y]);
+for(let y=0;y<110;y+=4)for(let x=0;x<o.width;x+=4)if(d[(y*o.width+x)*4+3]>128)T.push([x,y]);
 while(Pt.length<T.length)Pt.push({x:Math.random()*cv.width,y:Math.random()*110})}
 function loop(){cx.clearRect(0,0,cv.width,110);const n=Date.now()/900;
-Pt.forEach((p,i)=>{const t=T.length?T[i%T.length]:[cv.width/2,55];p.x+=(t[0]-p.x)*.14+Math.sin(i+n)*.12;p.y+=(t[1]-p.y)*.14+Math.cos(i+n)*.12;cx.fillStyle=i%4?'#6aa3ff':'#ff5468';cx.fillRect(p.x,p.y,3,3)});
+Pt.forEach((p,i)=>{const t=T.length?T[i%T.length]:[cv.width/2,55];p.x+=(t[0]-p.x)*.08+Math.sin(i+n)*.3;p.y+=(t[1]-p.y)*.08+Math.cos(i+n)*.3;cx.fillStyle=i%5?'#4f8cff':'#ff3b4e';cx.fillRect(p.x,p.y,2,2)});
 requestAnimationFrame(loop)}
-function formar(t){const ws=t.replace(/[^\p{L}\s]/gu,'').split(/\s+/).filter(w=>w.length>3&&w.length<=13).slice(0,8);
-ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*1100))}
+function formar(t){const ws=t.replace(/[^\p{L}\s]/gu,'').split(/\s+/).filter(w=>w.length>3).slice(0,8);
+ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*700))}
 /* voz de saída */
 function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}
 /* modos de pesquisa */
@@ -458,6 +475,28 @@ async function elevenFalar(t){const S=window.SRVC&&window.SRVC(),id=localStorage
 const r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id)+'?output_format=mp3_44100_64',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_flash_v2_5'})});
 if(!r.ok)throw new Error((await r.text()).slice(0,120));const bl=await r.blob();if(AUD)AUD.pause();AUD=new Audio(URL.createObjectURL(bl));await AUD.play()}
 function dizer(t){if(AUD){AUD.pause();AUD=null}if(localStorage.getItem('foxia_vz')=='eleven'&&window.SRVOK&&window.SRVOK.eleven){elevenFalar(t).catch(e=>{ind('ElevenLabs: '+e.message);dizerCelular(t)});return}dizerCelular(t)}
+/* v5: folhas de baixo (anexar, projetos) e painel de projeto, sem caixas de diálogo */
+const shOpen=id=>{$(id).hidden=false},shClose=id=>{$(id).hidden=true};
+const projNome=c=>{const p=(M.proj||[]).find(x=>x.id==(c&&c.p));return p?p.nome:'Nenhum'};
+$('at').onclick=()=>{$('lps').textContent=projNome(C());$('sw').checked=$('web').checked;shOpen('sh')};
+$('shx').onclick=$('shb').onclick=()=>shClose('sh');
+$('tc').onclick=()=>{shClose('sh');$('fc').click()};$('tf').onclick=()=>{shClose('sh');$('fp').click()};$('ta').onclick=()=>{shClose('sh');$('fi').click()};
+$('fc').onchange=$('fp').onchange=$('fi').onchange;
+$('sw').onchange=()=>{$('web').checked=$('sw').checked};
+$('lp').onclick=()=>{shClose('sh');mover(C())};
+$('lc').onclick=()=>{shClose('sh');$('gcon').click()};
+$('lm').onclick=()=>{shClose('sh');$('mv').click()};
+$('spx').onclick=$('spb').onclick=()=>shClose('sp');
+function mover(c){const l=$('spl');l.textContent='';const it=(t,pid,ic)=>{const b=document.createElement('button');b.className='lin';b.innerHTML='<span></span><div></div><i></i>';b.children[0].textContent=ic;b.children[1].textContent=t;b.children[2].textContent=(c.p||'')==pid?'✓':'';b.onclick=()=>{c.p=pid;save();shClose('sp');if(!$('cp').hidden)lista()};l.append(b)};
+it('Nenhum projeto','','⭕');(M.proj||[]).forEach(p=>it(p.nome,p.id,'📁'));
+const n=document.createElement('button');n.className='lin';n.innerHTML='<span>＋</span><div>Novo projeto</div><i></i>';n.onclick=()=>{shClose('sp');projEd(null,c)};l.append(n);shOpen('sp')}
+let PE=null,PC=null;
+function projEd(p,c){PE=p;PC=c||null;$('jn').value=p?p.nome:'';$('ji').value=p&&p.instr||'';$('jd').hidden=!p;$('jd').textContent='Excluir projeto';delete $('jd').dataset.c;$('jt').textContent=p?'Editar projeto':'Novo projeto';$('jp').hidden=false}
+function editarProj(p){projEd(p)}
+$('np').onclick=()=>projEd(null);
+$('js').onclick=()=>{const n=$('jn').value.trim().slice(0,40);if(!n)return;M.proj=M.proj||[];if(PE){PE.nome=n;PE.instr=$('ji').value.slice(0,1000)}else{const p={id:'p'+Date.now(),nome:n,instr:$('ji').value.slice(0,1000)};M.proj.push(p);if(PC)PC.p=p.id}save();$('jp').hidden=true;lista()};
+$('jd').onclick=()=>{if(!PE)return;const b=$('jd');if(b.dataset.c){M.proj=M.proj.filter(x=>x.id!=PE.id);(M.chats||[]).forEach(c=>{if(c.p==PE.id)c.p=''});save();$('jp').hidden=true;lista()}else{b.dataset.c=1;b.textContent='Toque de novo (os chats ficam, sem projeto)'}};
+$('jc').onclick=()=>{$('jp').hidden=true};
 function mark(x){document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',c===x))}
 $('gb').onclick=()=>{$('cmp').value=M.comp||'';mark();$('gp').hidden=false};
 $('gc').onclick=()=>{$('gp').hidden=true};
