@@ -501,8 +501,9 @@ $('vz').value=localStorage.getItem('foxia_vz')||'';$('vz').onchange=()=>{localSt
 $('vid').value=localStorage.getItem('foxia_vid')||'';$('vid').hidden=$('vz').value!='eleven';$('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
 function dizerCelular(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 async function elevenFalar(t){const S=window.SRVC&&window.SRVC(),id=(localStorage.getItem('foxia_vid')||'').trim();if(!S)throw new Error('servidor não configurado (salve o token em ⚙ > IAs)');if(!id)throw new Error('cole o ID da voz em ⚙ (campo ID da voz no ElevenLabs)');
-const r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id)+'?output_format=mp3_44100_64',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
-if(!r.ok){const err=(await r.text()).slice(0,200);throw new Error(err||('HTTP '+r.status))}const bl=await r.blob();if(AUD)AUD.pause();AUD=new Audio(URL.createObjectURL(bl));await AUD.play()}
+/* caminho compatível com o Worker: /eleven/v1/text-to-speech/VOICE_ID */
+const r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id),{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
+if(!r.ok){const err=(await r.text()).slice(0,200);throw new Error(err||('HTTP '+r.status))}const bl=await r.blob();if(!bl||!bl.size)throw new Error('resposta de áudio vazia');if(AUD)AUD.pause();AUD=new Audio(URL.createObjectURL(bl));await AUD.play()}
 async function dizer(t){
   if(AUD){try{AUD.pause()}catch(e){}AUD=null}
   if(localStorage.getItem('foxia_vz')=='eleven'){
