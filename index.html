@@ -107,14 +107,17 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="ax" class="bar" hidden></div><div class="row" style="align-items:flex-end"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
-const S=sessionStorage,L=localStorage;let AK=null,T;const US=S.getItem('sess');
+const L=localStorage;let AK=null,T;
+/* migra sessão antiga do sessionStorage (sumia ao fechar aba / após minutos no Android) */
+try{const ss=sessionStorage;if(ss.getItem('sess')&&!L.getItem('sess')){['sess','sk','kit','foxia_k'].forEach(n=>{const v=ss.getItem(n);if(v!=null)L.setItem(n,v);ss.removeItem(n)})}}catch(e){}
+const US=L.getItem('sess');
 const b2=a=>btoa(String.fromCharCode(...new Uint8Array(a))),u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),$$=i=>document.getElementById(i);
 async function dk(pw,salt){const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])}
 async function enc(k,o){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(o)));return{iv:b2(iv),d:b2(c)}}
 async function dec(k,o){return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:u8(o.iv)},k,u8(o.d))))}
-window.ST=()=>{const b=US?S:L;return{getItem:k=>b.getItem(k),setItem:(k,v)=>{b.setItem(k,v);if(US){clearTimeout(T);T=setTimeout(flush,600)}}}};
-async function flush(){try{if(!US)return;if(!AK)AK=await crypto.subtle.importKey('raw',u8(S.getItem('sk')),'AES-GCM',true,['encrypt','decrypt']);const a=JSON.parse(L.getItem('acct:'+US));a.v=await enc(AK,{kit:S.getItem('kit'),keys:S.getItem('foxia_k')});L.setItem('acct:'+US,JSON.stringify(a));if(window.nuvem)window.nuvem(US)}catch(e){}}
-async function fin(u,k,d){S.setItem('sess',u);S.setItem('sk',b2(await crypto.subtle.exportKey('raw',k)));['kit','foxia_k'].forEach((n,i)=>{const v=i?d.keys:d.kit;v?S.setItem(n,v):S.removeItem(n)});L.removeItem('guest');location.reload()}
+window.ST=()=>({getItem:k=>L.getItem(k),setItem:(k,v)=>{L.setItem(k,v);if(US){clearTimeout(T);T=setTimeout(flush,600)}}});
+async function flush(){try{if(!US)return;if(!AK)AK=await crypto.subtle.importKey('raw',u8(L.getItem('sk')),'AES-GCM',true,['encrypt','decrypt']);const a=JSON.parse(L.getItem('acct:'+US));a.v=await enc(AK,{kit:L.getItem('kit'),keys:L.getItem('foxia_k')});L.setItem('acct:'+US,JSON.stringify(a));if(window.nuvem)window.nuvem(US)}catch(e){}}
+async function fin(u,k,d){L.setItem('sess',u);L.setItem('sk',b2(await crypto.subtle.exportKey('raw',k)));['kit','foxia_k'].forEach((n,i)=>{const v=i?d.keys:d.kit;v?L.setItem(n,v):L.removeItem(n)});L.removeItem('guest');location.reload()}
 async function entrar(u,pw,novo){u=u.trim().toLowerCase();if(!u||!pw)throw new Error('Preencha usuário e senha.');if(novo&&!/^[a-z0-9._-]{3,30}$/.test(u))throw new Error('Usuário: 3 a 30 caracteres (letras minúsculas, números, ponto, traço ou _).');const id='acct:'+u;let a=L.getItem(id);
 if(novo){if(a)throw new Error('Esse usuário já existe.');if(pw.length<6)throw new Error('Use uma senha com 6 ou mais caracteres.');const salt=crypto.getRandomValues(new Uint8Array(16)),k=await dk(pw,salt),d={kit:L.getItem('kit'),keys:L.getItem('foxia_k')};L.setItem(id,JSON.stringify({salt:b2(salt),v:await enc(k,d)}));L.removeItem('kit');L.removeItem('foxia_k');return fin(u,k,d)}
 if(!a)throw new Error('Usuário não encontrado neste navegador. As contas ficam salvas só onde foram criadas; use Importar conta para trazer uma de outro lugar.');a=JSON.parse(a);const k=await dk(pw,u8(a.salt));let d;try{d=await dec(k,a.v)}catch(e){throw new Error('Senha incorreta.')}return fin(u,k,d)}
@@ -128,7 +131,7 @@ $$('ai').onclick=go(false);$$('an').onclick=go(true);
 $$('ag').onclick=()=>{L.setItem('guest','1');$$('ac').hidden=true};
 if(!US&&L.getItem('guest')!='1')$$('ac').hidden=false;
 $$('ab').textContent=US?'Sair da conta ('+US+')':'Entrar ou criar conta';
-$$('ab').onclick=async()=>{if(US){await flush();if(window.nuvemJa)await window.nuvemJa(US);['sess','sk','kit','foxia_k'].forEach(n=>S.removeItem(n));location.reload()}else{L.removeItem('guest');$$('gp').hidden=true;$$('ac').hidden=false}};
+$$('ab').onclick=async()=>{if(US){await flush();if(window.nuvemJa)await window.nuvemJa(US);['sess','sk','kit','foxia_k'].forEach(n=>L.removeItem(n));location.reload()}else{L.removeItem('guest');$$('gp').hidden=true;$$('ac').hidden=false}};
 })();
 </script>
 <script>
@@ -433,7 +436,7 @@ if(!r.ok)throw new Error((await r.text()).slice(0,160))}
 async function driveRestore(){const t=await gtoken(ESCD);const fs=((await(await dget(DR+'/drive/v3/files?spaces=appDataFolder&pageSize=50&fields=files(id,name)',t)).json()).files||[]).filter(f=>/^foxia-.+\.json$/.test(f.name));const ns=[];for(const f of fs){const tx=await(await dget(DR+'/drive/v3/files/'+f.id+'?alt=media',t)).text();JSON.parse(tx);const n=f.name.slice(6,-5);localStorage.setItem('acct:'+n,tx);ns.push(n)}return ns}
 let NT;window.nuvem=u=>{if(localStorage.getItem('foxia_bk')!='1')return;clearTimeout(NT);NT=setTimeout(async()=>{const c=TK[ESCD];if(!(c&&Date.now()<c.x)){ind('backup no Google pendente: toque em Sincronizar agora');return}try{await driveUp(u);ind('backup no Google: ok')}catch(e){ind('backup no Google falhou')}},15000)};
 window.nuvemJa=async u=>{if(localStorage.getItem('foxia_bk')!='1')return;try{await driveUp(u)}catch(e){}};
-$('sy').onclick=async()=>{const u=sessionStorage.getItem('sess');if(!u){add('k','Entre em uma conta para sincronizar.');return}$('sy').textContent='Sincronizando…';try{await driveUp(u);ind('backup no Google: ok');add('k','Backup salvo no seu Google Drive (pasta oculta do app).')}catch(e){add('k','Backup no Google falhou: '+e.message)}$('sy').textContent='Sincronizar agora'};
+$('sy').onclick=async()=>{const u=localStorage.getItem('sess');if(!u){add('k','Entre em uma conta para sincronizar.');return}$('sy').textContent='Sincronizando…';try{await driveUp(u);ind('backup no Google: ok');add('k','Backup salvo no seu Google Drive (pasta oculta do app).')}catch(e){add('k','Backup no Google falhou: '+e.message)}$('sy').textContent='Sincronizar agora'};
 $('bk').checked=localStorage.getItem('foxia_bk')=='1';$('bk').onchange=()=>{localStorage.setItem('foxia_bk',$('bk').checked?'1':'0');if($('bk').checked)gtoken(ESCD).then(()=>ind('Google Drive autorizado')).catch(e=>add('k','Google: '+e.message))};
 
 $('rg').onclick=async()=>{try{$('am').textContent='Procurando suas contas no Google Drive…';const ns=await driveRestore();$('am').textContent=ns.length?'Contas restauradas: '+ns.join(', ')+'. Agora entre com a senha.':'Nenhum backup encontrado nesse Google.'}catch(e){$('am').textContent='Não consegui restaurar: '+e.message}};
@@ -494,13 +497,27 @@ let AUD=null;
 function povoar(){const s=$('vzc');if(!window.speechSynthesis)return;const vs=speechSynthesis.getVoices().filter(v=>/^pt/i.test(v.lang));if(!vs.length)return;const at=localStorage.getItem('foxia_vzc')||'';s.textContent='';const o0=document.createElement('option');o0.value='';o0.textContent='Voz do celular: automática';s.append(o0);vs.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';s.append(o)});s.value=at}
 if(window.speechSynthesis){const ov=speechSynthesis.onvoiceschanged;speechSynthesis.onvoiceschanged=()=>{ov&&ov();povoar()};povoar();setTimeout(povoar,1200)}
 $('vzc').onchange=()=>{localStorage.setItem('foxia_vzc',$('vzc').value);dizerCelular('Esta é a voz escolhida.')};
-$('vz').value=localStorage.getItem('foxia_vz')||'';$('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';if($('vz').value=='eleven')dizer('Olá! Esta é a minha nova voz.')};
-$('vid').value=localStorage.getItem('foxia_vid')||'';$('vid').hidden=$('vz').value!='eleven';$('vid').onchange=()=>localStorage.setItem('foxia_vid',$('vid').value.trim());
+$('vz').value=localStorage.getItem('foxia_vz')||'';$('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';if($('vz').value=='eleven'){ind('testando ElevenLabs…');dizer('Olá! Esta é a minha nova voz.')}else dizerCelular('Voz do celular ativada.')};
+$('vid').value=localStorage.getItem('foxia_vid')||'';$('vid').hidden=$('vz').value!='eleven';$('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
 function dizerCelular(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
-async function elevenFalar(t){const S=window.SRVC&&window.SRVC(),id=localStorage.getItem('foxia_vid');if(!S)throw new Error('servidor não configurado');if(!id)throw new Error('cole o ID da voz em ⚙');
-const r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id)+'?output_format=mp3_44100_64',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_flash_v2_5'})});
-if(!r.ok)throw new Error((await r.text()).slice(0,120));const bl=await r.blob();if(AUD)AUD.pause();AUD=new Audio(URL.createObjectURL(bl));await AUD.play()}
-function dizer(t){if(AUD){AUD.pause();AUD=null}if(localStorage.getItem('foxia_vz')=='eleven'&&window.SRVOK&&window.SRVOK.eleven){elevenFalar(t).catch(e=>{ind('ElevenLabs: '+e.message);dizerCelular(t)});return}dizerCelular(t)}
+async function elevenFalar(t){const S=window.SRVC&&window.SRVC(),id=(localStorage.getItem('foxia_vid')||'').trim();if(!S)throw new Error('servidor não configurado (salve o token em ⚙ > IAs)');if(!id)throw new Error('cole o ID da voz em ⚙ (campo ID da voz no ElevenLabs)');
+const r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id)+'?output_format=mp3_44100_64',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
+if(!r.ok){const err=(await r.text()).slice(0,200);throw new Error(err||('HTTP '+r.status))}const bl=await r.blob();if(AUD)AUD.pause();AUD=new Audio(URL.createObjectURL(bl));await AUD.play()}
+async function dizer(t){
+  if(AUD){try{AUD.pause()}catch(e){}AUD=null}
+  if(localStorage.getItem('foxia_vz')=='eleven'){
+    try{
+      if(window.srvInit)await window.srvInit();
+      await elevenFalar(t);
+      return;
+    }catch(e){
+      ind('ElevenLabs: '+(e&&e.message||e));
+      dizerCelular(t);
+      return;
+    }
+  }
+  dizerCelular(t);
+}
 /* v5: folhas de baixo (anexar, projetos) e painel de projeto, sem caixas de diálogo */
 const shOpen=id=>{$(id).hidden=false},shClose=id=>{$(id).hidden=true};
 const projNome=c=>{const p=(M.proj||[]).find(x=>x.id==(c&&c.p));return p?p.nome:'Nenhum'};
