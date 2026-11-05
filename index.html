@@ -22,7 +22,7 @@ h1{margin:0;font-size:18px;letter-spacing:3px;background:linear-gradient(90deg,v
 .bar,.row{display:flex;gap:6px;padding:6px 10px;align-items:center;flex-wrap:wrap}
 select,input,button{background:var(--pn);color:var(--fg);border:1px solid var(--ln);border-radius:10px;padding:8px;font:inherit}
 select,button{font-size:13px}
-input#q{flex:1;min-width:0;font-size:16px}
+#q{flex:1;min-width:0;font-size:16px;resize:none;max-height:120px;min-height:40px;line-height:1.35;padding:10px 12px;overflow-y:auto}
 button{cursor:pointer}
 #go{background:var(--r);border-color:var(--r);color:#fff}
 #mic.on{background:var(--r);animation:p .6s infinite alternate}
@@ -98,13 +98,13 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural, pelo servidor)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" placeholder="ID da voz no ElevenLabs" hidden>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Marcar e editar eventos na agenda sem pedir confirmação (excluir ainda pergunta)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Marcar e editar eventos na agenda sem pedir confirmação (excluir ainda pergunta)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="exall">Exportar todas as conversas</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
 <div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc" class="x" aria-label="Fechar">✕</button></div></div>
 
-<div id="ax" class="bar" hidden></div><div class="row"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><input id="q" placeholder="Fale com a raposa…" autocomplete="off"><button id="go" aria-label="Enviar">➤</button></div>
+<div id="ax" class="bar" hidden></div><div class="row" style="align-items:flex-end"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
 const S=sessionStorage,L=localStorage;let AK=null,T;const US=S.getItem('sess');
@@ -247,8 +247,12 @@ rec.onresult=e=>{$('q').value=[...e.results].map(r=>r[0].transcript).join(' ')};
 rec.onerror=e=>add('k','Microfone indisponível ('+e.error+'). Verifique a permissão.');
 rec.onend=()=>{rec=null;$('mic').classList.remove('on')};
 try{rec.start();$('mic').classList.add('on')}catch(e){rec=null}};
-let busy=false;function enviar(){const q=$('q').value.trim();if(!q||busy)return;$('q').value='';if(rec)rec.stop();add('u',q);resp(q)}
-$('go').onclick=enviar;$('q').onkeydown=e=>{if(e.key=='Enter')enviar()};
+let busy=false;
+function autoGrow(){const el=$('q');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px'}
+$('q').addEventListener('input',autoGrow);
+function enviar(){const q=$('q').value.trim();if(!q||busy)return;$('q').value='';autoGrow();if(rec)rec.stop();add('u',q);resp(q)}
+$('go').onclick=enviar;
+$('q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviar()}};
 $('fg').onclick=()=>{const b=$('fg');if(b.dataset.c){M={fatos:[],padroes:[],persona:P0,hist:[],n:0,perfil:M.perfil};save();pintar();delete b.dataset.c;b.textContent='🗑️'}else{b.dataset.c=1;b.textContent='Apagar tudo?'}};
 addEventListener('resize',fit);fit();status();loop();word('FOXIA');
 /* v3: chats, arquivos, pesquisas, voz e memória */
@@ -289,7 +293,7 @@ const j=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]);
 if(Array.isArray(j.fatos)){M.fatos=j.fatos.slice(0,12).map(String);M.padroes=(j.padroes||[]).slice(0,6).map(String);M.persona=String(j.persona||M.persona);save();ind('memória atualizada')}}catch(e){ind('falha ao aprender: '+(e&&e.code||'erro'))}}
 /* envio e resposta */
 function enviar(){const q=$('q').value.trim();if((!q&&!AX.length)||busy)return;try{speechSynthesis.speak(new SpeechSynthesisUtterance(' '))}catch(e){}
-if(GON()&&/e-?mail|agenda|rascunho|evento|compromisso|reuni|calend/i.test(q)&&!(TK[ESC1]&&Date.now()<TK[ESC1].x))gtoken().catch(()=>{});$('q').value='';if(rec)rec.stop();const a=AX;AX=[];chips();add('u',(q||'(arquivo)')+(a.length?'\n'+a.map(x=>'📎 '+x.n).join(' '):''));resp(q||'Analise o arquivo anexado.',a)}
+if(GON()&&/e-?mail|agenda|rascunho|evento|compromisso|reuni|calend/i.test(q)&&!(TK[ESC1]&&Date.now()<TK[ESC1].x))gtoken().catch(()=>{});$('q').value='';autoGrow();if(rec)rec.stop();const a=AX;AX=[];chips();add('u',(q||'(arquivo)')+(a.length?'\n'+a.map(x=>'📎 '+x.n).join(' '):''));resp(q||'Analise o arquivo anexado.',a)}
 async function resp(q,a=[]){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
@@ -389,10 +393,17 @@ const l=await fonte(JINA+'https://lite.duckduckgo.com/lite/?q='+e,12000);if(l)re
 for(const lg of ['pt','en']){try{const r=await fetch('https://'+lg+'.wikipedia.org/w/api.php?action=query&list=search&srlimit=5&format=json&origin=*&srsearch='+e),j=await r.json(),it=(j.query&&j.query.search)||[];if(it.length)return 'Wikipédia ('+lg+'):\n'+it.map(x=>'- '+x.title+': '+x.snippet.replace(/<[^>]+>/g,'')+' (https://'+lg+'.wikipedia.org/wiki/'+encodeURIComponent(x.title.replace(/ /g,'_'))+')').join('\n')}catch(x){}}
 return ''}
 const buscaWeb=async q=>(await buscaRobusta(q))||'Nenhuma fonte de busca respondeu agora.';
-async function webAuto(q,out){const c=q.replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,200);if(!c)return '';
-out.append(document.createTextNode(' 🌐 pesquisando na web…'));
-const r=await buscaRobusta(c);
-return r?'\n[Resultados da pesquisa na web para: '+c+']\n'+r.slice(0,5000)+'\n[Fim dos resultados da web]\n':'\n[A pesquisa na web falhou agora: todas as fontes estavam bloqueadas ou fora do ar. Avise o usuário disso na resposta.]\n'}
+async function webAuto(q,out){
+  const c=q.replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,200);
+  if(!c)return '';
+  // Não força pesquisa em saudações ou mensagens muito curtas
+  const curto=/^(oi|olá|ola|hey|e aí|eai|bom dia|boa tarde|boa noite|tudo bem|td bem|obrigad[oa]|valeu|ok|sim|não|nao|blz|beleza|kkk+|haha+|rs+|👍|🙂|😊)[\s!?.]*$/i.test(c) || c.split(/\s+/).length<=2;
+  const modo=$('mode').value;
+  if(curto && modo!=='expert' && !/https?:\/\//.test(q)) return '';
+  out.append(document.createTextNode(' 🌐 pesquisando na web…'));
+  const r=await buscaRobusta(c);
+  return r?'\n[Resultados da pesquisa na web para: '+c+']\n'+r.slice(0,5000)+'\n[Fim dos resultados da web]\n':'\n[A pesquisa na web falhou agora: todas as fontes estavam bloqueadas ou fora do ar. Avise o usuário disso na resposta.]\n';
+}
 async function exec(t){try{switch(t.n){case 'LER':return await lerSite(t.a);case 'BUSCAR':return await buscaWeb(t.a);case 'AGENDA':return await listarAgenda(t.a);case 'EMAILS':return await listarEmails(t.a);case 'EMAIL':return await lerEmail(t.a);case 'RASCUNHOS':return await listarRascunhos();case 'RASCUNHO':return await lerRascunho(t.a)}}catch(e){return 'Erro: '+e.message}return 'Ferramenta desconhecida.'}
 function ferramentas(t){const re=/<<<(LER|BUSCAR|AGENDA|EMAILS|EMAIL|RASCUNHOS|RASCUNHO)\b([^>]*)>>>/g,r=[];let m;while(m=re.exec(t))r.push({n:m[1],a:m[2].trim()});return r}
 async function agente(s,base,fim,o,out){let extra='';const us=[];const st=x=>{out.textContent='';const d=document.createElement('span');d.className='dots';d.innerHTML='<i></i><i></i><i></i>';out.append(d,document.createTextNode(' '+x))};
@@ -402,7 +413,7 @@ extra+='\nFOXIA: '+r.text+'\n[Resultado das ferramentas]'+res+'[Fim do resultado
 const ROT={email:['✉ Enviar e-mail','Enviar','✅ E-mail enviado'],evento:['📅 Criar evento','Criar evento','✅ Evento criado'],evento_editar:['✏ Editar evento','Salvar alterações','✅ Evento atualizado'],evento_excluir:['🗑 Excluir evento','Excluir','✅ Evento excluído'],rascunho_criar:['📝 Criar rascunho','Criar rascunho','✅ Rascunho criado'],rascunho_editar:['📝 Editar rascunho','Salvar rascunho','✅ Rascunho atualizado'],rascunho_excluir:['🗑 Excluir rascunho','Excluir','✅ Rascunho excluído'],email_lixeira:['🗑 Mover e-mail para a lixeira','Mover para a lixeira','✅ E-mail movido para a lixeira (recuperável por 30 dias)']};
 const evBody=(a,p)=>{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone,b={};if(!p||a.titulo)b.summary=a.titulo;if(a.descricao!=null)b.description=a.descricao;if(a.local!=null)b.location=a.local;if(a.inicio)b.start={dateTime:a.inicio,timeZone:tz};if(a.fim)b.end={dateTime:a.fim,timeZone:tz};return b};
 const AC={email:a=>gj(GM+'/messages/send','POST',{raw:raw(a)}),evento:a=>gj(GC,'POST',evBody(a)),evento_editar:a=>gj(GC+'/'+encodeURIComponent(a.id),'PATCH',evBody(a,true)),evento_excluir:a=>gj(GC+'/'+encodeURIComponent(a.id),'DELETE'),rascunho_criar:a=>gj(GM+'/drafts','POST',{message:{raw:raw(a)}}),rascunho_editar:a=>gj(GM+'/drafts/'+encodeURIComponent(a.id),'PUT',{message:{raw:raw(a)}}),rascunho_excluir:a=>gj(GM+'/drafts/'+encodeURIComponent(a.id),'DELETE'),email_lixeira:a=>gj(GM+'/messages/'+encodeURIComponent(a.id)+'/trash','POST')};
-const ACAO=()=>{let t='';if($('web').checked)t+=' REGRA DE WEB: toda resposta deve se basear nos resultados da pesquisa na web fornecidos na conversa (seção [Resultados da pesquisa na web]) e citar as fontes com os endereços; não responda só com o seu conhecimento. Se a pesquisa falhar ou um site pedir captcha, diga isso ao usuário e use outras fontes. FERRAMENTAS DE WEB (executam sozinhas): para abrir um site escreva <<<LER https://endereço>>>; para pesquisar na web escreva <<<BUSCAR termos>>>. Use quando precisar de informação atual ou do conteúdo de um site; ao usar uma ferramenta escreva só o bloco, sem outro texto.';
+const ACAO=()=>{let t='';if($('web').checked)t+=' REGRA DE WEB: quando houver resultados de pesquisa na conversa (seção [Resultados da pesquisa na web]), baseie-se neles e cite as fontes. Se a pesquisa falhar ou um site pedir captcha, avise o usuário. FERRAMENTAS DE WEB (executam sozinhas): para abrir um site escreva <<<LER https://endereço>>>; para pesquisar na web escreva <<<BUSCAR termos>>>. Use quando precisar de informação atual ou do conteúdo de um site; ao usar uma ferramenta escreva só o bloco, sem outro texto.';
 if(window.SRVOK&&window.SRVOK.imagem)t+=' IMAGENS: para criar uma imagem escreva <<<IMAGEM descrição detalhada em inglês>>> (no máximo uma por resposta) e diga em uma frase o que fez.';if(GON())t+=' FERRAMENTAS GOOGLE DE LEITURA (executam sozinhas): <<<AGENDA AAAA-MM-DD AAAA-MM-DD>>> lista eventos do período com ids; <<<EMAILS consulta no formato de busca do Gmail>>> lista e-mails com ids; <<<EMAIL id>>> lê um e-mail; <<<RASCUNHOS>>> lista rascunhos; <<<RASCUNHO id>>> lê um rascunho. AÇÕES (o usuário confirma num cartão; nunca diga que já fez): responda com UM bloco <<<ACAO {json}>>> em uma linha, num destes formatos: {"tipo":"email","para":"","assunto":"","corpo":""}; {"tipo":"evento","titulo":"","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""}; {"tipo":"evento_editar","id":"","titulo":"","inicio":"","fim":"","local":"","descricao":""} (só os campos que mudam); {"tipo":"evento_excluir","id":"","titulo":""}; {"tipo":"rascunho_criar","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_editar","id":"","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_excluir","id":"","assunto":""}; {"tipo":"email_lixeira","id":"","assunto":""}. Para editar ou apagar, primeiro liste ou leia para obter o id certo. Se faltar e-mail, data ou hora, pergunte antes. Agora é '+new Date().toString()+'.';return t};
 function cartoes(el,t){const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}const Q=ROT[a.tipo];if(!Q||!AC[a.tipo]||(/_(editar|excluir)$|lixeira/.test(a.tipo)&&!a.id))continue;
 const c=document.createElement('div');c.className='cd';c.textContent=Q[0]+'\n'+Object.entries(a).filter(([k,v])=>k!='tipo'&&v!==''&&v!=null).map(([k,v])=>k+': '+v).join('\n');
@@ -430,10 +441,7 @@ $('aev').checked=localStorage.getItem('foxia_aev')=='1';$('aev').onchange=()=>lo
 const projTxt=()=>{const c=(M.chats||[]).find(x=>x.id==M.cur),p=c&&c.p&&(M.proj||[]).find(x=>x.id==c.p);return p&&p.instr?'\nInstruções do projeto "'+p.nome+'" (siga neste chat): '+p.instr:''};
 const ABR={};
 function novoChat(pid){sync();M.cur='c'+Date.now();M.hist=[];C().p=pid||'';save();pintar();$('cp').hidden=true}
-function mover(c){const ps=M.proj||[];if(!ps.length){alert('Crie um projeto primeiro (+ Novo projeto).');return}const t=prompt('Mover para qual projeto?\n0 = nenhum\n'+ps.map((p,i)=>(i+1)+' = '+p.nome).join('\n'),'0');if(t==null)return;const n=parseInt(t);c.p=n>0&&ps[n-1]?ps[n-1].id:'';save();lista()}
-function editarProj(p){const t=prompt('Projeto "'+p.nome+'"\n1 = mudar nome\n2 = mudar instruções\n3 = apagar projeto (os chats ficam)','1');if(t==null)return;
-if(t=='1'){const n=prompt('Novo nome:',p.nome);if(n)p.nome=n.trim().slice(0,40)}else if(t=='2'){const n=prompt('Instruções para a IA neste projeto:',p.instr||'');if(n!=null)p.instr=n.slice(0,1000)}else if(t=='3'){M.proj=M.proj.filter(x=>x.id!=p.id);(M.chats||[]).forEach(c=>{if(c.p==p.id)c.p=''})}save();lista()}
-$('np').onclick=()=>{const n=prompt('Nome do projeto:');if(!n)return;const i=prompt('Instruções para a IA neste projeto (opcional):','')||'';M.proj=M.proj||[];M.proj.push({id:'p'+Date.now(),nome:n.trim().slice(0,40),instr:i.slice(0,1000)});save();lista()};
+/* As funções mover/editarProj/lista de projetos com painéis modernos estão mais abaixo (v5). Estas versões antigas com prompt/alert foram removidas. */
 function lista(){const l=$('cl');l.textContent='';const cs=(M.chats||[]).slice().sort((a,b)=>(b.tm||0)-(a.tm||0));
 const mk=(t,f,ti)=>{const b=document.createElement('button');b.textContent=t;b.title=ti||'';b.onclick=f;return b};
 const sec=t=>{const h=document.createElement('div');h.className='fl';h.style.marginTop='8px';h.textContent=t;l.append(h)};
@@ -520,4 +528,28 @@ $('gc').onclick=()=>{$('gp').hidden=true};
 $('bd').onclick=()=>{$('cp').hidden=true};
 document.querySelectorAll('.ch').forEach(b=>b.onclick=()=>{if(b.dataset.p)$('cmp').value=b.dataset.p;else $('cmp').focus();mark(b)});
 $('cs').onclick=()=>{M.comp=$('cmp').value.trim();save();ind('comportamento salvo');$('gp').hidden=true};
+/* Exportar todas as conversas */
+$('exall').onclick=()=>{
+  sync();
+  const data={
+    exportadoEm:new Date().toLocaleString('pt-BR'),
+    persona:M.persona,
+    fatos:M.fatos||[],
+    padroes:M.padroes||[],
+    perfil:M.perfil||{},
+    projetos:M.proj||[],
+    chats:(M.chats||[]).map(c=>({
+      id:c.id,
+      titulo:c.title,
+      projeto:c.p||null,
+      fixado:!!c.pin,
+      mensagens:(c.h||[]).map(m=>({papel:m.r==='u'?'você':'F.O.X.I.A',texto:m.t}))
+    }))
+  };
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='foxia-conversas-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.append(a);a.click();a.remove();
+  ind('conversas exportadas');
+};
 </script></body></html>
