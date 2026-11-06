@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -103,27 +103,30 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="sp" class="sh" hidden><div id="spb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="spx" aria-label="Fechar">✕</button><b>Mover para projeto</b></div><div id="spl"></div></div></div>
 <div id="jp" hidden><h2 id="jt">Novo projeto</h2><input id="jn" placeholder="Nome do projeto"><textarea id="ji" placeholder="Instruções do projeto (valem para todos os chats dele)"></textarea><div class="row" style="padding:0"><button id="js">Salvar</button><button id="jd">Excluir projeto</button></div><button id="jc" class="x" aria-label="Fechar">✕</button></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
-<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Cole o <b>token</b> do seu servidor (o mesmo valor do <b>ACCESS_TOKEN</b> da Cloudflare) e toque em <b>Salvar</b>. Não precisa de mais nada.</p><input id="svu" placeholder="Servidor Cloudflare (https://….workers.dev), opcional"><input id="svt" type="password" placeholder="Token de acesso (a senha do seu servidor)"><details><summary class="fl" style="cursor:pointer">Avançado: usar chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="gm" placeholder="Modelo Gemini (gemini-3.8-flash)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
-<div class="row" style="padding:0"><button id="ks">Salvar</button><button id="ke">Exportar backup</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
-<div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
+<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
+<input id="svu" type="hidden"><input id="svt" type="hidden"><input id="gm" type="hidden" value="gemini-3.8-flash">
+<div class="row" style="padding:0"><button id="ks">Salvar</button><button id="bkall">Backup completo (1 toque)</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
+<div id="mp" hidden><h2>Memória</h2><p class="fl">Fatos estáveis ficam guardados. Temporários somem em ~7 dias. Diga “esquece X” no chat para apagar.</p><div class="fl">Estáveis</div><div id="ml"></div><div class="fl">Temporários</div><div id="mlt"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
 <div id="ac" hidden><h2>F.O.X.I.A</h2><p class="fl">Crie uma conta para guardar suas chaves e memória protegidas por senha <b>neste aparelho</b>. Se esquecer a senha, não há como recuperar os dados.</p><input id="au" placeholder="Usuário" autocapitalize="none" autocomplete="off"><input id="ap" type="password" placeholder="Senha"><div class="fl" id="am"></div><div class="row" style="padding:0"><button id="ai">Entrar</button><button id="an">Criar conta</button></div><button id="ag">Continuar sem conta</button><button id="ii">Importar conta (arquivo)</button><input type="file" id="if" hidden accept=".json"><button id="rg">Restaurar do Google</button></div>
 <div id="log"></div>
-<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><button id="resum" title="Resumo do dia">📋</button><button id="live" title="Conversa ao vivo">📞</button><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
+<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option><option value="simples15">Como se eu tivesse 15 anos</option><option value="essencial">Só o essencial (5 linhas)</option><option value="lista">Em lista</option><option value="decidir">Me ajude a decidir</option></select><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
 <div id="livebar"><b>📞 Em chamada — pode falar</b><button id="livex">Encerrar</button></div>
+<div id="offb" class="bar" style="display:none;background:#3a2008;border-top:1px solid #a65;font-size:13px">📡 Sem internet — você pode ler chats e memória; respostas da IA voltam com a rede.</div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
-<span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural, pelo servidor)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" placeholder="Voice ID (não é a API key)" hidden>
+<span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" type="hidden">
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="exall">Exportar todas as conversas</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<button id="ae" hidden>Baixar conta</button><button id="exall" hidden>Exportar conversas</button><button id="ke" hidden>Exportar backup</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
 <div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc" class="x" aria-label="Fechar">✕</button></div></div>
 
-<div id="ax" class="bar" hidden></div><div class="row" style="align-items:flex-end"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
+<div id="ax" class="bar" hidden></div><div class="row" style="align-items:flex-end"><button id="resum" title="Resumo do dia">📋</button><button id="live" title="Conversa ao vivo">📞</button><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
 const L=localStorage;let AK=null,T;
@@ -161,6 +164,8 @@ const K=()=>{
   try{k=JSON.parse(ST().getItem('foxia_k'))||{}}catch(e){k={}}
   if(window.FOXIA_SRV&&!k.svu)k.svu=window.FOXIA_SRV;
   if(window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0&&!k.svt)k.svt=window.FOXIA_TOKEN;
+  /* Gemini fixo: outras versões falham na sua conta */
+  k.gm='gemini-3.8-flash';
   return k;
 };
 const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
@@ -190,28 +195,28 @@ async function lm(u,h){const r=await ft(u,{headers:h});const j=await r.json();if
 async function mq(k){const j=await lm('https://api.groq.com/openai/v1/models',{authorization:'Bearer '+k});const ids=(j.data||[]).map(x=>x.id);for(const p of ['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant'])if(ids.includes(p))return p;return ids.find(i=>!/whisper|tts|guard|orpheus|embed|prompt/i.test(i))}
 async function mg(k){const j=await lm('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{'x-goog-api-key':k});const v=x=>parseFloat(x.name.match(/gemini-([\d.]+)/)[1]);const f=(j.models||[]).filter(x=>/models\/gemini-[\d.]+-flash$/.test(x.name)&&(x.supportedGenerationMethods||[]).includes('generateContent')).sort((a,b)=>v(b)-v(a));return f.length?f[0].name.replace('models/',''):null}
 async function gq(k,m,t,im){try{return await gq0(k,m||await mq(k),t,im)}catch(e){if(m&&(e.code=='http_404'||/does not exist|model/i.test(e.message)))return await gq0(k,await mq(k),t,im);throw e}}
-async function ge(k,m,t,im,w){try{return await ge0(k,m,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,m,t,im,false);if(e.code=='http_404'||/n[ãa]o est[áa] mais dispon|no longer available|not found/i.test(e.message)){const a=await mg(k);if(a&&a!=m)return await ge0(k,a,t,im,w)}throw e}}
+async function ge(k,m,t,im,w){const modelo='gemini-3.8-flash';try{return await ge0(k,modelo,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,modelo,t,im,false);throw e}}
 const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){if(i<2&&/^http_5\d\d$/.test(e.code||''))await new Promise(r=>setTimeout(r,(window.FOXIA_RT||2500)*(i+1)));else throw e}}};
 const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv'}}
 const base=t=='quick'?['q','g','o','c']:['c','o','q','g'];
 const ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);if(o.web)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o servidor não respondeu: confira se o token é igual ao ACCESS_TOKEN da Cloudflare e se o Worker está publicado':'sem chave');e.code='sem_chave';throw e}
 const im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,k.gm||'gemini-3.8-flash',input,im,o.web));
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,'gemini-3.8-flash',input,im,o.web));
 if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 err.message=errs.join(' | ');throw err};
 sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
 window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
-const F=['ck','ok','gk','qk','svu','svt','cm','om','gm','qm'];
-function abrir(){const k=K();F.forEach(f=>$$(f).value=k[f]||'');$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
+const F=['ck','ok','gk','qk','cm','om','qm'];
+function abrir(){const k=K();F.forEach(f=>{if($$(f))$$(f).value=k[f]||''});$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
-$$('ks').onclick=()=>{const k={pref:$$('kpref').value};F.forEach(f=>k[f]=$$(f).value.trim());try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}window.SRVOK=undefined;$$('kp').hidden=true};
+$$('ks').onclick=()=>{const k=K();k.pref=$$('kpref').value;F.forEach(f=>{if($$(f))k[f]=$$(f).value.trim()});k.gm='gemini-3.8-flash';if(window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)k.svt=window.FOXIA_TOKEN;if(window.FOXIA_SRV)k.svu=window.FOXIA_SRV;try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}window.SRVOK=undefined;$$('kp').hidden=true};
 $$('ke').onclick=()=>dl('foxia-backup.json',ST().getItem('kit')||'{}');
 $$('ki').onclick=()=>$$('kf').click();
-$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();JSON.parse(t);ST().setItem('kit',t);location.reload()}catch(x){ind('⚠ arquivo de backup inválido')}};
-const k0=K();$$('svu').hidden=!!window.FOXIA_SRV;if(!(k0.ck||k0.ok||k0.gk||k0.qk||SRVC()))$$('kp').hidden=false;
+$$('kf').onchange=async e=>{try{const t=await e.target.files[0].text();const j=JSON.parse(t);if(j&&j.kit){ST().setItem('kit',typeof j.kit==='string'?j.kit:JSON.stringify(j.kit));if(j.keys)ST().setItem('foxia_k',typeof j.keys==='string'?j.keys:JSON.stringify(j.keys));if(j.lembretes)localStorage.setItem('foxia_lembretes',JSON.stringify(j.lembretes));location.reload()}else{ST().setItem('kit',t);location.reload()}}catch(x){ind('⚠ arquivo de backup inválido')}};
+const k0=K();if(!(k0.ck||k0.ok||k0.gk||k0.qk||SRVC()))$$('kp').hidden=false;
 })();
 </script>
 <script>
@@ -221,7 +226,7 @@ let M;try{M=JSON.parse(ST().getItem('kit'))}catch(e){}
 M=M||{fatos:[],padroes:[],persona:P0,hist:[],n:0};
 let DB,DOC,sv;
 const save=()=>{sync();M.t=Date.now();window.SV=true;try{ST().setItem('kit',JSON.stringify(M));window.SV=ST().getItem('kit')!=null}catch(e){window.SV=false}clearTimeout(sv);sv=setTimeout(()=>{prune();if(DOC)DOC.set(JSON.parse(JSON.stringify(M))).then(()=>ind('salvo na nuvem')).catch(e=>ind('erro ao salvar na nuvem: '+(e&&e.code||'?')));else ind(window.SV===false?'⚠ o navegador bloqueou o salvamento (aba anônima ou dados desativados)':'salvo neste aparelho')},800)};
-const SK={resumir:'Habilidade: resuma o texto do usuário em tópicos curtos.',escrever:'Habilidade: escreva o texto pedido, pronto para usar.',revisar:'Habilidade: revise e corrija o texto do usuário; mostre a versão final primeiro e depois até 3 mudanças.',plano:'Habilidade: monte um plano de ação em passos curtos, com prioridade.'};
+const SK={resumir:'Habilidade: resuma o texto do usuário em tópicos curtos.',escrever:'Habilidade: escreva o texto pedido, pronto para usar.',revisar:'Habilidade: revise e corrija o texto do usuário; mostre a versão final primeiro e depois até 3 mudanças.',plano:'Habilidade: monte um plano de ação em passos curtos, com prioridade.',simples15:'Habilidade: explique como se o usuário tivesse 15 anos — linguagem simples, exemplos do dia a dia, sem jargão.',essencial:'Habilidade: responda só o essencial, no máximo 5 linhas curtas, sem introdução nem enrolação.',lista:'Habilidade: responda em lista numerada ou com marcadores, clara e objetiva.',decidir:'Habilidade: ajude o usuário a decidir — mostre prós e contras e uma recomendação clara no final.'};
 const perfilTxt=()=>{const p=M.perfil||{};return [p.nome&&'chamar de '+p.nome,p.sobre,p.metas&&'objetivos: '+p.metas,p.rotina&&'rotina: '+p.rotina].filter(Boolean).join('; ')||'não informado'};
 function pintar(){$('log').textContent='';if(M.hist.length)M.hist.slice(-20).forEach(m=>add(m.r,m.t));else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
 $('pb').onclick=()=>{$('pf').hidden=false};$('pc').onclick=()=>{$('pf').hidden=true};
@@ -355,7 +360,22 @@ setTimeout(carregarPesq,2500);
 pintar();
 </script>
 <script>pedir=()=>{};try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-function memv(){const l=$('ml');l.textContent=M.fatos.length?'':'Ainda não guardei nada.';M.fatos.forEach((f,i)=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const t=document.createElement('span');t.style.flex='1';t.textContent=f;const d=document.createElement('button');d.textContent='✕';d.onclick=()=>{M.fatos.splice(i,1);save();memv();status()};r.append(t,d);l.append(r)})}
+function pruneTemp(){const now=Date.now();M.temp=(M.temp||[]).filter(x=>x&&x.t&&(now-(x.at||0))<7*24*3600*1000)}
+function memv(){
+  pruneTemp();
+  const l=$('ml');l.textContent='';
+  if(!(M.fatos&&M.fatos.length)){const e=document.createElement('div');e.className='fl';e.textContent='Nenhum fato estável ainda.';l.append(e)}
+  (M.fatos||[]).forEach((f,i)=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const t=document.createElement('span');t.style.flex='1';t.textContent=f;const d=document.createElement('button');d.textContent='✕';d.title='Esquecer';d.onclick=()=>{M.fatos.splice(i,1);save();memv();status()};r.append(t,d);l.append(r)});
+  const lt=$('mlt');if(lt){lt.textContent='';const tmp=M.temp||[];if(!tmp.length){const e=document.createElement('div');e.className='fl';e.textContent='Nada temporário.';lt.append(e)}
+  tmp.forEach((x,i)=>{const r=document.createElement('div');r.className='row';r.style.padding='0';const t=document.createElement('span');t.style.flex='1';t.textContent=x.t;const d=document.createElement('button');d.textContent='✕';d.onclick=()=>{M.temp.splice(i,1);save();memv()};r.append(t,d);lt.append(r)})}
+}
+function esquecerFato(texto){
+  const q=String(texto||'').toLowerCase();
+  const before=(M.fatos||[]).length;
+  M.fatos=(M.fatos||[]).filter(f=>!String(f).toLowerCase().includes(q)&&!q.includes(String(f).toLowerCase().slice(0,20)));
+  M.temp=(M.temp||[]).filter(x=>!String(x.t).toLowerCase().includes(q));
+  save();return before-(M.fatos||[]).length;
+}
 $('mv').onclick=()=>{memv();$('mp').hidden=false};$('mc').onclick=()=>{$('mp').hidden=true};
 $('ma').onclick=()=>{const v=$('mn').value.trim();if(v){M.fatos.push(v.slice(0,200));M.fatos=M.fatos.slice(-40);save();$('mn').value='';memv();status()}};
 $('fg').onclick=()=>{const b=$('fg');
@@ -397,13 +417,50 @@ const GID=()=>'457343475171-p69odqmp2lbfrui1le28qmk8q0anf7tc.apps.googleusercont
 const GON=()=>localStorage.getItem('foxia_gc')=='1';
 function gsi(){if(!document.querySelector('script[src*="gsi/client"]')){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';document.head.append(s)}}
 if(GID())gsi();
-function gtoken(sc=ESC1){return new Promise((ok,no)=>{const id=GID();if(!id)return no(new Error('ID do Google não configurado.'));const c=TK[sc];if(c&&Date.now()<c.x)return ok(c.t);
-if(!(window.google&&google.accounts&&google.accounts.oauth2))return no(new Error('O login do Google ainda não carregou. Aguarde um instante e tente de novo.'));
-google.accounts.oauth2.initTokenClient({client_id:id,scope:sc,callback:r=>{if(r.error)return no(new Error(r.error_description||r.error));TK[sc]={t:r.access_token,x:Date.now()+(r.expires_in-60)*1000};if(sc==ESC1)localStorage.setItem('foxia_gc','1');ok(r.access_token)},error_callback:e=>no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'))}).requestAccessToken()})}
+const gtkKey=sc=>'foxia_gtk_'+String(sc).length;
+function gtkLoad(sc){try{const s=JSON.parse(localStorage.getItem(gtkKey(sc))||'null');if(s&&s.t&&Date.now()<s.x){TK[sc]=s;return s}}catch(e){}return null}
+function gtkSave(sc,tok){TK[sc]=tok;try{localStorage.setItem(gtkKey(sc),JSON.stringify(tok))}catch(e){}}
+function gtoken(sc=ESC1,opts={}){return new Promise((ok,no)=>{
+  const id=GID();if(!id)return no(new Error('ID do Google não configurado.'));
+  const mem=TK[sc];if(mem&&Date.now()<mem.x)return ok(mem.t);
+  const saved=gtkLoad(sc);if(saved)return ok(saved.t);
+  if(!(window.google&&google.accounts&&google.accounts.oauth2))return no(new Error('O login do Google ainda não carregou. Aguarde um instante e tente de novo.'));
+  const silent=!!opts.silent;
+  const client=google.accounts.oauth2.initTokenClient({
+    client_id:id,scope:sc,
+    callback:r=>{
+      if(r.error){if(silent)return no(new Error(r.error));return no(new Error(r.error_description||r.error))}
+      const tok={t:r.access_token,x:Date.now()+((r.expires_in||3600)-90)*1000};
+      gtkSave(sc,tok);
+      if(sc==ESC1)localStorage.setItem('foxia_gc','1');
+      ok(r.access_token);
+    },
+    error_callback:e=>{if(silent)return no(new Error('silent'));no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'))}
+  });
+  /* prompt vazio tenta renovar sem popup se o Google ainda reconhecer o usuário */
+  try{client.requestAccessToken(silent||localStorage.getItem('foxia_gc')=='1'?{prompt:''}:{})}catch(e){try{client.requestAccessToken()}catch(e2){no(e2)}}
+})}
+/* renova o token do Google em background antes de expirar */
+setInterval(()=>{
+  if(localStorage.getItem('foxia_gc')!='1')return;
+  const c=TK[ESC1]||gtkLoad(ESC1);
+  if(c&&c.x-Date.now()<5*60*1000)gtoken(ESC1,{silent:true}).catch(()=>{});
+},60*1000);
+if(localStorage.getItem('foxia_gc')=='1')setTimeout(()=>gtoken(ESC1,{silent:true}).catch(()=>{}),1500);
 const b64=s=>{let x='';new TextEncoder().encode(s).forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
 const dec64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)));
 const GM='https://gmail.googleapis.com/gmail/v1/users/me',GC='https://www.googleapis.com/calendar/v3/calendars/primary/events';
-async function gj(u,m='GET',corpo){const t=await gtoken();const r=await fetch(u,{method:m,headers:corpo?{authorization:'Bearer '+t,'content-type':'application/json'}:{authorization:'Bearer '+t},body:corpo?JSON.stringify(corpo):undefined});if(!r.ok){if(r.status==401)delete TK[ESC1];throw new Error((await r.text()).slice(0,200))}return r.status==204?null:r.json()}
+async function gj(u,m='GET',corpo){
+  let t=await gtoken();
+  let r=await fetch(u,{method:m,headers:corpo?{authorization:'Bearer '+t,'content-type':'application/json'}:{authorization:'Bearer '+t},body:corpo?JSON.stringify(corpo):undefined});
+  if(r.status==401){
+    delete TK[ESC1];try{localStorage.removeItem(gtkKey(ESC1))}catch(e){}
+    t=await gtoken(ESC1,{silent:false});
+    r=await fetch(u,{method:m,headers:corpo?{authorization:'Bearer '+t,'content-type':'application/json'}:{authorization:'Bearer '+t},body:corpo?JSON.stringify(corpo):undefined});
+  }
+  if(!r.ok)throw new Error((await r.text()).slice(0,200));
+  return r.status==204?null:r.json();
+}
 const raw=a=>b64('To: '+(a.para||'')+'\r\nSubject: =?UTF-8?B?'+b64(a.assunto||'')+'?=\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+b64(a.corpo||'')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const H=(p,n)=>((p&&p.headers||[]).find(h=>h.name.toLowerCase()==n)||{}).value||'';
 function corpoMsg(p){let t='',h='';const w=x=>{if(!x)return;if(x.mimeType=='text/plain'&&x.body&&x.body.data)t+=dec64(x.body.data);else if(x.mimeType=='text/html'&&x.body&&x.body.data)h+=dec64(x.body.data);(x.parts||[]).forEach(w)};w(p);return(t||h.replace(/<style[\s\S]*?<\/style>|<[^>]+>/g,' ')).replace(/\s+/g,' ').trim()}
@@ -865,4 +922,73 @@ $('resum').onclick=()=>resumoDoDia();
   $('go').onclick=()=>window.enviar();
   $('q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.enviar()}};
 })();
+
+/* offline leve */
+function updOff(){
+  const off=!navigator.onLine;
+  const b=$('offb');
+  if(b)b.style.display=off?'flex':'none';
+  if(off)ind('modo offline: leitura ok');
+}
+window.addEventListener('online',()=>{updOff();ind('rede de volta')});
+window.addEventListener('offline',updOff);
+updOff();
+
+/* "esquece X" no chat + fatos temporários */
+(function(){
+  const prev=window.enviar;
+  window.enviar=function(){
+    const q=$('q').value.trim();
+    const m=q.match(/^(?:esquece|esquecer|apaga(?:r)?(?:\s+da\s+mem[oó]ria)?|forget)\s+(.+)/i);
+    if(m){
+      $('q').value='';autoGrow();
+      add('u',q);
+      const n=typeof esquecerFato==='function'?esquecerFato(m[1].trim()):0;
+      const msg=n?('Ok, apaguei '+n+' fato(s) relacionados a “'+m[1].trim()+'”.'):('Não achei “'+m[1].trim()+'” na memória estável. Você pode apagar manualmente em ⚙ → Memória.');
+      add('k',msg);falar(msg);return;
+    }
+    if(/^(só por enquanto|tempor[aá]rio|por agora)[:\s]/i.test(q)&&typeof M!=='undefined'){
+      /* marca próximo fato aprendido como temp — também grava direto se for "temporário: texto" */
+      const tm=q.match(/tempor[aá]rio[:\s]+(.+)/i);
+      if(tm){
+        $('q').value='';autoGrow();add('u',q);
+        M.temp=M.temp||[];M.temp.push({t:tm[1].trim().slice(0,200),at:Date.now()});save();
+        const msg='Guardei como temporário (some em ~7 dias): '+tm[1].trim();
+        add('k',msg);falar(msg);return;
+      }
+    }
+    if(!navigator.onLine){
+      const onlyRead=/^(mostrar|ver|listar|o que você (sabe|lembra)|mem[oó]ria)/i.test(q);
+      if(!onlyRead){add('k','📡 Sem internet agora. Você ainda pode ler os chats e a memória; para eu responder de novo, precisa de rede.');return}
+    }
+    return prev.apply(this,arguments);
+  };
+  $('go').onclick=()=>window.enviar();
+})();
+
+/* backup completo 1 toque */
+function backupCompleto(){
+  try{if(typeof sync==='function')sync()}catch(e){}
+  const data={
+    tipo:'foxia-backup-completo',
+    exportadoEm:new Date().toLocaleString('pt-BR'),
+    kit:(()=>{try{return JSON.parse(ST().getItem('kit')||'{}')}catch(e){return{}}})(),
+    keys:(()=>{try{return JSON.parse(ST().getItem('foxia_k')||'{}')}catch(e){return{}}})(),
+    lembretes:(()=>{try{return JSON.parse(localStorage.getItem('foxia_lembretes')||'[]')}catch(e){return[]}})(),
+    prefs:{
+      tts:localStorage.getItem('foxia_tts'),
+      aev:localStorage.getItem('foxia_aev'),
+      notif:localStorage.getItem('foxia_notif'),
+      vz:localStorage.getItem('foxia_vz'),
+      vid:localStorage.getItem('foxia_vid')
+    }
+  };
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='foxia-backup-completo-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.append(a);a.click();a.remove();
+  ind('backup completo baixado');
+}
+if($('bkall'))$('bkall').onclick=backupCompleto;
+if($('bkall2'))$('bkall2').onclick=backupCompleto;
 </script></body></html>
