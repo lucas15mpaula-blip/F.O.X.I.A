@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -127,8 +127,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc" class="x" aria-label="Fechar">✕</button></div></div>
 
 <div id="ax" class="bar" hidden></div>
-<div class="row" style="padding:6px 10px 0;gap:8px"><button id="resum" title="Resumo do dia" style="flex:1">📋 Resumo</button><button id="live" title="Conversa ao vivo" style="flex:1">📞 Chamada</button></div>
-<div class="row" style="align-items:flex-end"><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
+<div class="row" style="align-items:flex-end"><button id="resum" title="Resumo do dia" aria-label="Resumo do dia">📋</button><button id="live" title="Conversa ao vivo" aria-label="Chamada">📞</button><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
 <script>
 (function(){
 const L=localStorage;let AK=null,T;
@@ -189,13 +188,12 @@ async function cl(k,m,t,im,web){const b={model:m,max_tokens:2000,messages:[{role
 const r=await ft('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.content.filter(x=>x.type=='text').map(x=>x.text).join('')}
 async function gq0(k,m,t,im){
-  /* Groq com visão: modelos que aceitam image_url */
   const vision=im&&im.length;
-  const modelo=vision?'meta-llama/llama-4-scout-17b-16e-instruct':m;
+  const modelo=vision?(m&&/qwen|scout|vision|maverick/i.test(m)?m:'qwen/qwen3.8-27b'):m;
   const content=vision
     ?[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]
     :t;
-  const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:modelo,messages:[{role:'user',content}]})});
+  const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:modelo,messages:[{role:'user',content}],max_tokens:1024})});
   const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content;
 }
 async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
@@ -210,7 +208,7 @@ async function gq(k,m,t,im){
   catch(e){
     /* se o modelo de visão falhar, tenta outro nome comum no Groq */
     if(im&&im.length&&(e.code=='http_404'||/does not exist|model|not.*support|vision/i.test(e.message||''))){
-      for(const alt of ['meta-llama/llama-4-scout-17b-16e-instruct','llama-3.2-11b-vision-preview','llama-3.2-90b-vision-preview']){
+      for(const alt of ['qwen/qwen3.8-27b','qwen/qwen3.6-27b','meta-llama/llama-4-scout-17b-16e-instruct','meta-llama/llama-4-maverick-17b-128e-instruct']){
         try{return await gq0(k,alt,t,im)}catch(e2){}
       }
     }
@@ -220,6 +218,18 @@ async function gq(k,m,t,im){
 }
 async function ge(k,m,t,im,w){const modelo='gemini-3.8-flash';try{return await ge0(k,modelo,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,modelo,t,im,false);throw e}}
 const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){if(i<2&&/^http_5\d\d$/.test(e.code||''))await new Promise(r=>setTimeout(r,(window.FOXIA_RT||2500)*(i+1)));else throw e}}};
+
+async function verImagem(imB64List, pergunta){
+  const S=window.SRVC&&window.SRVC();
+  if(!S||!imB64List.length)return null;
+  try{
+    const r=await fetch(S.u+'/visao',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({image:imB64List[0],prompt:pergunta||'Descreva a imagem em português do Brasil com o máximo de detalhes úteis.'})});
+    if(!r.ok)return null;
+    const j=await r.json();
+    return (j&&j.text)?String(j.text).trim():null;
+  }catch(e){return null}
+}
+
 const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv'}}
 const temImg=!!(o.images&&o.images.length);
 /* com foto: prioriza quem lê imagem (Claude, OpenAI, Groq-visão). Gemini por último (cota de visão costuma falhar no plano free). */
@@ -228,9 +238,21 @@ let ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filt
 if(o.web&&!temImg)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(temImg)ord=ord.filter(x=>x!=='g').concat(ord.filter(x=>x==='g')); /* Gemini só se os outros falharem */
 if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o servidor não respondeu: confira se o token é igual ao ACCESS_TOKEN da Cloudflare e se o Worker está publicado':'sem chave');e.code='sem_chave';throw e}
-const im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),input,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',input,im):p=='q'?await gq(keys.q,k.qm||'',input,im):await ge(keys.g,'gemini-3.8-flash',input,im,o.web));
+let im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
+let inputFinal=input;
+/* se tem imagem: tenta ler direto; se todos falharem, descreve via Worker AI e responde em texto */
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,k.qm||'',inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
 if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
+if(temImg&&im.length){
+  try{
+    const desc=await verImagem(im, 'Descreva a imagem em português do Brasil com detalhes. Se houver texto, transcreva.');
+    if(desc){
+      im=[];inputFinal=input+'\n\n[Descrição automática da imagem anexada]\n'+desc+'\n[Fim da descrição]\nResponda ao usuário com base nessa descrição.';
+      for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,[],t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,[]):p=='q'?await gq(keys.q,k.qm||'',inputFinal,[]):await ge(keys.g,'gemini-3.8-flash',inputFinal,[],o.web));
+      if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){errs.push('texto:'+(({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]||p)+' '+(e.message||e));err=e}}
+    }
+  }catch(e){errs.push('visão:'+(e.message||e))}
+}
 err.message=(temImg?'Não consegui ler a imagem. Detalhe: ':'')+errs.join(' | ');throw err};
 sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
