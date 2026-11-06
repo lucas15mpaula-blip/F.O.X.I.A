@@ -52,6 +52,14 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .nt{font-size:12px;opacity:.6;margin-top:6px}
 .cd{margin-top:8px;padding:8px;border:1px solid var(--ln);border-radius:10px;white-space:pre-wrap}.cd button{margin:8px 6px 0 0}
 .ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:2px 9px;font-size:14px;opacity:.75;border-radius:8px}
+.cd{position:relative}.cd .row-ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.cd .row-ac button{flex:1;min-width:120px;padding:12px 14px;font-size:15px;border-radius:12px}
+.cd .row-ac button.ok{background:var(--b);border-color:var(--b);color:#fff;font-weight:600}
+.cd .row-ac button.no{opacity:.85}
+#live.on{background:var(--r);border-color:var(--r);color:#fff;animation:p .6s infinite alternate}
+#livebar{display:none;align-items:center;gap:10px;padding:8px 12px;background:#1a0a12;border-top:1px solid var(--r);font-size:14px}
+#livebar.on{display:flex}
+#livebar b{flex:1}
 .dots{display:inline-flex;gap:6px;align-items:center;height:20px}
 .dots i{width:9px;height:9px;border-radius:50%;background:var(--b);animation:pul 1s infinite ease-in-out}
 .dots i:nth-child(2){background:var(--r);animation-delay:.15s}
@@ -92,13 +100,16 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="mp" hidden><h2>Memória</h2><div id="ml"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
 <div id="ac" hidden><h2>F.O.X.I.A</h2><p class="fl">Crie uma conta para guardar suas chaves e memória protegidas por senha <b>neste aparelho</b>. Se esquecer a senha, não há como recuperar os dados.</p><input id="au" placeholder="Usuário" autocapitalize="none" autocomplete="off"><input id="ap" type="password" placeholder="Senha"><div class="fl" id="am"></div><div class="row" style="padding:0"><button id="ai">Entrar</button><button id="an">Criar conta</button></div><button id="ag">Continuar sem conta</button><button id="ii">Importar conta (arquivo)</button><input type="file" id="if" hidden accept=".json"><button id="rg">Restaurar do Google</button></div>
 <div id="log"></div>
-<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
+<div class="bar"><select id="sk" aria-label="Habilidade"><option value="">Hab</option><option value="resumir">Resumir</option><option value="escrever">Escrever</option><option value="revisar">Revisar</option><option value="plano">Plano de ação</option></select><button id="resum" title="Resumo do dia">📋</button><button id="live" title="Conversa ao vivo">📞</button><button id="fg" aria-label="Apagar este chat">🗑️</button><button id="rb">Pesquisas</button></div>
+<div id="livebar"><b>📞 Em chamada — pode falar</b><button id="livex">Encerrar</button></div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural, pelo servidor)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" placeholder="Voice ID (não é a API key)" hidden>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Marcar e editar eventos na agenda sem pedir confirmação (excluir ainda pergunta)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="exall">Exportar todas as conversas</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="exall">Exportar todas as conversas</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
 <textarea id="cmp" placeholder="Ex.: Seja doce e bem-humorada e responda sempre curto…"></textarea>
@@ -420,10 +431,17 @@ const AC={email:a=>gj(GM+'/messages/send','POST',{raw:raw(a)}),evento:a=>gj(GC,'
 const ACAO=()=>{let t='';if($('web').checked)t+=' REGRA DE WEB: quando houver resultados de pesquisa na conversa (seção [Resultados da pesquisa na web]), baseie-se neles e cite as fontes. Se a pesquisa falhar ou um site pedir captcha, avise o usuário. FERRAMENTAS DE WEB (executam sozinhas): para abrir um site escreva <<<LER https://endereço>>>; para pesquisar na web escreva <<<BUSCAR termos>>>. Use quando precisar de informação atual ou do conteúdo de um site; ao usar uma ferramenta escreva só o bloco, sem outro texto.';
 if(window.SRVOK&&window.SRVOK.imagem)t+=' IMAGENS: para criar uma imagem escreva <<<IMAGEM descrição detalhada em inglês>>> (no máximo uma por resposta) e diga em uma frase o que fez.';if(GON())t+=' FERRAMENTAS GOOGLE DE LEITURA (executam sozinhas): <<<AGENDA AAAA-MM-DD AAAA-MM-DD>>> lista eventos do período com ids; <<<EMAILS consulta no formato de busca do Gmail>>> lista e-mails com ids; <<<EMAIL id>>> lê um e-mail; <<<RASCUNHOS>>> lista rascunhos; <<<RASCUNHO id>>> lê um rascunho. AÇÕES (o usuário confirma num cartão; nunca diga que já fez): responda com UM bloco <<<ACAO {json}>>> em uma linha, num destes formatos: {"tipo":"email","para":"","assunto":"","corpo":""}; {"tipo":"evento","titulo":"","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""}; {"tipo":"evento_editar","id":"","titulo":"","inicio":"","fim":"","local":"","descricao":""} (só os campos que mudam); {"tipo":"evento_excluir","id":"","titulo":""}; {"tipo":"rascunho_criar","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_editar","id":"","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_excluir","id":"","assunto":""}; {"tipo":"email_lixeira","id":"","assunto":""}. Para editar ou apagar, primeiro liste ou leia para obter o id certo. Se faltar e-mail, data ou hora, pergunte antes. Agora é '+new Date().toString()+'.';return t};
 function cartoes(el,t){const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}const Q=ROT[a.tipo];if(!Q||!AC[a.tipo]||(/_(editar|excluir)$|lixeira/.test(a.tipo)&&!a.id))continue;
-const c=document.createElement('div');c.className='cd';c.textContent=Q[0]+'\n'+Object.entries(a).filter(([k,v])=>k!='tipo'&&v!==''&&v!=null).map(([k,v])=>k+': '+v).join('\n');
-const rodar=async()=>{c.textContent=Q[0]+'… aguarde';try{await AC[a.tipo](a);c.textContent=Q[2]+(a.titulo?': '+a.titulo:'')+(a.inicio?'\n'+a.inicio:'')}catch(e){c.textContent='⚠ Não deu certo: '+e.message;const rt=document.createElement('button');rt.textContent='Tentar de novo';rt.onclick=rodar;c.append(rt)}};
-if(localStorage.getItem('foxia_aev')=='1'&&(a.tipo=='evento'||a.tipo=='evento_editar')){el.append(c);rodar();continue}
-const ok=document.createElement('button'),no=document.createElement('button');ok.textContent=Q[1];no.textContent='Cancelar';ok.onclick=rodar;no.onclick=()=>c.remove();c.append(ok,no);el.append(c)}}
+const c=document.createElement('div');c.className='cd';
+const head=document.createElement('div');head.textContent=Q[0]+'\n'+Object.entries(a).filter(([k,v])=>k!='tipo'&&v!==''&&v!=null).map(([k,v])=>k+': '+v).join('\n');c.append(head);
+const rodar=async()=>{c.textContent=Q[0]+'… aguarde';try{await AC[a.tipo](a);c.textContent=Q[2]+(a.titulo?': '+a.titulo:'')+(a.assunto?': '+a.assunto:'')+(a.inicio?'\n'+a.inicio:'');try{if(window.Notification&&Notification.permission==='granted')new Notification('F.O.X.I.A',{body:Q[2],tag:'foxia-acao'})}catch(e){}}catch(e){c.textContent='⚠ Não deu certo: '+e.message;const row=document.createElement('div');row.className='row-ac';const rt=document.createElement('button');rt.className='ok';rt.textContent='Tentar de novo';rt.onclick=rodar;row.append(rt);c.append(row)}};
+const auto=localStorage.getItem('foxia_aev')=='1'&&!/excluir|lixeira/.test(a.tipo);
+if(auto){el.append(c);rodar();continue}
+const row=document.createElement('div');row.className='row-ac';
+const ok=document.createElement('button'),no=document.createElement('button');
+ok.className='ok';no.className='no';ok.textContent=Q[1];no.textContent='Cancelar';
+ok.onclick=()=>rodar();no.onclick=()=>c.remove();
+row.append(ok,no);c.append(row);el.append(c);
+setTimeout(()=>{try{ok.focus()}catch(e){}},50)}}
 $('gcon').onclick=()=>gtoken().then(()=>{ind('Google conectado');$('gp').hidden=true}).catch(e=>add('k','Google: '+e.message));
 /* backup da conta no Google Drive (pasta oculta do app; só o arquivo criptografado) */
 const DR='https://www.googleapis.com';
@@ -441,6 +459,8 @@ $('bk').checked=localStorage.getItem('foxia_bk')=='1';$('bk').onchange=()=>{loca
 
 $('rg').onclick=async()=>{try{$('am').textContent='Procurando suas contas no Google Drive…';const ns=await driveRestore();$('am').textContent=ns.length?'Contas restauradas: '+ns.join(', ')+'. Agora entre com a senha.':'Nenhum backup encontrado nesse Google.'}catch(e){$('am').textContent='Não consegui restaurar: '+e.message}};
 $('aev').checked=localStorage.getItem('foxia_aev')=='1';$('aev').onchange=()=>localStorage.setItem('foxia_aev',$('aev').checked?'1':'0');
+$('notif').checked=localStorage.getItem('foxia_notif')=='1';
+$('notif').onchange=async()=>{localStorage.setItem('foxia_notif',$('notif').checked?'1':'0');if($('notif').checked){try{const p=await Notification.requestPermission();if(p!=='granted'){ind('notificações bloqueadas neste navegador');$('notif').checked=false;localStorage.setItem('foxia_notif','0')}else ind('notificações ativadas')}catch(e){ind('notificações indisponíveis')}}};
 /* ===== v4: projetos e fixados, geradores de arquivo, imagens e voz ===== */
 const projTxt=()=>{const c=(M.chats||[]).find(x=>x.id==M.cur),p=c&&c.p&&(M.proj||[]).find(x=>x.id==c.p);return p&&p.instr?'\nInstruções do projeto "'+p.nome+'" (siga neste chat): '+p.instr:''};
 const ABR={};
@@ -529,7 +549,7 @@ async function elevenFalar(t){
   if(!bl||!bl.size)throw new Error('resposta de áudio vazia');
   if(AUD)try{AUD.pause()}catch(e){}
   AUD=new Audio(URL.createObjectURL(bl));
-  await AUD.play();
+  await new Promise((ok,no)=>{AUD.onended=ok;AUD.onerror=ok;AUD.play().catch(ok)});
 }
 async function dizer(t){
   if(AUD){try{AUD.pause()}catch(e){}AUD=null}
@@ -537,6 +557,7 @@ async function dizer(t){
     try{
       if(window.srvInit)await window.srvInit();
       await elevenFalar(t);
+      if(typeof liveAfterSpeak==='function'&&LIVE)liveAfterSpeak();
       return;
     }catch(e){
       ind('ElevenLabs: '+(e&&e.message||e));
@@ -600,4 +621,220 @@ $('exall').onclick=()=>{
   document.body.append(a);a.click();a.remove();
   ind('conversas exportadas');
 };
+
+/* ===== 1) Conversa ao vivo  2) Lembretes  3) Resumo do dia  4) (cartões já melhorados) ===== */
+let LIVE=false, liveRec=null, liveWait=false;
+function notificar(titulo,corpo,tag){
+  if(localStorage.getItem('foxia_notif')!='1')return;
+  try{
+    if(!window.Notification)return;
+    if(Notification.permission!=='granted')return;
+    new Notification(titulo||'F.O.X.I.A',{body:String(corpo||'').slice(0,180),tag:tag||('foxia-'+Date.now()),icon:undefined});
+  }catch(e){}
+}
+function lembretesLoad(){try{return JSON.parse(localStorage.getItem('foxia_lembretes')||'[]')}catch(e){return[]}}
+function lembretesSave(arr){localStorage.setItem('foxia_lembretes',JSON.stringify(arr.slice(-40)))}
+function agendarLembrete(texto,quando){
+  const arr=lembretesLoad();
+  arr.push({id:'l'+Date.now(),t:String(texto).slice(0,200),at:+quando,done:false});
+  lembretesSave(arr);
+  ind('lembrete às '+new Date(quando).toLocaleString('pt-BR'));
+}
+function parseLembrete(q){
+  // "me lembra de X às 15:30" / "lembrete amanhã 9h: pagar conta"
+  const t=q.trim();
+  let m=t.match(/(?:me\s+lembr[ea]|lembr[ea]-?me|lembrete)\s+(?:de\s+)?(.+?)\s+(?:às|as)\s+(\d{1,2})(?::(\d{2}))?\s*(?:h|hrs|horas)?$/i);
+  if(!m)m=t.match(/(?:me\s+lembr[ea]|lembr[ea]-?me|lembrete)\s+(?:de\s+)?(.+)/i);
+  if(!m)return null;
+  const texto=(m[1]||'').trim();
+  if(!texto)return null;
+  const now=new Date();
+  let when=new Date(now.getTime()+60*60*1000);
+  if(m[2]!=null){
+    when=new Date(now);
+    when.setHours(+m[2],m[3]!=null?+m[3]:0,0,0);
+    if(when<=now)when.setDate(when.getDate()+1);
+  }else if(/amanh[ãa]/i.test(t)){
+    when=new Date(now);when.setDate(when.getDate()+1);when.setHours(9,0,0,0);
+  }
+  return {texto,when};
+}
+function checarLembretes(){
+  const arr=lembretesLoad();let mudou=false;
+  const now=Date.now();
+  arr.forEach(l=>{
+    if(!l.done&&l.at<=now){
+      l.done=true;mudou=true;
+      notificar('Lembrete F.O.X.I.A',l.t,'lem-'+l.id);
+      try{add('k','⏰ Lembrete: '+l.t)}catch(e){}
+    }
+  });
+  if(mudou)lembretesSave(arr);
+}
+async function checarAgendaProx(){
+  if(localStorage.getItem('foxia_notif')!='1'||!GON())return;
+  try{
+    const t0=new Date(),t1=new Date(t0.getTime()+2*60*60*1000);
+    const j=await gj(GC+'?timeMin='+encodeURIComponent(t0.toISOString())+'&timeMax='+encodeURIComponent(t1.toISOString())+'&singleEvents=true&orderBy=startTime');
+    const items=(j&&j.items)||[];
+    const seen=JSON.parse(localStorage.getItem('foxia_evseen')||'{}');
+    items.forEach(ev=>{
+      const id=ev.id;if(!id||seen[id])return;
+      const start=ev.start&&(ev.start.dateTime||ev.start.date);
+      if(!start)return;
+      const ms=new Date(start).getTime()-Date.now();
+      if(ms>0&&ms<30*60*1000){
+        seen[id]=1;
+        notificar('Agenda',(ev.summary||'Evento')+' em breve','ev-'+id);
+      }
+    });
+    localStorage.setItem('foxia_evseen',JSON.stringify(seen));
+  }catch(e){}
+}
+setInterval(()=>{checarLembretes();checarAgendaProx()},30000);
+setTimeout(checarLembretes,2000);
+
+function liveStop(){
+  LIVE=false;liveWait=false;
+  try{if(liveRec)liveRec.stop()}catch(e){}
+  liveRec=null;
+  $('live').classList.remove('on');
+  $('livebar').classList.remove('on');
+  ind('chamada encerrada');
+}
+function liveAfterSpeak(){
+  if(!LIVE)return;
+  liveWait=false;
+  setTimeout(()=>{if(LIVE&&!busy)liveListen()},600);
+}
+function liveListen(){
+  if(!LIVE||busy||liveWait)return;
+  if(!window.SpeechRecognition&&!window.webkitSpeechRecognition){
+    add('k','Este navegador não tem reconhecimento de voz contínuo. Use Chrome e permita o microfone.');
+    liveStop();return;
+  }
+  const SR0=window.SpeechRecognition||window.webkitSpeechRecognition;
+  try{if(liveRec)liveRec.stop()}catch(e){}
+  liveRec=new SR0();
+  liveRec.lang='pt-BR';
+  liveRec.continuous=false;
+  liveRec.interimResults=false;
+  liveRec.onresult=async e=>{
+    const t=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript||'').trim();
+    if(!t||busy)return;
+    liveWait=true;
+    $('livebar').querySelector('b').textContent='📞 Ouvindo… processando';
+    add('u',t);
+    const lem=parseLembrete(t);
+    if(lem){
+      agendarLembrete(lem.texto,lem.when);
+      const msg='Combinado. Vou te lembrar de "'+lem.texto+'" em '+lem.when.toLocaleString('pt-BR')+'.';
+      add('k',msg);falar(msg);liveAfterSpeak();
+      return;
+    }
+    try{await resp(t,[])}catch(err){}
+    // resp chama falar; esperamos a fala terminar
+    setTimeout(liveAfterSpeak, Math.min(12000, 1500+String(t).length*40));
+  };
+  liveRec.onerror=e=>{
+    if(!LIVE)return;
+    if(e.error==='no-speech'){setTimeout(()=>LIVE&&liveListen(),400);return}
+    if(e.error==='not-allowed'){add('k','Microfone bloqueado para a chamada.');liveStop()}
+  };
+  liveRec.onend=()=>{if(LIVE&&!busy&&!liveWait)setTimeout(()=>LIVE&&liveListen(),300)};
+  try{
+    liveRec.start();
+    $('livebar').querySelector('b').textContent='📞 Em chamada — pode falar';
+  }catch(e){setTimeout(()=>LIVE&&liveListen(),800)}
+}
+async function liveStart(){
+  if(LIVE){liveStop();return}
+  if(busy){ind('espere a resposta atual');return}
+  try{await Notification.requestPermission()}catch(e){}
+  LIVE=true;
+  $('live').classList.add('on');
+  $('livebar').classList.add('on');
+  // força voz durante a chamada
+  if(!$('tts').checked){$('tts').checked=true;localStorage.setItem('foxia_tts','1')}
+  ind('chamada iniciada');
+  add('k','📞 Chamada ao vivo. Pode falar — eu escuto, respondo e falo de volta. Toque em Encerrar para sair.');
+  liveListen();
+}
+$('live').onclick=()=>liveStart();
+$('livex').onclick=()=>liveStop();
+
+/* após falar com speechSynthesis, retoma a escuta na chamada */
+(function(){
+  const _dizerCelular=window.dizerCelular||dizerCelular;
+  window.dizerCelular=function(t){
+    if(!window.speechSynthesis){if(LIVE)liveAfterSpeak();return}
+    try{
+      speechSynthesis.cancel();
+      const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;
+      const parts=(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12);
+      if(!parts.length){if(LIVE)liveAfterSpeak();return}
+      let left=parts.length;
+      parts.forEach(p=>{
+        const u=new SpeechSynthesisUtterance(p.trim());
+        u.lang='pt-BR';if(v)u.voice=v;
+        u.onend=()=>{left--;if(left<=0&&LIVE)liveAfterSpeak()};
+        u.onerror=()=>{left--;if(left<=0&&LIVE)liveAfterSpeak()};
+        speechSynthesis.speak(u);
+      });
+    }catch(e){ind('voz indisponível neste navegador');if(LIVE)liveAfterSpeak()}
+  };
+})();
+
+/* Resumo do dia / semana */
+async function resumoDoDia(){
+  if(busy){ind('espere a resposta atual');return}
+  const hoje=new Date();
+  const ini=new Date(hoje);ini.setHours(0,0,0,0);
+  const fim=new Date(hoje);fim.setHours(23,59,59,999);
+  let agenda='(Google não conectado)';
+  if(GON()){
+    try{
+      const j=await gj(GC+'?timeMin='+encodeURIComponent(ini.toISOString())+'&timeMax='+encodeURIComponent(fim.toISOString())+'&singleEvents=true&orderBy=startTime');
+      const items=(j&&j.items)||[];
+      agenda=items.length?items.map(ev=>{
+        const s=ev.start&&(ev.start.dateTime||ev.start.date)||'';
+        const h=s.includes('T')?new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'dia todo';
+        return '- '+h+' · '+(ev.summary||'(sem título)')+(ev.location?' @ '+ev.location:'');
+      }).join('\n'):'(nenhum evento hoje)';
+    }catch(e){agenda='(não consegui ler a agenda: '+e.message+')'}
+  }
+  const lem=lembretesLoad().filter(l=>!l.done).map(l=>'- '+new Date(l.at).toLocaleString('pt-BR')+': '+l.t).join('\n')||'(nenhum)';
+  const fatos=(M.fatos||[]).slice(-8).map(f=>'- '+f).join('\n')||'(nenhum)';
+  const chats=(M.chats||[]).slice().sort((a,b)=>(b.tm||0)-(a.tm||0)).slice(0,5).map(c=>'- '+(c.title||'chat')).join('\n');
+  const prompt='Faça um resumo objetivo do MEU DIA para eu me organizar. Use só os dados abaixo. Estruture em: 1) Agenda de hoje 2) Lembretes pendentes 3) Pontos da memória relevantes 4) Sugestão de 3 prioridades. Seja direto, em português do Brasil.\n\nAGENDA HOJE:\n'+agenda+'\n\nLEMBRETES:\n'+lem+'\n\nMEMÓRIA:\n'+fatos+'\n\nCHATS RECENTES:\n'+chats;
+  add('u','📋 Resumo do dia');
+  resp(prompt,[]);
+}
+$('resum').onclick=()=>resumoDoDia();
+
+/* captura pedidos de lembrete no envio normal */
+(function(){
+  const _enviar=enviar;
+  window.enviar=function(){
+    const q=$('q').value.trim();
+    const lem=q&&parseLembrete(q);
+    if(lem&&!AX.length){
+      $('q').value='';autoGrow();
+      add('u',q);
+      agendarLembrete(lem.texto,lem.when);
+      if(localStorage.getItem('foxia_notif')!='1'){
+        $('notif').checked=true;
+        localStorage.setItem('foxia_notif','1');
+        try{Notification.requestPermission()}catch(e){}
+      }
+      const msg='Combinado. Lembrete: "'+lem.texto+'" em '+lem.when.toLocaleString('pt-BR')+'.'+(Notification.permission==='granted'?'':' Ative notificações em ⚙ se quiser alerta na tela.');
+      add('k',msg);falar(msg);
+      return;
+    }
+    return _enviar.apply(this,arguments);
+  };
+  // rebind botão enviar / enter — o onclick original aponta para enviar local; sobrescrevemos go
+  $('go').onclick=()=>window.enviar();
+  $('q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.enviar()}};
+})();
 </script></body></html>
