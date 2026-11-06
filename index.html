@@ -2,7 +2,15 @@
 <html lang="pt-BR" translate="no"><meta name="google" content="notranslate"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>F.O.X.I.A</title>
-<script>window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev'</script>
+<script>
+/* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
+window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
+/* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
+/* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
+window.FOXIA_USE_ELEVEN=true;
+</script>
 <style>
 :root{--bg:#050a1c;--fg:#dbe6ff;--b:#3b82ff;--r:#ff3b4e;--pn:#0c1634;--ln:#1d3a7a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -148,9 +156,21 @@ $$('ab').onclick=async()=>{if(US){await flush();if(window.nuvemJa)await window.n
 <script>
 (function(){
 const $$=i=>document.getElementById(i);
-const K=()=>{try{return JSON.parse(ST().getItem('foxia_k'))||{}}catch(e){return{}}};
+const K=()=>{
+  let k={};
+  try{k=JSON.parse(ST().getItem('foxia_k'))||{}}catch(e){k={}}
+  if(window.FOXIA_SRV&&!k.svu)k.svu=window.FOXIA_SRV;
+  if(window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0&&!k.svt)k.svt=window.FOXIA_TOKEN;
+  return k;
+};
 const er=(s,j)=>{const e=new Error((j&&j.error&&(j.error.message||j.error))||'erro '+s);e.code=s==429?'rate_limited':'http_'+s;return e};
-const SRVC=()=>{const k=K();const u=(window.FOXIA_SRV||k.svu||'').trim().replace(/\/+$/,'');return u&&k.svt?{u,t:k.svt.trim()}:null};
+const SRVC=()=>{
+  const k=K();
+  const u=(window.FOXIA_SRV||k.svu||'').trim().replace(/\/+$/,'');
+  const emb=window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0?String(window.FOXIA_TOKEN).trim():'';
+  const t=(k.svt||emb||'').trim();
+  return u&&t?{u,t}:null;
+};
 const PB=[['https://api.groq.com','groq'],['https://generativelanguage.googleapis.com','gemini'],['https://api.openai.com','openai'],['https://api.anthropic.com','claude']];
 async function srvInit(){const S=SRVC();if(!S){window.SRVOK=null;return null}if(window.SRVOK)return window.SRVOK;try{const r=await fetch(S.u+'/status',{headers:{'x-foxia-token':S.t}});if(!r.ok)throw 0;window.SRVOK=await r.json()}catch(e){window.SRVOK=null}return window.SRVOK}
 const ft=(u,o={})=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000),S=SRVC();let h=o.headers||{},via=false;
@@ -517,13 +537,21 @@ let AUD=null;
 function povoar(){const s=$('vzc');if(!window.speechSynthesis)return;const vs=speechSynthesis.getVoices().filter(v=>/^pt/i.test(v.lang));if(!vs.length)return;const at=localStorage.getItem('foxia_vzc')||'';s.textContent='';const o0=document.createElement('option');o0.value='';o0.textContent='Voz do celular: automática';s.append(o0);vs.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';s.append(o)});s.value=at}
 if(window.speechSynthesis){const ov=speechSynthesis.onvoiceschanged;speechSynthesis.onvoiceschanged=()=>{ov&&ov();povoar()};povoar();setTimeout(povoar,1200)}
 $('vzc').onchange=()=>{localStorage.setItem('foxia_vzc',$('vzc').value);dizerCelular('Esta é a voz escolhida.')};
+(function(){
+  const vidPadrao=(window.FOXIA_VOICE_ID&&window.FOXIA_VOICE_ID.indexOf('COLE_')!==0)?window.FOXIA_VOICE_ID:'';
+  if(vidPadrao&&!localStorage.getItem('foxia_vid'))localStorage.setItem('foxia_vid',vidPadrao);
+  if(vidPadrao&&window.FOXIA_USE_ELEVEN&&localStorage.getItem('foxia_vz')==null)localStorage.setItem('foxia_vz','eleven');
+})();
 $('vz').value=localStorage.getItem('foxia_vz')||'';
 $('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';if($('vz').value=='eleven'){ind('testando ElevenLabs…');dizer('Olá! Esta é a minha nova voz.')}else dizerCelular('Voz do celular ativada.')};
-$('vid').value=localStorage.getItem('foxia_vid')||'';$('vid').hidden=$('vz').value!='eleven';$('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
+$('vid').value=localStorage.getItem('foxia_vid')||((window.FOXIA_VOICE_ID&&window.FOXIA_VOICE_ID.indexOf('COLE_')!==0)?window.FOXIA_VOICE_ID:'');
+$('vid').hidden=$('vz').value!='eleven';
+$('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
 function dizerCelular(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 async function elevenFalar(t){
   const S=window.SRVC&&window.SRVC();
-  let id=(localStorage.getItem('foxia_vid')||'').trim();
+  let id=(localStorage.getItem('foxia_vid')||window.FOXIA_VOICE_ID||'').trim();
+  if(id.indexOf('COLE_')===0)id='';
   // se colar um link do ElevenLabs, extrai o ID final
   const m=id.match(/([A-Za-z0-9_\-]{10,})$/);
   if(m)id=m[1];
