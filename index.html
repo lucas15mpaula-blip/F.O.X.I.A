@@ -2,7 +2,7 @@
 <html lang="pt-BR" translate="no"><meta name="google" content="notranslate"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>F.O.X.I.A</title>
-<script>window.FOXIA_SRV='https://foxia.lucas15mpaula.workers.dev'</script>
+<script>window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev'</script>
 <style>
 :root{--bg:#050a1c;--fg:#dbe6ff;--b:#3b82ff;--r:#ff3b4e;--pn:#0c1634;--ln:#1d3a7a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -521,7 +521,7 @@ async function elevenFalar(t){
   }
   if(!r.ok){
     const err=(await r.text()).slice(0,240);
-    if(/rota inválida/i.test(err))throw new Error('Deploy antigo. Abra '+S.u+'/version — tem que aparecer foxia-worker-2026-11-06-v3');
+    if(/rota inválida/i.test(err))throw new Error('Deploy antigo. Abra '+S.u+'/version — tem que aparecer foxia-worker-2026-11-06-v4');
     if(/não está configurada|chave de eleven/i.test(err))throw new Error('falta o segredo ELEVEN_KEY na Cloudflare');
     throw new Error(err||('HTTP '+r.status));
   }
