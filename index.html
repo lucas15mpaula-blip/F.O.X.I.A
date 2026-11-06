@@ -98,7 +98,6 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural, pelo servidor)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" placeholder="Voice ID (não é a API key)" hidden>
-<p class="fl" id="vzhint" style="margin:0;display:none">A <b>API key</b> do ElevenLabs vai na Cloudflare como segredo <b>ELEVEN_KEY</b>. Aqui você só cola o <b>Voice ID</b> da voz (em elevenlabs.io → Voices → a voz → ID).</p>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Marcar e editar eventos na agenda sem pedir confirmação (excluir ainda pergunta)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="ae">Baixar conta (criptografada)</button><button id="exall">Exportar todas as conversas</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
@@ -498,34 +497,37 @@ let AUD=null;
 function povoar(){const s=$('vzc');if(!window.speechSynthesis)return;const vs=speechSynthesis.getVoices().filter(v=>/^pt/i.test(v.lang));if(!vs.length)return;const at=localStorage.getItem('foxia_vzc')||'';s.textContent='';const o0=document.createElement('option');o0.value='';o0.textContent='Voz do celular: automática';s.append(o0);vs.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';s.append(o)});s.value=at}
 if(window.speechSynthesis){const ov=speechSynthesis.onvoiceschanged;speechSynthesis.onvoiceschanged=()=>{ov&&ov();povoar()};povoar();setTimeout(povoar,1200)}
 $('vzc').onchange=()=>{localStorage.setItem('foxia_vzc',$('vzc').value);dizerCelular('Esta é a voz escolhida.')};
-$('vz').value=localStorage.getItem('foxia_vz')||'';$('vzhint').style.display=$('vz').value=='eleven'?'block':'none';
-$('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';$('vzhint').style.display=$('vz').value=='eleven'?'block':'none';if($('vz').value=='eleven'){ind('testando ElevenLabs…');dizer('Olá! Esta é a minha nova voz.')}else dizerCelular('Voz do celular ativada.')};
+$('vz').value=localStorage.getItem('foxia_vz')||'';
+$('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';if($('vz').value=='eleven'){ind('testando ElevenLabs…');dizer('Olá! Esta é a minha nova voz.')}else dizerCelular('Voz do celular ativada.')};
 $('vid').value=localStorage.getItem('foxia_vid')||'';$('vid').hidden=$('vz').value!='eleven';$('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
 function dizerCelular(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 async function elevenFalar(t){
-  const S=window.SRVC&&window.SRVC(),id=(localStorage.getItem('foxia_vid')||'').trim();
+  const S=window.SRVC&&window.SRVC();
+  let id=(localStorage.getItem('foxia_vid')||'').trim();
+  // se colar um link do ElevenLabs, extrai o ID final
+  const m=id.match(/([A-Za-z0-9_\-]{10,})$/);
+  if(m)id=m[1];
   if(!S)throw new Error('servidor não configurado (salve o token em ⚙ > IAs e chaves)');
   if(!id)throw new Error('cole o Voice ID em ⚙ (não é a API key)');
-  if(/^sk[_-]|^xi\.|^eleven_/i.test(id))throw new Error('isso parece uma API key. Aqui vai só o Voice ID. A API key fica na Cloudflare como ELEVEN_KEY');
+  if(/^sk[_-]|^xi\./i.test(id))throw new Error('isso parece API key. No app vai só o Voice ID; a API key é o segredo ELEVEN_KEY na Cloudflare');
   window.SRVOK=undefined;
   const st=window.srvInit?await window.srvInit():null;
-  if(st&&st.eleven===false)throw new Error('o Worker não tem ELEVEN_KEY. Na Cloudflare → Secrets, crie ELEVEN_KEY com a API key do ElevenLabs e faça Deploy do worker atualizado');
+  if(st&&st.eleven===false)throw new Error('falta o segredo ELEVEN_KEY na Cloudflare (API key do ElevenLabs)');
   const body=JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'});
   const h={'x-foxia-token':S.t,'content-type':'application/json'};
-  // tenta a rota do proxy e, se o Worker for mais novo, o atalho /tts
-  let r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id),{method:'POST',headers:h,body});
+  let r=await fetch(S.u+'/tts',{method:'POST',headers:h,body:JSON.stringify({voice_id:id,text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
   if(r.status===404){
-    r=await fetch(S.u+'/tts',{method:'POST',headers:h,body:JSON.stringify({voice_id:id,text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
+    r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id),{method:'POST',headers:h,body});
   }
   if(!r.ok){
     const err=(await r.text()).slice(0,240);
-    if(/rota inválida/i.test(err))throw new Error('Worker sem rota de voz. Cole o foxia-worker.js novo na Cloudflare e faça Deploy');
-    if(/não está configurada|ELEVEN_KEY|chave de eleven/i.test(err))throw new Error('falta o segredo ELEVEN_KEY na Cloudflare (é a API key do ElevenLabs)');
+    if(/rota inválida/i.test(err))throw new Error('Deploy antigo. Abra '+S.u+'/version — tem que aparecer foxia-worker-2026-11-06-v3');
+    if(/não está configurada|chave de eleven/i.test(err))throw new Error('falta o segredo ELEVEN_KEY na Cloudflare');
     throw new Error(err||('HTTP '+r.status));
   }
   const bl=await r.blob();
   if(!bl||!bl.size)throw new Error('resposta de áudio vazia');
-  if(AUD)AUD.pause();
+  if(AUD)try{AUD.pause()}catch(e){}
   AUD=new Audio(URL.createObjectURL(bl));
   await AUD.play();
 }
