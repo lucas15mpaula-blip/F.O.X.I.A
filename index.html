@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -200,7 +200,7 @@ if(S&&JSON.stringify(h).includes('__srv')){const m=PB.find(x=>u.startsWith(x[0])
 return fetch(u,{...o,headers:h,signal:c.signal}).then(async r=>{if(!via||r.ok||(r.headers.get('content-type')||'').includes('json'))return r;return new Response(JSON.stringify({error:{message:'servidor: '+(await r.text())}}),{status:r.status,headers:{'content-type':'application/json'}})}).finally(()=>clearTimeout(t))};
 window.ftx=ft;window.srvInit=srvInit;window.SRVC=SRVC;
 const b64=b=>new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(',')[1]);f.readAsDataURL(b)});
-async function cl(k,m,t,im,web){const b={model:m,max_tokens:2000,messages:[{role:'user',content:[...im.map(i=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:i}})),{type:'text',text:t}]}]};if(web)b.tools=[{type:'web_search_20250305',name:'web_search',max_uses:5}];
+async function cl(k,m,t,im,web){const b={model:m,max_tokens:(window.FOXIA_LONG?8000:4000),messages:[{role:'user',content:[...im.map(i=>({type:'image',source:{type:'base64',media_type:'image/jpeg',data:i}})),{type:'text',text:t}]}]};if(web)b.tools=[{type:'web_search_20250305',name:'web_search',max_uses:5}];
 const r=await ft('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(b)});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.content.filter(x=>x.type=='text').map(x=>x.text).join('')}
 async function gq0(k,m,t,im){
@@ -209,12 +209,12 @@ async function gq0(k,m,t,im){
   const content=vision
     ?[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]
     :t;
-  const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:modelo,messages:[{role:'user',content}],max_tokens:1024})});
+  const r=await ft('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:modelo,messages:[{role:'user',content}],max_tokens:(window.FOXIA_LONG?8192:4096)})});
   const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content;
 }
-async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
+async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,max_tokens:window.FOXIA_LONG?8000:4000,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
-async function ge0(k,m,t,im,w){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}],tools:w?[{google_search:{}}]:undefined})});
+async function ge0(k,m,t,im,w){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}],tools:w?[{google_search:{}}]:undefined,generationConfig:{maxOutputTokens:window.FOXIA_LONG?8192:4096,temperature:0.7}})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
 async function lm(u,h){const r=await ft(u,{headers:h});const j=await r.json();if(!r.ok)throw er(r.status,j);return j}
 async function mq(k){const j=await lm('https://api.groq.com/openai/v1/models',{authorization:'Bearer '+k});const ids=(j.data||[]).map(x=>x.id);/* preferir leves (menos rate limit no free) */for(const p of ['llama-3.1-8b-instant','llama-3.3-70b-versatile','openai/gpt-oss-20b','qwen/qwen3-32b'])if(ids.includes(p))return p;return ids.find(i=>!/whisper|tts|guard|orpheus|embed|prompt|120b/i.test(i))}
@@ -330,12 +330,30 @@ ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*700))}
 /* voz de saída */
 function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}
 /* modos de pesquisa */
+function pedidoLongo(q){
+  q=String(q||'');
+  /* qualquer pedido simples de PDF/DOCX/arquivo já conta como material longo */
+  if(/\b(pdf|docx)\b/i.test(q))return true;
+  if(/(gere|gerar|crie|criar|monte|fa[cç]a|escreva)\s+(um|o|uma|a)?\s*(pdf|docx|arquivo|documento|apostila|material|trabalho|relat[oó]rio)/i.test(q))return true;
+  if(/\b(apostila|material de estudo|trabalho completo|estudo completo)\b/i.test(q))return true;
+  return false;
+}
+function instrucaoArquivo(q){
+  if(!pedidoLongo(q))return '';
+  return '\n\nINSTRUÇÃO OBRIGATÓRIA (prompt simples também vale): o usuário pediu um arquivo/PDF. Entregue material COMPLETO e DENSO, no nível de uma boa apostila/ChatGPT — mesmo que o pedido tenha sido curto tipo "gere um PDF sobre X".\n'+
+  '- Escreva várias seções com PARÁGRAFOS explicativos (não só tópicos).\n'+
+  '- Inclua: introdução, desenvolvimento (causas, fatos, datas, personagens/eventos, consequências), conclusão e referências.\n'+
+  '- Meta: conteúdo equivalente a várias páginas (milhares de palavras se o tema permitir).\n'+
+  '- Use o bloco <<<ARQUIVO nome.pdf>>> ... <<<FIM>>>.\n'+
+  '- Não pergunte se quer mais detalhes: já entregue o material completo na primeira resposta.\n';
+}
 const MODOS={
 simples:['quick','Responda de forma clara e útil. Pode usar até 6 frases. Inclua o essencial e um exemplo curto se ajudar.'],
 padrao:['default','Responda de forma completa, útil e bem organizada. Não faça o mínimo: explique o contexto, detalhes importantes, exemplos práticos, dicas e, quando fizer sentido, passos numerados. Prefira conteúdo rico (vários parágrafos ou listas) em vez de respostas curtíssimas. Se o usuário pedir arquivo/PDF/resumo, entregue material substancial, não só 3 linhas.'],
 expert:['complex','Seja especialista e detalhado: análise profunda, vários ângulos, limitações, exemplos e estrutura clara. Se pedir arquivo, faça conteúdo denso e bem organizado. Baseie-se na web quando houver resultados e cite fontes.'],
 };
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
+if(typeof pedidoLongo==='function'&&pedidoLongo(q))return 'expert';
 const n=q.split(/\s+/).filter(Boolean).length;
 const rico=/pdf|arquivo|documento|relat[oó]rio|resumo completo|trabalho|explica|como funciona|lista|doen[cç]a|hist[oó]ria|detalh|completo|gerar|crie|monte|escreva/i.test(q);
 if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40||rico)return n>25||/expert|profund|completo/i.test(q)?'expert':'padrao';
@@ -346,8 +364,8 @@ const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).joi
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;try{await window.srvInit()}catch(e){}const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
-try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
+busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
+try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
 out.textContent=r.text;M.hist.push({r:'u',t:q},{r:'k',t:r.text});M.hist=M.hist.slice(-60);M.n++;save();falar(r.text);formar(r.text);if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
@@ -467,7 +485,24 @@ async function lerPDF(f){
 }
 
 /* arquivos gerados */
-const ARQ=' Se o usuário pedir um arquivo (txt, md, csv, html, json, código, pdf, docx ou xlsx), entregue-o uma única vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou. Para pdf e docx: use texto bem estruturado (# títulos, ## subtítulos, - listas), com introdução breve, seções e conclusão quando fizer sentido. NÃO entregue só 3 linhas: desenvolva o tema com informações úteis (para cada item: o que é, sintomas ou causas se aplicável, prevenção/tratamento em linguagem simples, e uma curiosidade). Para xlsx: uma linha por linha da tabela, colunas separadas por ponto e vírgula (;). Você não gera vídeo.';
+const ARQ=` Se o usuário pedir um arquivo (txt, md, csv, html, json, código, pdf, docx ou xlsx) — mesmo com prompt curto do tipo "gere um PDF sobre X" — entregue-o UMA vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou.
+
+REGRAS PARA PDF / MATERIAL DE ESTUDO / DOCUMENTO LONGO (obrigatório):
+- NÃO faça resumo curto nem só tópicos. O conteúdo deve ser SUBSTANCIAL, no nível de um material didático completo.
+- Meta de extensão: no mínimo ~2500–5000 palavras (várias seções). Se o tema for amplo (ex.: Guerra Fria, Revolução Francesa, biologia), escreva como apostila de 6–12 páginas.
+- Estrutura obrigatória em Markdown:
+  # Título principal
+  ## Introdução (1–2 parágrafos)
+  ## Seções temáticas (## e ###) com parágrafos explicativos, não só bullets
+  - Use listas só para apoiar o texto, nunca no lugar da explicação
+  ## Tabela comparativa quando fizer sentido (em texto)
+  ## Conclusão / legado
+  ## Referências (2–5 fontes reais ou clássicas)
+- Em cada seção: explique o que é, por que importa, datas/fatos-chave, causas e consequências, e um exemplo concreto.
+- Português do Brasil, claro, objetivo, sem enrolação, mas COMPLETO.
+- Para xlsx: linhas com colunas separadas por ponto e vírgula (;).
+- Você não gera vídeo.
+`;
 const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1').replace(/<<<ACAO[\s\S]*?(>>>|$)/g,'').replace(/<<<(LER|BUSCAR|AGENDA|EMAILS?|RASCUNHOS?)[^>]*(>>>|$)/g,'').replace(/<<<IMAGEM[^>]*(>>>|$)/g,'');
 function fx(el,t){const re=/<<<ARQUIVO\s+([^>\n]+?)\s*>>>\n?([\s\S]*?)<<<FIM>>>/g;let m;while(m=re.exec(t)){const n=m[1].trim(),c=m[2];const b=document.createElement('button');b.style.cssText='display:block;margin-top:6px';b.textContent='⬇ '+n;b.onclick=async()=>{try{const d=await claude.use('downloads');if(!d){ind('download indisponível');return}await d.save({filename:n,data:gerar(n,c)})}catch(e){ind('não consegui baixar: '+(e&&e.code||'erro'))}};el.append(b)}}
 /* pesquisas feitas pelo Claude (salvas no banco) */
@@ -507,11 +542,11 @@ resp(q||'Analise o arquivo anexado.',a)}
 async function resp(q,a=[]){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;try{await window.srvInit()}catch(e){}const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
+busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
 ca+=await sites(q);ca+=await webAuto(q,out);const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
-const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
+const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
@@ -744,7 +779,7 @@ const f=[['[Content_Types].xml',XH+'<Types xmlns="http://schemas.openxmlformats.
 ['xl/_rels/workbook.xml.rels',XH+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+R+'/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
 ['xl/worksheets/sheet1.xml',XH+'<worksheet xmlns="'+NS+'"><sheetData>'+sd+'</sheetData></worksheet>']];
 return zipar(f.map(([n,d])=>({n,d:E.encode(d)})),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')}
-function pdfBlob(txt){const mp={'•':'\x95','–':'\x96','—':'\x97','“':'\x93','”':'\x94','‘':'\x91','’':'\x92','…':'\x85','€':'\x80'};
+function pdfBlob(txt){const mp={'•':'\x95','–':'\x96','—':'\x97','“':'\x93','”':'\x94','‘':'\x91','’':'\x92','…':'\x85','€':'\x80','á':'\xe1','à':'\xe0','â':'\xe2','ã':'\xe3','é':'\xe9','ê':'\xea','í':'\xed','ó':'\xf3','ô':'\xf4','õ':'\xf5','ú':'\xfa','ç':'\xe7','Á':'\xc1','Ã':'\xc3','É':'\xc9','Í':'\xcd','Ó':'\xd3','Õ':'\xd5','Ú':'\xda','Ç':'\xc7'};
 const fix=s=>s.replace(/[^\x00-\xFF]/g,c=>mp[c]||'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
 const wrap=(s,n)=>{const o=[];let l='';for(const w of s.split(' ')){if((l+' '+w).trim().length>n&&l){o.push(l);l=w}else l=(l+' '+w).trim()}o.push(l);return o};
 const pgs=[[]];let y=790;
@@ -762,30 +797,10 @@ async function imagens(el,t){
   const re=/<<<IMAGEM\s+([^>]+?)\s*>>>/g;const m=re.exec(t);if(!m)return;
   let prompt=m[1].trim();
   const d=document.createElement('div');d.className='cd';d.textContent='🎨 Gerando imagem…';el.append(d);
-  const isRefused=(src)=>{
-    return new Promise(ok=>{
-      const im=new Image();
-      im.crossOrigin='anonymous';
-      im.onload=()=>{
-        try{
-          const c=document.createElement('canvas');c.width=40;c.height=40;
-          const x=c.getContext('2d');x.drawImage(im,0,0,40,40);
-          const data=x.getImageData(0,0,40,40).data;
-          let p=0,s=0;
-          for(let i=0;i<data.length;i+=4){p++;s+=data[i]+data[i+1]+data[i+2]}
-          const avg=s/(p*3);
-          /* imagem "Image refused" do Pollinations é rosa/clara bem uniforme */
-          ok(avg>210);
-        }catch(e){ok(false)}
-      };
-      im.onerror=()=>ok(true);
-      im.src=src;
-    });
-  };
   const mostrar=(src,nota)=>{
     d.textContent='';
-    const im=new Image();im.alt=prompt;im.style.cssText='max-width:100%;border-radius:10px;display:block';im.src=src;
-    d.append(im);
+    const im=new Image();im.alt=prompt;im.style.cssText='max-width:100%;border-radius:10px;display:block;background:#111';
+    im.src=src;d.append(im);
     if(nota){const n=document.createElement('div');n.className='fl';n.style.marginTop='6px';n.textContent=nota;d.append(n)}
     const b=document.createElement('button');b.textContent='⬇ Baixar imagem';
     b.onclick=async()=>{
@@ -798,46 +813,115 @@ async function imagens(el,t){
     };
     d.append(b);
   };
-  /* limpa prompt para filtros */
+  /* deixa o prompt mais “seguro” para filtros automáticos */
   const suavizar=p=>String(p)
-    .replace(/\b(nude|nsfw|blood|gore|kill|weapon)\b/gi,'')
-    .replace(/\bbar\b/gi,'casual pool hall')
-    .replace(/\bsenhor\b/gi,'middle-aged man')
+    .replace(/\b(nude|nsfw|blood|gore|kill|murder|weapon|gun|knife|axe|chainsaw|cutting|cut|slash)\b/gi,'')
+    .replace(/\b(cortando|cortar|machado|serra|sangue)\b/gi,'')
+    .replace(/\bbar\b/gi,'pool hall')
+    .replace(/\bwoodcutter cutting a tree\b/gi,'lumberjack standing beside a large tree in a forest')
+    .replace(/\bcutting a tree\b/gi,'standing next to a tree in a forest')
+    .replace(/\s+/g,' ')
     .trim();
+  const base=suavizar(prompt)||'peaceful forest landscape illustration';
   const variantes=[
-    prompt,
-    suavizar(prompt),
-    'realistic illustration, '+suavizar(prompt)+', friendly atmosphere, detailed, high quality',
-    'digital art of '+suavizar(prompt)+', warm lighting, no text'
+    base,
+    'friendly cartoon illustration, '+base+', soft colors, no violence, no weapons',
+    'digital art, '+base+', warm light, detailed, wholesome',
+    'stylized illustration of a lumberjack smiling next to a tree, forest background, no axe visible, kids-friendly'
   ];
-  /* 1) Worker AI (Flux) */
+
+  /* 1) Cloudflare Workers AI (Flux) — melhor opção se o binding AI estiver ativo */
   try{
     const S=window.SRVC&&window.SRVC();
     if(S){
-      for(const pr of variantes.slice(0,2)){
-        const r=await fetch(S.u+'/imagem',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({prompt:pr})});
-        if(r.ok){
+      d.textContent='🎨 Gerando com Workers AI…';
+      for(const pr of variantes.slice(0,3)){
+        try{
+          const r=await fetch(S.u+'/imagem',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({prompt:pr})});
+          if(!r.ok)continue;
           const j=await r.json();
-          if(j&&j.image){mostrar('data:image/jpeg;base64,'+j.image,'Workers AI');return}
-        }
+          if(j&&j.image){mostrar('data:image/jpeg;base64,'+j.image,'Workers AI (Flux)');return}
+        }catch(e){}
       }
     }
   }catch(e){}
-  /* 2) Pollinations com várias tentativas / modelos */
-  const modelos=['flux','turbo',''];
+
+  /* 2) Pollinations — só aceita se NÃO for a tela rosa "Image refused" */
+  const pareceRecusada=async(url)=>{
+    try{
+      const r=await fetch(url,{mode:'cors'});
+      if(!r.ok)return true;
+      const bl=await r.blob();
+      /* tela de erro costuma ser bem menor que uma ilustração 1024px */
+      if(bl.size&&bl.size<28000)return true;
+      const bmp=await createImageBitmap(bl);
+      const c=document.createElement('canvas');c.width=48;c.height=48;
+      const x=c.getContext('2d');x.drawImage(bmp,0,0,48,48);
+      const data=x.getImageData(0,0,48,48).data;
+      let s=0,n=0;
+      for(let i=0;i<data.length;i+=4){s+=data[i]+data[i+1]+data[i+2];n++}
+      const avg=s/(n*3);
+      /* fundo rosa claro quase uniforme */
+      return avg>200;
+    }catch(e){
+      /* se não der para analisar, tenta carregar e ver onload */
+      return false;
+    }
+  };
+  d.textContent='🎨 Tentando Pollinations…';
   for(const pr of variantes){
-    for(const modelo of modelos){
+    for(const modelo of ['flux','turbo','sana','']){
       try{
-        const q='width=1024&height=1024&nologo=true&seed='+(Date.now()%1e9)+(modelo?'&model='+modelo:'');
+        const q='width=768&height=768&nologo=true&seed='+(Date.now()%1e9)+(modelo?'&model='+modelo:'');
         const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(pr)+'?'+q;
+        const rec=await pareceRecusada(url);
+        if(rec)continue;
+        /* confere se carrega */
         await new Promise((ok,no)=>{const im=new Image();im.onload=ok;im.onerror=no;im.src=url});
-        if(await isRefused(url))continue;
-        mostrar(url,'gerada com Pollinations (grátis)');
+        mostrar(url,'Pollinations');
         return;
       }catch(e){}
     }
   }
-  d.textContent='⚠ Não consegui gerar essa imagem (filtro de segurança ou serviço indisponível). Tente descrever de outro jeito — por exemplo: “ilustração realista de um homem de meia-idade jogando sinuca com amigos”.';
+
+  /* 3) AI Horde (grátis, anônimo) — mais lento, mas costuma funcionar */
+  try{
+    d.textContent='🎨 Gerando pela rede AI Horde (pode levar 30–60s)…';
+    const pr=variantes[1]||base;
+    const body={
+      prompt: pr+', illustration, high quality',
+      params:{width:512,height:512,steps:20,n:1,sampler_name:'k_euler'},
+      models:['stable_diffusion'],
+      nsfw:false,
+      censor_nsfw:true,
+      r2:true
+    };
+    const asyncR=await fetch('https://stablehorde.net/api/v2/generate/async',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':'0000000000','Client-Agent':'F.O.X.I.A:1.0'},
+      body:JSON.stringify(body)
+    });
+    if(asyncR.ok){
+      const {id}=await asyncR.json();
+      let done=null;
+      for(let tenta=0;tenta<40;tenta++){
+        await new Promise(r=>setTimeout(r,3000));
+        const st=await fetch('https://stablehorde.net/api/v2/generate/status/'+id,{headers:{'apikey':'0000000000','Client-Agent':'F.O.X.I.A:1.0'}});
+        if(!st.ok)continue;
+        const j=await st.json();
+        if(j.done&&j.generations&&j.generations[0]){done=j.generations[0];break}
+        if(j.faulted)break;
+        d.textContent='🎨 AI Horde: na fila… ('+(j.queue_position!=null?('posição '+j.queue_position):('~'+(j.wait_time||'?')+'s'))+')';
+      }
+      if(done&&done.img){
+        const src=done.img.startsWith('http')?done.img:('data:image/webp;base64,'+done.img);
+        mostrar(src,'AI Horde (grátis, pode demorar)');
+        return;
+      }
+    }
+  }catch(e){}
+
+  d.innerHTML='⚠ Não consegui gerar essa imagem.<br><small>O Pollinations recusou o prompt e as alternativas falharam. Ative o binding <b>AI</b> no Worker Cloudflare (Flux) para ficar mais estável, ou tente um prompt mais simples e sem ação violenta (ex.: “lenhador sorrindo ao lado de uma árvore na floresta”).</small>';
 }
 /* voz da IA: do celular (escolhe a voz) ou ElevenLabs pelo servidor */
 let AUD=null;
