@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -359,14 +359,14 @@ const rico=/pdf|arquivo|documento|relat[oó]rio|resumo completo|trabalho|explica
 if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40||rico)return n>25||/expert|profund|completo/i.test(q)?'expert':'padrao';
 if(n<=8&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto|gera|cri[ea]|escreva|liste/i.test(q))return 'simples';
 return 'padrao'}
-const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta completa e útil (não faça o mínimo do mínimo), sem repetir nem reformular o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com boas informações. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: priorize QUALIDADE e completude, não velocidade nem respostas curtas. Dê UMA única resposta completa e útil, sem repetir o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com profundidade (parágrafos, fatos, contexto), nunca só um resumo mínimo. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
-out.textContent=r.text;M.hist.push({r:'u',t:q},{r:'k',t:r.text});M.hist=M.hist.slice(-60);M.n++;save();falar(r.text);formar(r.text);if(M.n%4==0)aprender()}
+const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
@@ -503,8 +503,56 @@ REGRAS PARA PDF / MATERIAL DE ESTUDO / DOCUMENTO LONGO (obrigatório):
 - Para xlsx: linhas com colunas separadas por ponto e vírgula (;).
 - Você não gera vídeo.
 `;
-const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1').replace(/<<<ACAO[\s\S]*?(>>>|$)/g,'').replace(/<<<(LER|BUSCAR|AGENDA|EMAILS?|RASCUNHOS?)[^>]*(>>>|$)/g,'').replace(/<<<IMAGEM[^>]*(>>>|$)/g,'');
-function fx(el,t){const re=/<<<ARQUIVO\s+([^>\n]+?)\s*>>>\n?([\s\S]*?)<<<FIM>>>/g;let m;while(m=re.exec(t)){const n=m[1].trim(),c=m[2];const b=document.createElement('button');b.style.cssText='display:block;margin-top:6px';b.textContent='⬇ '+n;b.onclick=async()=>{try{const d=await claude.use('downloads');if(!d){ind('download indisponível');return}await d.save({filename:n,data:gerar(n,c)})}catch(e){ind('não consegui baixar: '+(e&&e.code||'erro'))}};el.append(b)}}
+const limpa=t=>{
+  t=String(t||'');
+  t=t.replace(/<*\s*ARQUIVO\s+([^>\n]+?)\s*>+\s*[\s\S]*?(?:<*\s*FIM\s*>+|$)/gi,'📄 $1');
+  t=t.replace(/<<<\s*ACAO[\s\S]*?(>>>|$)/gi,'');
+  t=t.replace(/<<<\s*(LER|BUSCAR|AGENDA|EMAILS?|RASCUNHOS?|RASCUNHO|IMAGEM)[^>]*(>>>|$)/gi,'');
+  return t.trim();
+};
+function extrairArquivos(t){
+  const out=[];
+  const re=/<*\s*ARQUIVO\s+([^\n>]+?)\s*>+\s*([\s\S]*?)(?:<*\s*FIM\s*>+|(?=<*\s*ARQUIVO\s)|$)/gi;
+  let m;
+  while((m=re.exec(String(t||'')))){
+    const n=m[1].trim().replace(/[\\/]/g,'').slice(0,80)||'arquivo.txt';
+    let c=m[2].replace(/^\n+/,'').replace(/\n+$/,'');
+    /* remove nota em inglês no fim se houver */
+    c=c.replace(/\n*The PDF was generated[\s\S]*$/i,'').trim();
+    if(c.length>20)out.push({n:/\./.test(n)?n:(n+'.pdf'),c});
+  }
+  return out;
+}
+function baixarArquivo(n,c){
+  try{
+    const data=gerar(n,c);
+    const blob=data instanceof Blob?data:new Blob([data],{type:'application/octet-stream'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=n;
+    document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    ind('baixando '+n);
+  }catch(e){ind('não consegui baixar: '+(e.message||e))}
+}
+function fx(el,t){
+  const arqs=extrairArquivos(t);
+  arqs.forEach(({n,c})=>{
+    const b=document.createElement('button');
+    b.style.cssText='display:block;margin-top:8px;width:100%';
+    b.textContent='⬇ Baixar '+n;
+    b.onclick=()=>baixarArquivo(n,c);
+    el.append(b);
+    /* auto-oferece o botão bem visível */
+    if(/\.pdf$/i.test(n)){
+      const tip=document.createElement('div');
+      tip.className='fl';
+      tip.style.marginTop='4px';
+      tip.textContent='Toque no botão acima para baixar o PDF.';
+      el.append(tip);
+    }
+  });
+}
 /* pesquisas feitas pelo Claude (salvas no banco) */
 async function carregarPesq(){try{if(!DB)return;const q=await DB.collection('pesquisas').get();PQ=q.docs.map(d=>d.data()).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,20)}catch(e){}}
 const PES=q=>{const w=q.toLowerCase().split(/\W+/).filter(x=>x.length>4);const r=PQ.filter(p=>w.some(x=>((p.titulo||'')+' '+(p.resumo||'')).toLowerCase().includes(x))).slice(0,3);return r.length?'\nPesquisas atuais feitas pelo Claude com acesso à web (use como fonte e cite as fontes):\n'+r.map(p=>'- '+p.titulo+': '+String(p.resumo||'').slice(0,1800)+' Fontes: '+(p.fontes||[]).join(', ')).join('\n'):''};
