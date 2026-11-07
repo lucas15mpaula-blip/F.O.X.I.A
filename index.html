@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -93,7 +93,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 </header>
 <canvas id="fx"></canvas>
 <div id="pf" hidden><h2>Me conheça</h2><input id="p1" placeholder="Como devo te chamar?"><textarea id="p2" placeholder="Sobre você (estudos, trabalho, gostos…)"></textarea><textarea id="p3" placeholder="Seus objetivos"></textarea><textarea id="p4" placeholder="Sua rotina"></textarea><div class="row" style="padding:0"><button id="ps">Salvar</button><button id="pc" class="x" aria-label="Fechar">✕</button></div></div>
-<div id="cp" hidden><h2>Conversas</h2><button id="cn">+ Nova conversa</button><button id="np">+ Novo projeto</button><div id="cl"></div><button id="cc" class="x" aria-label="Fechar">✕</button></div><div id="bd"></div>
+<div id="cp" hidden><h2>Conversas</h2><input id="cbusca" placeholder="Buscar em todas as conversas…" style="font-size:16px;width:100%;box-sizing:border-box"><div id="cbuscarn" class="fl" hidden></div><button id="cn">+ Nova conversa</button><button id="np">+ Novo projeto</button><div id="cl"></div><button id="cc" class="x" aria-label="Fechar">✕</button></div><div id="bd"></div>
 <div id="sh" class="sh" hidden><div id="shb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="shx" aria-label="Fechar">✕</button><b>Adicionar à conversa</b></div>
 <div class="tiles"><button id="tc"><span>📷</span>Câmera</button><button id="tf"><span>🖼</span>Fotos</button><button id="ta"><span>📄</span>Arquivos</button></div>
 <button class="lin" id="lp"><span>📁</span><div>Adicionar ao projeto<small id="lps">Nenhum</small></div><i>›</i></button>
@@ -119,7 +119,9 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" type="hidden">
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eco">Economia de dados (menos pesquisa automática na web)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <button id="ae" hidden>Baixar conta</button><button id="exall" hidden>Exportar conversas</button><button id="ke" hidden>Exportar backup</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
@@ -136,7 +138,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
     <button id="live" title="Conversa ao vivo" aria-label="Chamada">📞</button>
     <button id="mic" aria-label="Falar">🎤</button>
   </div>
-  <input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log">
+  <input type="file" id="fi" multiple hidden accept="image/*,.pdf,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log">
   <input type="file" id="fc" accept="image/*" capture="environment" hidden>
   <input type="file" id="fp" accept="image/*" multiple hidden>
   <textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea>
@@ -319,7 +321,10 @@ simples:['quick','Explique apenas o que é, em no máximo 3 frases simples, sem 
 padrao:['default','Responda de forma completa e bem organizada: vá direto ao ponto, explique o contexto e os detalhes importantes, dê exemplos práticos e, quando fizer sentido, passos ou dicas. Use vários parágrafos ou listas curtas, sem enrolação.'],
 expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Baseie-se nos resultados da web e cite as fontes.']};
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
-const n=q.split(/\s+/).length;if(/profund|detalh|analis|expert|completo/i.test(q)||n>30)return 'expert';return n<6?'simples':'padrao'}
+const n=q.split(/\s+/).filter(Boolean).length;
+if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40)return 'expert';
+if(n<=12&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto/i.test(q))return 'simples';
+return n<6?'simples':'padrao'}
 const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
@@ -336,7 +341,7 @@ const j=await s.json('Atualize a memória de uma IA sobre o usuário com base na
 if(j&&j.fatos){M.fatos=j.fatos.slice(0,12).map(String);M.padroes=(j.padroes||[]).slice(0,6).map(String);M.persona=String(j.persona||M.persona);save();status()}}catch(e){}}
 /* mensagens por conta própria (só com a página aberta) */
 let tm;
-async function proativa(){if(document.hidden||busy)return;try{const s=await window.claude?.use('sample');if(!s)return;
+async function proativa(){if(document.hidden||busy)return;if(localStorage.getItem('foxia_foco')=='1')return;try{const s=await window.claude?.use('sample');if(!s)return;
 const r=await s(ctx()+'Escreva por conta própria uma mensagem curta (1 a 2 frases) para o usuário: uma dica, curiosidade ligada aos interesses dele ou um lembrete gentil. Não repita o que já disse.\nConversa recente:\n'+hist(6),{modelTier:'quick',cache:false});
 add('k','✦ '+r.text);M.hist.push({r:'k',t:r.text});save();falar(r.text);formar(r.text)}catch(e){}}
 $('auto').onchange=()=>{clearInterval(tm);const v=+$('auto').value;if(v)tm=setInterval(proativa,v*60000)};
@@ -378,7 +383,46 @@ $('tts').onchange=()=>{localStorage.setItem('foxia_tts',$('tts').checked?'1':'0'
 function peq(f){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b),'image/jpeg',.85)};im.onerror=no;im.src=URL.createObjectURL(f)})}
 function chips(){const a=$('ax');a.hidden=!AX.length;a.textContent='';AX.forEach((x,i)=>{const b=document.createElement('button');b.textContent='📎 '+x.n+' ✕';b.onclick=()=>{AX.splice(i,1);chips()};a.append(b)})}
 $('at').onclick=()=>$('fi').click();
-$('fi').onchange=async e=>{for(const f of e.target.files){try{if(f.type.startsWith('image/'))AX.push({n:f.name,img:await peq(f)});else if(f.type.startsWith('text/')||/\.(txt|md|csv|json|html|js|py|xml|log)$/i.test(f.name))AX.push({n:f.name,tx:(await f.text()).slice(0,12000)});else add('k','Ainda não leio '+f.name+' (PDF e vídeo ficam para a próxima versão). Aceito fotos e arquivos de texto.')}catch(x){add('k','Não consegui ler '+f.name)}}e.target.value='';chips()};
+$('fi').onchange=async e=>{for(const f of e.target.files){try{
+if(f.type.startsWith('image/'))AX.push({n:f.name,img:await peq(f)});
+else if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){const tx=await lerPDF(f);AX.push({n:f.name,tx:tx});ind('PDF lido: '+f.name)}
+else if(f.type.startsWith('text/')||/\.(txt|md|csv|json|html|js|py|xml|log)$/i.test(f.name))AX.push({n:f.name,tx:(await f.text()).slice(0,20000)});
+else add('k','Ainda não leio '+f.name+'. Aceito fotos, PDF e arquivos de texto.')}catch(x){add('k','Não consegui ler '+f.name+': '+(x.message||x))}}e.target.value='';chips()};
+async function lerPDF(f){
+  const buf=await f.arrayBuffer();
+  const u8=new Uint8Array(buf);
+  let raw='';
+  try{raw=new TextDecoder('latin1').decode(u8)}catch(e){raw=''}
+  const parts=[];
+  const re=/stream[\r\n]+([\s\S]*?)endstream/g;let m;
+  while((m=re.exec(raw))){
+    const chunk=m[1];
+    if(/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(chunk.slice(0,80))&&chunk.length>200)continue;
+    const tt=chunk.replace(/\\+\d{1,3}/g,' ').replace(/[^\x09\x0a\x0d\x20-\x7e\xA0-\xFF]/g,' ').replace(/\s+/g,' ').trim();
+    if(tt.length>40)parts.push(tt);
+  }
+  const lit=[];const re2=/\((?:\\.|[^\\)]){3,}\)/g;let m2;
+  while((m2=re2.exec(raw))&&lit.length<400){const s=m2[0].slice(1,-1).replace(/\\n/g,'\n').replace(/\\r/g,'').replace(/\\/g,'');if(/[A-Za-zÀ-ÿ]{3,}/.test(s))lit.push(s)}
+  let out=(parts.join('\n')+' '+lit.join(' ')).replace(/\s+/g,' ').trim();
+  if(out.length<80){
+    try{
+      if(!window.pdfjsLib){
+        await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=ok;s.onerror=no;document.head.append(s)});
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      const doc=await window.pdfjsLib.getDocument({data:buf}).promise;
+      const pages=[];
+      for(let i=1;i<=Math.min(doc.numPages,15);i++){
+        const page=await doc.getPage(i);const ct=await page.getTextContent();
+        pages.push(ct.items.map(x=>x.str).join(' '));
+      }
+      out=pages.join('\n').trim();
+    }catch(e){}
+  }
+  if(!out||out.length<40)throw new Error('PDF sem texto legível (pode ser só imagem escaneada)');
+  return out.slice(0,20000);
+}
+
 /* arquivos gerados */
 const ARQ=' Se o usuário pedir um arquivo (txt, md, csv, html, json, código, pdf, docx ou xlsx), entregue-o uma única vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou. Para pdf e docx escreva o conteúdo em texto simples (# para títulos, - para listas); para xlsx escreva uma linha por linha da tabela, com as colunas separadas por ponto e vírgula (;). Você não gera vídeo.';
 const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1').replace(/<<<ACAO[\s\S]*?(>>>|$)/g,'').replace(/<<<(LER|BUSCAR|AGENDA|EMAILS?|RASCUNHOS?)[^>]*(>>>|$)/g,'').replace(/<<<IMAGEM[^>]*(>>>|$)/g,'');
@@ -554,10 +598,12 @@ async function webAuto(q,out){
   // Não força pesquisa em saudações ou mensagens muito curtas
   const curto=/^(oi|olá|ola|hey|e aí|eai|bom dia|boa tarde|boa noite|tudo bem|td bem|obrigad[oa]|valeu|ok|sim|não|nao|blz|beleza|kkk+|haha+|rs+|👍|🙂|😊)[\s!?.]*$/i.test(c) || c.split(/\s+/).length<=2;
   const modo=$('mode').value;
+  const eco=localStorage.getItem('foxia_eco')=='1'||($('eco')&&$('eco').checked);
   if(curto && modo!=='expert' && !/https?:\/\//.test(q)) return '';
+  if(eco && modo!=='expert' && !/pesquis|busca|google|notícia|noticia|preço|preco|hoje|agora|atual/i.test(q) && !/https?:\/\//.test(q)) return '';
   out.append(document.createTextNode(' 🌐 pesquisando na web…'));
   const r=await buscaRobusta(c);
-  return r?'\n[Resultados da pesquisa na web para: '+c+']\n'+r.slice(0,5000)+'\n[Fim dos resultados da web]\n':'\n[A pesquisa na web falhou agora: todas as fontes estavam bloqueadas ou fora do ar. Avise o usuário disso na resposta.]\n';
+  return r?'\n[Resultados da pesquisa na web para: '+c+']\n'+r.slice(0,eco?2500:5000)+'\n[Fim dos resultados da web]\n':'\n[A pesquisa na web falhou agora: todas as fontes estavam bloqueadas ou fora do ar. Avise o usuário disso na resposta.]\n';
 }
 async function exec(t){try{switch(t.n){case 'LER':return await lerSite(t.a);case 'BUSCAR':return await buscaWeb(t.a);case 'AGENDA':return await listarAgenda(t.a);case 'EMAILS':return await listarEmails(t.a);case 'EMAIL':return await lerEmail(t.a);case 'RASCUNHOS':return await listarRascunhos();case 'RASCUNHO':return await lerRascunho(t.a)}}catch(e){return 'Erro: '+e.message}return 'Ferramenta desconhecida.'}
 function ferramentas(t){const re=/<<<(LER|BUSCAR|AGENDA|EMAILS|EMAIL|RASCUNHOS|RASCUNHO)\b([^>]*)>>>/g,r=[];let m;while(m=re.exec(t))r.push({n:m[1],a:m[2].trim()});return r}
@@ -1091,4 +1137,92 @@ function backupCompleto(){
 }
 if($('bkall'))$('bkall').onclick=backupCompleto;
 if($('bkall2'))$('bkall2').onclick=backupCompleto;
+
+/* === Busca no histórico, modo foco, voz em fila, prefs === */
+function buscarConversas(q){
+  q=String(q||'').trim().toLowerCase();
+  const box=$('cbuscarn');
+  if(!q){if(box){box.hidden=true;box.textContent=''}lista();return}
+  const hits=[];
+  (M.chats||[]).forEach(c=>{
+    (c.h||[]).forEach((m,i)=>{
+      if(String(m.t||'').toLowerCase().includes(q)){
+        hits.push({id:c.id,title:c.title||'Chat',i,papel:m.r,trecho:String(m.t).slice(0,140)});
+      }
+    });
+  });
+  if(box){
+    box.hidden=false;
+    box.textContent=hits.length? (hits.length+' resultado(s)') : 'Nada encontrado';
+  }
+  const l=$('cl');l.textContent='';
+  hits.slice(0,40).forEach(h=>{
+    const b=document.createElement('button');
+    b.style.cssText='display:block;width:100%;text-align:left;margin-top:6px';
+    b.textContent=(h.papel==='u'?'Você: ':'FOXIA: ')+h.trecho;
+    b.title=h.title;
+    b.onclick=()=>{abrir(h.id);$('cp').hidden=true};
+    l.append(b);
+  });
+}
+if($('cbusca')){
+  let bt;
+  $('cbusca').oninput=()=>{clearTimeout(bt);bt=setTimeout(()=>buscarConversas($('cbusca').value),200)};
+}
+
+/* modo foco + economia — persistência */
+if($('foco')){
+  $('foco').checked=localStorage.getItem('foxia_foco')=='1';
+  $('foco').onchange=()=>{localStorage.setItem('foxia_foco',$('foco').checked?'1':'0');if($('foco').checked){clearInterval(tm);ind('modo foco: sem mensagens sozinhas')}};
+}
+if($('eco')){
+  $('eco').checked=localStorage.getItem('foxia_eco')=='1';
+  $('eco').onchange=()=>{localStorage.setItem('foxia_eco',$('eco').checked?'1':'0');ind($('eco').checked?'economia de dados ligada':'economia de dados desligada')};
+}
+/* proativa respeita modo foco */
+(function(){
+  const _p=typeof proativa==='function'?proativa:null;
+  if(!_p)return;
+  window.proativa=async function(){
+    if(localStorage.getItem('foxia_foco')=='1'||($('foco')&&$('foco').checked))return;
+    return _p.apply(this,arguments);
+  };
+})();
+/* se foco estava ligado, não agenda mensagens próprias */
+if(localStorage.getItem('foxia_foco')=='1'){try{clearInterval(tm)}catch(e){}}
+
+/* voz em fila — não corta a fala anterior */
+(function(){
+  let fila=[];
+  let falando=false;
+  function proxima(){
+    if(falando||!fila.length){if(!fila.length)falando=false;return}
+    falando=true;
+    const t=fila.shift();
+    try{
+      if(!window.speechSynthesis){falando=false;return}
+      const nome=localStorage.getItem('foxia_vzc');
+      const v=speechSynthesis.getVoices().find(x=>x.name==nome)||(typeof VZ!=='undefined'?VZ:null);
+      const parts=(String(t).replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12);
+      if(!parts.length){falando=false;proxima();return}
+      let left=parts.length;
+      parts.forEach(p=>{
+        const u=new SpeechSynthesisUtterance(p.trim());
+        u.lang='pt-BR';if(v)u.voice=v;
+        u.onend=()=>{left--;if(left<=0){falando=false;if(typeof LIVE!=='undefined'&&LIVE&&typeof liveAfterSpeak==='function')liveAfterSpeak();proxima()}};
+        u.onerror=()=>{left--;if(left<=0){falando=false;proxima()}};
+        speechSynthesis.speak(u);
+      });
+    }catch(e){falando=false}
+  }
+  window.dizerCelular=function(t){
+    if(!t)return;
+    fila.push(t);
+    // limita fila para não acumular demais
+    if(fila.length>4)fila=fila.slice(-4);
+    proxima();
+  };
+  // não cancela no dizer se for celular; eleven continua com áudio próprio
+})();
+
 </script></body></html>
