@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -127,7 +127,21 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div class="row" style="padding:0"><button id="cs">Salvar comportamento</button><button id="gc" class="x" aria-label="Fechar">✕</button></div></div>
 
 <div id="ax" class="bar" hidden></div>
-<div class="row" style="align-items:flex-end"><button id="resum" title="Resumo do dia" aria-label="Resumo do dia">📋</button><button id="live" title="Conversa ao vivo" aria-label="Chamada">📞</button><button id="at" aria-label="Anexar">📎</button><input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log"><input type="file" id="fc" accept="image/*" capture="environment" hidden><input type="file" id="fp" accept="image/*" multiple hidden><button id="mic" aria-label="Falar">🎤</button><textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea><button id="go" aria-label="Enviar">➤</button></div>
+<div class="row" style="align-items:flex-end;gap:6px">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <button id="resum" title="Resumo do dia" aria-label="Resumo do dia">📋</button>
+    <button id="at" aria-label="Anexar">📎</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <button id="live" title="Conversa ao vivo" aria-label="Chamada">📞</button>
+    <button id="mic" aria-label="Falar">🎤</button>
+  </div>
+  <input type="file" id="fi" multiple hidden accept="image/*,.txt,.md,.csv,.json,.html,.js,.py,.xml,.log">
+  <input type="file" id="fc" accept="image/*" capture="environment" hidden>
+  <input type="file" id="fp" accept="image/*" multiple hidden>
+  <textarea id="q" placeholder="Fale com a raposa…" rows="1" autocomplete="off"></textarea>
+  <button id="go" aria-label="Enviar">➤</button>
+</div>
 <script>
 (function(){
 const L=localStorage;let AK=null,T;
