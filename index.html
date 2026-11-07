@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -331,15 +331,17 @@ ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*700))}
 function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}
 /* modos de pesquisa */
 const MODOS={
-simples:['quick','Explique apenas o que é, em no máximo 3 frases simples, sem se aprofundar.'],
-padrao:['default','Responda de forma completa e bem organizada: vá direto ao ponto, explique o contexto e os detalhes importantes, dê exemplos práticos e, quando fizer sentido, passos ou dicas. Use vários parágrafos ou listas curtas, sem enrolação.'],
-expert:['complex','Seja especialista: análise profunda e estruturada, vários ângulos, limitações e incertezas. Baseie-se nos resultados da web e cite as fontes.']};
+simples:['quick','Responda de forma clara e útil. Pode usar até 6 frases. Inclua o essencial e um exemplo curto se ajudar.'],
+padrao:['default','Responda de forma completa, útil e bem organizada. Não faça o mínimo: explique o contexto, detalhes importantes, exemplos práticos, dicas e, quando fizer sentido, passos numerados. Prefira conteúdo rico (vários parágrafos ou listas) em vez de respostas curtíssimas. Se o usuário pedir arquivo/PDF/resumo, entregue material substancial, não só 3 linhas.'],
+expert:['complex','Seja especialista e detalhado: análise profunda, vários ângulos, limitações, exemplos e estrutura clara. Se pedir arquivo, faça conteúdo denso e bem organizado. Baseie-se na web quando houver resultados e cite fontes.'],
+};
 function escolher(q){const m=$('mode').value;if(m!='auto')return m;
 const n=q.split(/\s+/).filter(Boolean).length;
-if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40)return 'expert';
-if(n<=12&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto/i.test(q))return 'simples';
-return n<6?'simples':'padrao'}
-const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta, curta e completa, sem repetir nem reformular o que já disse. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const rico=/pdf|arquivo|documento|relat[oó]rio|resumo completo|trabalho|explica|como funciona|lista|doen[cç]a|hist[oó]ria|detalh|completo|gerar|crie|monte|escreva/i.test(q);
+if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40||rico)return n>25||/expert|profund|completo/i.test(q)?'expert':'padrao';
+if(n<=8&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto|gera|cri[ea]|escreva|liste/i.test(q))return 'simples';
+return 'padrao'}
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: dê UMA única resposta completa e útil (não faça o mínimo do mínimo), sem repetir nem reformular o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com boas informações. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
@@ -465,7 +467,7 @@ async function lerPDF(f){
 }
 
 /* arquivos gerados */
-const ARQ=' Se o usuário pedir um arquivo (txt, md, csv, html, json, código, pdf, docx ou xlsx), entregue-o uma única vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou. Para pdf e docx escreva o conteúdo em texto simples (# para títulos, - para listas); para xlsx escreva uma linha por linha da tabela, com as colunas separadas por ponto e vírgula (;). Você não gera vídeo.';
+const ARQ=' Se o usuário pedir um arquivo (txt, md, csv, html, json, código, pdf, docx ou xlsx), entregue-o uma única vez no formato <<<ARQUIVO nome.ext>>> conteúdo completo <<<FIM>>> e diga em uma frase o que gerou. Para pdf e docx: use texto bem estruturado (# títulos, ## subtítulos, - listas), com introdução breve, seções e conclusão quando fizer sentido. NÃO entregue só 3 linhas: desenvolva o tema com informações úteis (para cada item: o que é, sintomas ou causas se aplicável, prevenção/tratamento em linguagem simples, e uma curiosidade). Para xlsx: uma linha por linha da tabela, colunas separadas por ponto e vírgula (;). Você não gera vídeo.';
 const limpa=t=>t.replace(/<<<ARQUIVO\s+([^>\n]+?)\s*>>>[\s\S]*?(<<<FIM>>>|$)/g,'📄 $1').replace(/<<<ACAO[\s\S]*?(>>>|$)/g,'').replace(/<<<(LER|BUSCAR|AGENDA|EMAILS?|RASCUNHOS?)[^>]*(>>>|$)/g,'').replace(/<<<IMAGEM[^>]*(>>>|$)/g,'');
 function fx(el,t){const re=/<<<ARQUIVO\s+([^>\n]+?)\s*>>>\n?([\s\S]*?)<<<FIM>>>/g;let m;while(m=re.exec(t)){const n=m[1].trim(),c=m[2];const b=document.createElement('button');b.style.cssText='display:block;margin-top:6px';b.textContent='⬇ '+n;b.onclick=async()=>{try{const d=await claude.use('downloads');if(!d){ind('download indisponível');return}await d.save({filename:n,data:gerar(n,c)})}catch(e){ind('não consegui baixar: '+(e&&e.code||'erro'))}};el.append(b)}}
 /* pesquisas feitas pelo Claude (salvas no banco) */
@@ -676,7 +678,7 @@ const ROT={email:['✉ Enviar e-mail','Enviar','✅ E-mail enviado'],evento:['�
 const evBody=(a,p)=>{const tz=Intl.DateTimeFormat().resolvedOptions().timeZone,b={};if(!p||a.titulo)b.summary=a.titulo;if(a.descricao!=null)b.description=a.descricao;if(a.local!=null)b.location=a.local;if(a.inicio)b.start={dateTime:a.inicio,timeZone:tz};if(a.fim)b.end={dateTime:a.fim,timeZone:tz};return b};
 const AC={email:a=>gj(GM+'/messages/send','POST',{raw:raw(a)}),evento:a=>gj(GC,'POST',evBody(a)),evento_editar:a=>gj(GC+'/'+encodeURIComponent(a.id),'PATCH',evBody(a,true)),evento_excluir:a=>gj(GC+'/'+encodeURIComponent(a.id),'DELETE'),rascunho_criar:a=>gj(GM+'/drafts','POST',{message:{raw:raw(a)}}),rascunho_editar:a=>gj(GM+'/drafts/'+encodeURIComponent(a.id),'PUT',{message:{raw:raw(a)}}),rascunho_excluir:a=>gj(GM+'/drafts/'+encodeURIComponent(a.id),'DELETE'),email_lixeira:a=>gj(GM+'/messages/'+encodeURIComponent(a.id)+'/trash','POST')};
 const ACAO=()=>{let t='';if($('web').checked)t+=' REGRA DE WEB: quando houver resultados de pesquisa na conversa (seção [Resultados da pesquisa na web]), baseie-se neles e cite as fontes. Se a pesquisa falhar ou um site pedir captcha, avise o usuário. FERRAMENTAS DE WEB (executam sozinhas): para abrir um site escreva <<<LER https://endereço>>>; para pesquisar na web escreva <<<BUSCAR termos>>>. Use quando precisar de informação atual ou do conteúdo de um site; ao usar uma ferramenta escreva só o bloco, sem outro texto.';
-t+=' IMAGENS: quando o usuário pedir para gerar/criar/desenhar uma imagem, responda com UM bloco <<<IMAGEM descrição detalhada em inglês>>> (no máximo uma por resposta) e diga em uma frase o que vai gerar. Não diga que não consegue gerar imagem.';if(GON())t+=' FERRAMENTAS GOOGLE DE LEITURA (executam sozinhas): <<<AGENDA AAAA-MM-DD AAAA-MM-DD>>> lista eventos do período com ids; <<<EMAILS consulta no formato de busca do Gmail>>> lista e-mails com ids; <<<EMAIL id>>> lê um e-mail; <<<RASCUNHOS>>> lista rascunhos; <<<RASCUNHO id>>> lê um rascunho. AÇÕES (o usuário confirma num cartão; nunca diga que já fez): responda com UM bloco <<<ACAO {json}>>> em uma linha, num destes formatos: {"tipo":"email","para":"","assunto":"","corpo":""}; {"tipo":"evento","titulo":"","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""}; {"tipo":"evento_editar","id":"","titulo":"","inicio":"","fim":"","local":"","descricao":""} (só os campos que mudam); {"tipo":"evento_excluir","id":"","titulo":""}; {"tipo":"rascunho_criar","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_editar","id":"","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_excluir","id":"","assunto":""}; {"tipo":"email_lixeira","id":"","assunto":""}. Para editar ou apagar, primeiro liste ou leia para obter o id certo. Se faltar e-mail, data ou hora, pergunte antes. Agora é '+new Date().toString()+'.';return t};
+t+=' IMAGENS: quando o usuário pedir para gerar/criar/desenhar uma imagem, responda com UM bloco <<<IMAGEM descrição detalhada em inglês, estilo illustration ou photo, sem texto na imagem, sem violência>>> (no máximo uma por resposta) e diga em uma frase o que vai gerar. Use linguagem neutra e descritiva (ex.: "realistic illustration of a middle-aged man playing pool with friends in a casual bar"). Não diga que não consegue gerar imagem.';if(GON())t+=' FERRAMENTAS GOOGLE DE LEITURA (executam sozinhas): <<<AGENDA AAAA-MM-DD AAAA-MM-DD>>> lista eventos do período com ids; <<<EMAILS consulta no formato de busca do Gmail>>> lista e-mails com ids; <<<EMAIL id>>> lê um e-mail; <<<RASCUNHOS>>> lista rascunhos; <<<RASCUNHO id>>> lê um rascunho. AÇÕES (o usuário confirma num cartão; nunca diga que já fez): responda com UM bloco <<<ACAO {json}>>> em uma linha, num destes formatos: {"tipo":"email","para":"","assunto":"","corpo":""}; {"tipo":"evento","titulo":"","inicio":"AAAA-MM-DDTHH:MM:SS","fim":"AAAA-MM-DDTHH:MM:SS","local":"","descricao":""}; {"tipo":"evento_editar","id":"","titulo":"","inicio":"","fim":"","local":"","descricao":""} (só os campos que mudam); {"tipo":"evento_excluir","id":"","titulo":""}; {"tipo":"rascunho_criar","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_editar","id":"","para":"","assunto":"","corpo":""}; {"tipo":"rascunho_excluir","id":"","assunto":""}; {"tipo":"email_lixeira","id":"","assunto":""}. Para editar ou apagar, primeiro liste ou leia para obter o id certo. Se faltar e-mail, data ou hora, pergunte antes. Agora é '+new Date().toString()+'.';return t};
 function cartoes(el,t){const re=/<<<ACAO\s*(\{[\s\S]*?\})\s*>>>/g;let m;while(m=re.exec(t)){let a;try{a=JSON.parse(m[1])}catch(e){continue}const Q=ROT[a.tipo];if(!Q||!AC[a.tipo]||(/_(editar|excluir)$|lixeira/.test(a.tipo)&&!a.id))continue;
 const c=document.createElement('div');c.className='cd';
 const head=document.createElement('div');head.textContent=Q[0]+'\n'+Object.entries(a).filter(([k,v])=>k!='tipo'&&v!==''&&v!=null).map(([k,v])=>k+': '+v).join('\n');c.append(head);
@@ -758,8 +760,28 @@ const gerar=(n,c)=>/\.pdf$/i.test(n)?pdfBlob(c.replace(/\*\*(.*?)\*\*/g,'$1')):/
 /* imagens: tenta Cloudflare Workers AI; se falhar, usa Pollinations (grátis, sem chave) */
 async function imagens(el,t){
   const re=/<<<IMAGEM\s+([^>]+?)\s*>>>/g;const m=re.exec(t);if(!m)return;
-  const prompt=m[1].trim();
+  let prompt=m[1].trim();
   const d=document.createElement('div');d.className='cd';d.textContent='🎨 Gerando imagem…';el.append(d);
+  const isRefused=(src)=>{
+    return new Promise(ok=>{
+      const im=new Image();
+      im.crossOrigin='anonymous';
+      im.onload=()=>{
+        try{
+          const c=document.createElement('canvas');c.width=40;c.height=40;
+          const x=c.getContext('2d');x.drawImage(im,0,0,40,40);
+          const data=x.getImageData(0,0,40,40).data;
+          let p=0,s=0;
+          for(let i=0;i<data.length;i+=4){p++;s+=data[i]+data[i+1]+data[i+2]}
+          const avg=s/(p*3);
+          /* imagem "Image refused" do Pollinations é rosa/clara bem uniforme */
+          ok(avg>210);
+        }catch(e){ok(false)}
+      };
+      im.onerror=()=>ok(true);
+      im.src=src;
+    });
+  };
   const mostrar=(src,nota)=>{
     d.textContent='';
     const im=new Image();im.alt=prompt;im.style.cssText='max-width:100%;border-radius:10px;display:block';im.src=src;
@@ -776,25 +798,46 @@ async function imagens(el,t){
     };
     d.append(b);
   };
-  /* 1) Worker AI (Flux) se o binding AI estiver ativo */
+  /* limpa prompt para filtros */
+  const suavizar=p=>String(p)
+    .replace(/\b(nude|nsfw|blood|gore|kill|weapon)\b/gi,'')
+    .replace(/\bbar\b/gi,'casual pool hall')
+    .replace(/\bsenhor\b/gi,'middle-aged man')
+    .trim();
+  const variantes=[
+    prompt,
+    suavizar(prompt),
+    'realistic illustration, '+suavizar(prompt)+', friendly atmosphere, detailed, high quality',
+    'digital art of '+suavizar(prompt)+', warm lighting, no text'
+  ];
+  /* 1) Worker AI (Flux) */
   try{
     const S=window.SRVC&&window.SRVC();
     if(S){
-      const r=await fetch(S.u+'/imagem',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({prompt})});
-      if(r.ok){
-        const j=await r.json();
-        if(j&&j.image){mostrar('data:image/jpeg;base64,'+j.image,'Workers AI');return}
+      for(const pr of variantes.slice(0,2)){
+        const r=await fetch(S.u+'/imagem',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({prompt:pr})});
+        if(r.ok){
+          const j=await r.json();
+          if(j&&j.image){mostrar('data:image/jpeg;base64,'+j.image,'Workers AI');return}
+        }
       }
     }
   }catch(e){}
-  /* 2) Pollinations — gratuito, sem plano Gemini e sem chave */
-  try{
-    const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=1024&height=1024&nologo=true&enhance=true&seed='+Date.now();
-    await new Promise((ok,no)=>{const im=new Image();im.onload=ok;im.onerror=no;im.src=url});
-    mostrar(url,'gerada com Pollinations (grátis)');
-  }catch(e){
-    d.textContent='⚠ Não consegui gerar a imagem. Ative Workers AI no Cloudflare (binding AI) ou tente de novo em instantes.';
+  /* 2) Pollinations com várias tentativas / modelos */
+  const modelos=['flux','turbo',''];
+  for(const pr of variantes){
+    for(const modelo of modelos){
+      try{
+        const q='width=1024&height=1024&nologo=true&seed='+(Date.now()%1e9)+(modelo?'&model='+modelo:'');
+        const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(pr)+'?'+q;
+        await new Promise((ok,no)=>{const im=new Image();im.onload=ok;im.onerror=no;im.src=url});
+        if(await isRefused(url))continue;
+        mostrar(url,'gerada com Pollinations (grátis)');
+        return;
+      }catch(e){}
+    }
   }
+  d.textContent='⚠ Não consegui gerar essa imagem (filtro de segurança ou serviço indisponível). Tente descrever de outro jeito — por exemplo: “ilustração realista de um homem de meia-idade jogando sinuca com amigos”.';
 }
 /* voz da IA: do celular (escolhe a voz) ou ElevenLabs pelo servidor */
 let AUD=null;
