@@ -6,9 +6,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -103,7 +103,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="sp" class="sh" hidden><div id="spb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="spx" aria-label="Fechar">✕</button><b>Mover para projeto</b></div><div id="spl"></div></div></div>
 <div id="jp" hidden><h2 id="jt">Novo projeto</h2><input id="jn" placeholder="Nome do projeto"><textarea id="ji" placeholder="Instruções do projeto (valem para todos os chats dele)"></textarea><div class="row" style="padding:0"><button id="js">Salvar</button><button id="jd">Excluir projeto</button></div><button id="jc" class="x" aria-label="Fechar">✕</button></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
-<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave do Gemini (Google)"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
+<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave(s) Gemini — várias separadas por vírgula"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
 <input id="svu" type="hidden"><input id="svt" type="hidden"><input id="gm" type="hidden" value="gemini-3.8-flash">
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="bkall">Backup completo (1 toque)</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="mp" hidden><h2>Memória</h2><p class="fl">Fatos estáveis ficam guardados. Temporários somem em ~7 dias. Diga “esquece X” no chat para apagar.</p><div class="fl">Estáveis</div><div id="ml"></div><div class="fl">Temporários</div><div id="mlt"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
@@ -217,39 +217,53 @@ const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message
 async function ge0(k,m,t,im,w){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}],tools:w?[{google_search:{}}]:undefined})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
 async function lm(u,h){const r=await ft(u,{headers:h});const j=await r.json();if(!r.ok)throw er(r.status,j);return j}
-async function mq(k){const j=await lm('https://api.groq.com/openai/v1/models',{authorization:'Bearer '+k});const ids=(j.data||[]).map(x=>x.id);for(const p of ['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant'])if(ids.includes(p))return p;return ids.find(i=>!/whisper|tts|guard|orpheus|embed|prompt/i.test(i))}
+async function mq(k){const j=await lm('https://api.groq.com/openai/v1/models',{authorization:'Bearer '+k});const ids=(j.data||[]).map(x=>x.id);/* preferir leves (menos rate limit no free) */for(const p of ['llama-3.1-8b-instant','llama-3.3-70b-versatile','openai/gpt-oss-20b','qwen/qwen3-32b'])if(ids.includes(p))return p;return ids.find(i=>!/whisper|tts|guard|orpheus|embed|prompt|120b/i.test(i))}
 async function mg(k){const j=await lm('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{'x-goog-api-key':k});const v=x=>parseFloat(x.name.match(/gemini-([\d.]+)/)[1]);const f=(j.models||[]).filter(x=>/models\/gemini-[\d.]+-flash$/.test(x.name)&&(x.supportedGenerationMethods||[]).includes('generateContent')).sort((a,b)=>v(b)-v(a));return f.length?f[0].name.replace('models/',''):null}
 async function gq(k,m,t,im){
+  const leves=['llama-3.1-8b-instant','llama-3.3-70b-versatile','openai/gpt-oss-20b'];
+  const visao=['qwen/qwen3.8-27b','qwen/qwen3.6-27b','meta-llama/llama-4-scout-17b-16e-instruct'];
   try{return await gq0(k,m||await mq(k),t,im)}
   catch(e){
-    /* se o modelo de visão falhar, tenta outro nome comum no Groq */
-    if(im&&im.length&&(e.code=='http_404'||/does not exist|model|not.*support|vision/i.test(e.message||''))){
-      for(const alt of ['qwen/qwen3.8-27b','qwen/qwen3.6-27b','meta-llama/llama-4-scout-17b-16e-instruct','meta-llama/llama-4-maverick-17b-128e-instruct']){
-        try{return await gq0(k,alt,t,im)}catch(e2){}
-      }
+    const rate=e.code=='rate_limited'||/rate limit|tpm|tokens per minute|429/i.test(e.message||'');
+    const miss=e.code=='http_404'||/does not exist|model|not.*support|vision/i.test(e.message||'');
+    if(im&&im.length&&(miss||rate)){
+      for(const alt of visao){try{return await gq0(k,alt,t,im)}catch(e2){}}
     }
-    if(m&&(e.code=='http_404'||/does not exist|model/i.test(e.message||'')))return await gq0(k,await mq(k),t,im);
+    if(rate||miss){
+      for(const alt of leves){if(alt===m)continue;try{return await gq0(k,alt,t,im)}catch(e2){}}
+    }
+    if(m&&miss){try{return await gq0(k,await mq(k),t,im)}catch(e3){}}
     throw e;
   }
 }
-async function ge(k,m,t,im,w){const modelo='gemini-3.8-flash';try{return await ge0(k,modelo,t,im,w)}catch(e){if(w&&e.code=='http_400')return await ge0(k,modelo,t,im,false);throw e}}
-const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){if(i<2&&/^http_5\d\d$/.test(e.code||''))await new Promise(r=>setTimeout(r,(window.FOXIA_RT||2500)*(i+1)));else throw e}}};
-
-async function verImagem(imB64List, pergunta){
-  const S=window.SRVC&&window.SRVC();
-  if(!S||!imB64List.length)return null;
-  try{
-    const r=await fetch(S.u+'/visao',{method:'POST',headers:{'x-foxia-token':S.t,'content-type':'application/json'},body:JSON.stringify({image:imB64List[0],prompt:pergunta||'Descreva a imagem em português do Brasil com o máximo de detalhes úteis.'})});
-    if(!r.ok)return null;
-    const j=await r.json();
-    return (j&&j.text)?String(j.text).trim():null;
-  }catch(e){return null}
+async function ge(k,m,t,im,w){
+  const modelo='gemini-3.8-flash';
+  const keys=String(k||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean);
+  if(!keys.length)keys.push(k);
+  let last;
+  for(let i=0;i<keys.length;i++){
+    try{
+      return await ge0(keys[i],modelo,t,im,w);
+    }catch(e){
+      last=e;
+      if(w&&e.code=='http_400'){try{return await ge0(keys[i],modelo,t,im,false)}catch(e2){last=e2}}
+      const rate=e.code=='rate_limited'||/quota|rate limit|exceeded|429/i.test(e.message||'');
+      if(rate&&i<keys.length-1)continue;
+      if(i<keys.length-1&&(/403|401|invalid/i.test(e.message||'')||e.code=='http_403'))continue;
+      if(i===keys.length-1)throw last;
+    }
+  }
+  throw last||new Error('gemini sem chave');
 }
-
+const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){
+  const wait=e.code=='rate_limited'||/^http_5\d\d$/.test(e.code||'')||/rate limit|tpm|429/i.test(e.message||'');
+  if(i<2&&wait)await new Promise(r=>setTimeout(r,(e.code=='rate_limited'?4000:2500)*(i+1)));
+  else throw e;
+}}};
 const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv'}}
 const temImg=!!(o.images&&o.images.length);
 /* com foto: prioriza quem lê imagem (Claude, OpenAI, Groq-visão). Gemini por último (cota de visão costuma falhar no plano free). */
-const base=temImg?['c','o','q','g']:(t=='quick'?['q','g','o','c']:['c','o','q','g']);
+const base=temImg?['c','o','q','g']:(t=='quick'?['q','o','c','g']:['q','c','o','g']);
 let ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
 if(o.web&&!temImg)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(temImg)ord=ord.filter(x=>x!=='g').concat(ord.filter(x=>x==='g')); /* Gemini só se os outros falharem */
@@ -257,14 +271,14 @@ if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o
 let im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
 let inputFinal=input;
 /* se tem imagem: tenta ler direto; se todos falharem, descreve via Worker AI e responde em texto */
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,k.qm||'',inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
 if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 if(temImg&&im.length){
   try{
     const desc=await verImagem(im, 'Descreva a imagem em português do Brasil com detalhes. Se houver texto, transcreva.');
     if(desc){
       im=[];inputFinal=input+'\n\n[Descrição automática da imagem anexada]\n'+desc+'\n[Fim da descrição]\nResponda ao usuário com base nessa descrição.';
-      for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,[],t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,[]):p=='q'?await gq(keys.q,k.qm||'',inputFinal,[]):await ge(keys.g,'gemini-3.8-flash',inputFinal,[],o.web));
+      for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,[],t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,[]):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,[]):await ge(keys.g,'gemini-3.8-flash',inputFinal,[],o.web));
       if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){errs.push('texto:'+(({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]||p)+' '+(e.message||e));err=e}}
     }
   }catch(e){errs.push('visão:'+(e.message||e))}
@@ -333,7 +347,7 @@ if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}const [tier,ins]=MODOS[escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
 out.textContent=r.text;M.hist.push({r:'u',t:q},{r:'k',t:r.text});M.hist=M.hist.slice(-60);M.n++;save();falar(r.text);formar(r.text);if(M.n%4==0)aprender()}
-catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco. ('+(e.message||'')+')':'Não consegui responder agora. Motivo: '+(e&&e.message||e)}
+catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
 async function aprender(){try{const s=await window.claude?.use('sample');if(!s)return;
@@ -453,7 +467,7 @@ const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);ima
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
-catch(e){out.textContent=e.code=='rate_limited'?'Muitas solicitações. Espere um pouco. ('+(e.message||'')+')':'Não consegui responder agora. Motivo: '+(e&&e.message||e)}
+catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 function outras(){const r=[];(M.chats||[]).filter(c=>c.id!=M.cur).sort((a,b)=>(b.tm||0)-(a.tm||0)).slice(0,4).forEach(c=>c.h.filter(m=>m.r=='u').slice(-3).forEach(m=>r.push(String(m.t).slice(0,160))));return r.length?r.join(' | '):'nenhum'}
 async function aprender(){try{const s=await window.claude?.use('sample');if(!s)return;
