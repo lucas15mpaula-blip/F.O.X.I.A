@@ -1,5 +1,5 @@
-/* F.O.X.I.A — service worker simples (cache do app shell) */
-const CACHE = 'foxia-v1';
+/* F.O.X.I.A — service worker (cache + notificações) */
+const CACHE = 'foxia-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -26,7 +26,6 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  /* não cacheia API / worker / chaves */
   if (url.origin !== self.location.origin) return;
   if (/workers\.dev|googleapis|groq|openai|anthropic|pollinations|stablehorde/i.test(url.href)) return;
 
@@ -40,6 +39,39 @@ self.addEventListener('fetch', (e) => {
         return res;
       }).catch(() => hit);
       return hit || net;
+    })
+  );
+});
+
+/* Notificações locais pedidas pela página */
+self.addEventListener('message', (e) => {
+  const d = e.data || {};
+  if (d.type === 'notify' && d.title) {
+    e.waitUntil(
+      self.registration.showNotification(d.title, {
+        body: d.body || '',
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        data: { url: d.url || './' },
+        tag: d.tag || 'foxia',
+        renotify: !!d.renotify
+      })
+    );
+  }
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ('focus' in c) {
+          c.postMessage({ type: 'notification-click' });
+          return c.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });

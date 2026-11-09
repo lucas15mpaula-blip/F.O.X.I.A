@@ -15,9 +15,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -127,6 +127,9 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" type="hidden">
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Permitir notificações da F.O.X.I.A</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="wake">Escutar palavra de ativação (Oi Foxia) enquanto o app estiver aberto</label>
+<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Aviso: no Android, apps web não conseguem ouvir com a tela desligada como o &quot;Ok Google&quot;. A escuta funciona com o app aberto (mesmo em segundo plano por um tempo).</p>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
@@ -422,6 +425,123 @@ if(window.speechSynthesis){vozes();speechSynthesis.onvoiceschanged=vozes}
 function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;try{speechSynthesis.cancel();(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(VZ)u.voice=VZ;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 $('tts').checked=localStorage.getItem('foxia_tts')=='1';
 $('tts').onchange=()=>{localStorage.setItem('foxia_tts',$('tts').checked?'1':'0');if($('tts').checked)falar('Voz ativada.')};
+
+/* --- Notificações + palavra de ativação --- */
+async function pedirNotif(){
+  if(!('Notification' in window)){ind('Este navegador não suporta notificações');return false}
+  let p=Notification.permission;
+  if(p==='default')p=await Notification.requestPermission();
+  return p==='granted';
+}
+async function notificar(titulo,corpo,tag){
+  if(localStorage.getItem('foxia_notif')!=='1')return;
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg&&reg.active){
+      reg.active.postMessage({type:'notify',title:titulo,body:corpo||'',tag:tag||'foxia',url:'./'});
+    }else if(reg){
+      await reg.showNotification(titulo,{body:corpo||'',icon:'./icon-192.png',tag:tag||'foxia'});
+    }else{
+      new Notification(titulo,{body:corpo||'',icon:'./icon-192.png'});
+    }
+  }catch(e){try{new Notification(titulo,{body:corpo||''})}catch(x){}}
+}
+let wakeRec=null,wakeOn=false,wakeArmed=false;
+const WAKE_RE=/\b(oi\s*foxia|olá\s*foxia|ola\s*foxia|ei\s*foxia|hey\s*foxia|foxia)\b/i;
+function wakeStop(){
+  wakeOn=false;wakeArmed=false;
+  try{if(wakeRec)wakeRec.stop()}catch(e){}
+  wakeRec=null;
+  const b=$('wake');
+  if(b){/* status via checkbox */}
+  ind('escuta desligada');
+}
+function wakeStart(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ind('sem reconhecimento de voz');if($('wake'))$('wake').checked=false;return}
+  if(wakeRec){try{wakeRec.stop()}catch(e){}}
+  wakeOn=true;
+  wakeRec=new SR();
+  wakeRec.lang='pt-BR';
+  wakeRec.continuous=true;
+  wakeRec.interimResults=true;
+  wakeRec.onresult=(e)=>{
+    if(!wakeOn||busy)return;
+    let txt='';
+    for(let i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript+' ';
+    txt=txt.trim();
+    if(!txt)return;
+    const m=txt.match(WAKE_RE);
+    if(!m)return;
+    /* pega o que veio depois da palavra de ativação */
+    const after=txt.slice(txt.toLowerCase().indexOf(m[0].toLowerCase())+m[0].length).trim();
+    if(after.length>1){
+      $('q').value=after;
+      ind('ouvi: '+after);
+      try{wakeRec.stop()}catch(x){}
+      enviar();
+    }else{
+      wakeArmed=true;
+      ind('Pode falar o comando…');
+      try{if($('tts').checked)falar('Pode falar')}catch(x){}
+    }
+  };
+  /* se armou e o usuário falou sem a palavra */
+  const prev=wakeRec.onresult;
+  wakeRec.onresult=(e)=>{
+    if(wakeArmed&&!busy){
+      let final='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      }
+      final=final.trim();
+      if(final&&!WAKE_RE.test(final)){
+        wakeArmed=false;
+        $('q').value=final;
+        try{wakeRec.stop()}catch(x){}
+        enviar();
+        return;
+      }
+    }
+    prev(e);
+  };
+  wakeRec.onerror=(e)=>{
+    if(e.error==='not-allowed'){ind('permita o microfone');if($('wake'))$('wake').checked=false;wakeOn=false}
+  };
+  wakeRec.onend=()=>{
+    if(wakeOn){
+      try{wakeRec.start()}catch(e){setTimeout(()=>{try{wakeRec&&wakeRec.start()}catch(x){}},400)}
+    }
+  };
+  try{wakeRec.start();ind('escuta ativa: diga Oi Foxia')}catch(e){ind('não deu para iniciar a escuta');if($('wake'))$('wake').checked=false;wakeOn=false}
+}
+if($('notif')){
+  $('notif').checked=localStorage.getItem('foxia_notif')==='1';
+  $('notif').onchange=async()=>{
+    if($('notif').checked){
+      const ok=await pedirNotif();
+      if(!ok){$('notif').checked=false;localStorage.setItem('foxia_notif','0');ind('notificação negada');return}
+      localStorage.setItem('foxia_notif','1');
+      notificar('F.O.X.I.A','Notificações ativadas.','foxia-test');
+      ind('notificações on');
+    }else{localStorage.setItem('foxia_notif','0');ind('notificações off')}
+  };
+}
+if($('wake')){
+  $('wake').checked=localStorage.getItem('foxia_wake')==='1';
+  $('wake').onchange=()=>{
+    localStorage.setItem('foxia_wake',$('wake').checked?'1':'0');
+    if($('wake').checked)wakeStart();else wakeStop();
+  };
+  if($('wake').checked)setTimeout(()=>{try{wakeStart()}catch(e){}},1200);
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&localStorage.getItem('foxia_wake')==='1'&&!wakeOn){
+    try{wakeStart()}catch(e){}
+  }
+});
+
 /* arquivos enviados */
 function peq(f){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b),'image/jpeg',.85)};im.onerror=no;im.src=URL.createObjectURL(f)})}
 function chips(){
@@ -605,11 +725,11 @@ ca+=await sites(q);ca+=await webAuto(q,out);const o={modelTier:tier,cache:false,
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
-M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
+M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
-document.body.classList.remove('think');busy=false}
+document.body.classList.remove('think');busy=false;if(localStorage.getItem('foxia_wake')==='1')setTimeout(()=>{try{wakeStart()}catch(e){}},600)}
 function outras(){const r=[];(M.chats||[]).filter(c=>c.id!=M.cur).sort((a,b)=>(b.tm||0)-(a.tm||0)).slice(0,4).forEach(c=>c.h.filter(m=>m.r=='u').slice(-3).forEach(m=>r.push(String(m.t).slice(0,160))));return r.length?r.join(' | '):'nenhum'}
 async function aprender(){try{const s=await window.claude?.use('sample');if(!s)return;
 const r=await s('Você mantém a memória de longo prazo de uma IA sobre o usuário. Fatos já conhecidos: '+JSON.stringify(M.fatos)+'\nConversa recente:\n'+hist(6)+'\nListe SOMENTE o que for novo e duradouro sobre o usuário e ainda não estiver nos fatos conhecidos (nome, idade, gostos, objetivos, rotina, pessoas importantes, preferências). Se o usuário pedir para lembrar, guardar ou anotar algo (um código, uma data, um nome), inclua isso exatamente como um fato. Responda SOMENTE um objeto JSON, sem texto extra: {"novos":["fato curto"],"padroes":["hábito ou interesse recorrente"],"persona":"2 frases sobre a personalidade que a IA deve ter com este usuário, ou vazio se nada mudou"}. Use listas vazias se não houver nada novo.',{cache:false,modelTier:'quick'});
