@@ -129,7 +129,11 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Permitir notificações da F.O.X.I.A</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="wake">Escutar palavra de ativação (Oi Foxia) enquanto o app estiver aberto</label>
-<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Aviso: no Android, apps web não conseguem ouvir com a tela desligada como o &quot;Ok Google&quot;. A escuta funciona com o app aberto (mesmo em segundo plano por um tempo).</p>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="loc">Usar localização quando eu pedir (clima, perto de mim…)</label>
+<button type="button" id="perms" style="margin-top:8px">Pedir permissões do app</button>
+<p class="fl" id="permst" style="opacity:.8;font-size:12px;margin:4px 0 0"></p>
+<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Aviso: no Android, apps web não conseguem ouvir com a tela desligada como o &quot;Ok Google&quot;. A escuta funciona com o app aberto. Gmail, Agenda e Drive usam o botão Conectar Google.</p>
+<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Conectores já no app: Gmail, Google Agenda, Google Drive (backup). Câmera e arquivos: botão de anexar. Canva não está disponível neste app.</p>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
@@ -516,6 +520,112 @@ function wakeStart(){
   };
   try{wakeRec.start();ind('escuta ativa: diga Oi Foxia')}catch(e){ind('não deu para iniciar a escuta');if($('wake'))$('wake').checked=false;wakeOn=false}
 }
+
+/* --- Permissões básicas do app --- */
+async function statusPerms(){
+  const st=[];
+  st.push('Notificações: '+(('Notification' in window)?Notification.permission:'n/d'));
+  try{
+    if(navigator.permissions){
+      for(const n of ['microphone','camera','geolocation','notifications']){
+        try{const x=await navigator.permissions.query({name:n});st.push(n+': '+x.state)}catch(e){}
+      }
+    }
+  }catch(e){}
+  try{
+    if(navigator.storage&&navigator.storage.persisted){
+      const p=await navigator.storage.persisted();
+      st.push('Armazenamento fixo: '+(p?'sim':'não'));
+    }
+  }catch(e){}
+  const el=$('permst');
+  if(el)el.textContent=st.join(' · ');
+  return st;
+}
+async function pedirPermissoesBasicas(){
+  const logs=[];
+  /* armazenamento persistente */
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      const ok=await navigator.storage.persist();
+      logs.push(ok?'armazenamento: ok':'armazenamento: limitado');
+    }
+  }catch(e){logs.push('armazenamento: falhou')}
+  /* notificações */
+  try{
+    if('Notification' in window){
+      const p=await Notification.requestPermission();
+      logs.push('notificações: '+p);
+      if(p==='granted'){
+        localStorage.setItem('foxia_notif','1');
+        if($('notif'))$('notif').checked=true;
+      }
+    }
+  }catch(e){logs.push('notificações: falhou')}
+  /* microfone */
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    s.getTracks().forEach(t=>t.stop());
+    logs.push('microfone: ok');
+  }catch(e){logs.push('microfone: '+(e.name==='NotAllowedError'?'negado':'falhou'))}
+  /* câmera */
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    s.getTracks().forEach(t=>t.stop());
+    logs.push('câmera: ok');
+  }catch(e){logs.push('câmera: '+(e.name==='NotAllowedError'?'negada':'falhou'))}
+  /* localização */
+  try{
+    await new Promise((res,rej)=>{
+      if(!navigator.geolocation)return rej(new Error('n/d'));
+      navigator.geolocation.getCurrentPosition(()=>res(),err=>rej(err),{timeout:12000,maximumAge:60000});
+    });
+    logs.push('localização: ok');
+    localStorage.setItem('foxia_loc','1');
+    if($('loc'))$('loc').checked=true;
+  }catch(e){logs.push('localização: negada/indisponível')}
+  /* agenda/e-mail = Google OAuth, não é permissão do browser */
+  logs.push('agenda/e-mail: use Conectar Google');
+  ind(logs.join(' · '));
+  const el=$('permst');if(el)el.textContent=logs.join(' · ');
+  await statusPerms();
+  return logs;
+}
+async function minhaLocalizacao(){
+  if(localStorage.getItem('foxia_loc')!=='1')return null;
+  if(!navigator.geolocation)return null;
+  try{
+    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:10000,maximumAge:300000}));
+    return {lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy};
+  }catch(e){return null}
+}
+if($('perms')){
+  $('perms').onclick=()=>pedirPermissoesBasicas();
+}
+if($('loc')){
+  $('loc').checked=localStorage.getItem('foxia_loc')==='1';
+  $('loc').onchange=async()=>{
+    if($('loc').checked){
+      try{
+        await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(()=>res(),e=>rej(e),{timeout:12000}));
+        localStorage.setItem('foxia_loc','1');
+        ind('localização on');
+      }catch(e){
+        $('loc').checked=false;localStorage.setItem('foxia_loc','0');
+        ind('localização negada');
+      }
+    }else{localStorage.setItem('foxia_loc','0');ind('localização off')}
+  };
+}
+/* pede permissões na primeira abertura do app (uma vez) */
+if(!localStorage.getItem('foxia_perm_asked')){
+  setTimeout(()=>{
+    localStorage.setItem('foxia_perm_asked','1');
+    pedirPermissoesBasicas().catch(()=>{});
+  },1800);
+}
+setTimeout(()=>statusPerms().catch(()=>{}),2000);
+
 if($('notif')){
   $('notif').checked=localStorage.getItem('foxia_notif')==='1';
   $('notif').onchange=async()=>{
@@ -721,7 +831,7 @@ const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
-ca+=await sites(q);ca+=await webAuto(q,out);const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
+ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
