@@ -15,9 +15,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -137,7 +137,12 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
-<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eco">Economia de dados (menos pesquisa automática na web)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eco">Economia de dados (menos pesquisa automática na web)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button>
+<label class="fl">Canva Client ID</label>
+<input id="canvaid" placeholder="OC...." autocomplete="off" style="width:100%">
+<button type="button" id="canvalogin">Conectar Canva</button>
+<button type="button" id="canvatest">Testar: criar design no Canva</button>
+<p class="fl" style="opacity:.75;font-size:12px">Crie um app em canva.com/developers → Authentication → Redirect URI: a URL deste site (ex. https://lucas15mpaula-blip.github.io/F.O.X.I.A/). Cole o Client ID acima. Scopes: design:content:write, design:meta:read.</p><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <button id="ae" hidden>Baixar conta</button><button id="exall" hidden>Exportar conversas</button><button id="ke" hidden>Exportar backup</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
@@ -451,206 +456,211 @@ async function notificar(titulo,corpo,tag){
     }
   }catch(e){try{new Notification(titulo,{body:corpo||''})}catch(x){}}
 }
-let wakeRec=null,wakeOn=false,wakeArmed=false;
-const WAKE_RE=/\b(oi\s*foxia|olá\s*foxia|ola\s*foxia|ei\s*foxia|hey\s*foxia|foxia)\b/i;
+
+/* --- Oi Foxia: escuta robusta --- */
+let wakeRec=null, wakeOn=false, wakeBusy=false, wakeBuf='';
+const WAKE_RE=/(oi|ol[aá]|ola|ei|hey|e a[ií])?\s*(foxia|f[oó]xia|focsia|f[oó]csia|fox ia|f[oó]x ia)/i;
+function wakeStatus(msg){try{ind(msg)}catch(e){} const el=$('permst'); if(el&&msg)el.textContent=msg}
+
 function wakeStop(){
-  wakeOn=false;wakeArmed=false;
-  try{if(wakeRec)wakeRec.stop()}catch(e){}
+  wakeOn=false; wakeBusy=false; wakeBuf='';
+  try{if(wakeRec){wakeRec.onend=null;wakeRec.onerror=null;wakeRec.onresult=null;wakeRec.stop()}}catch(e){}
   wakeRec=null;
-  const b=$('wake');
-  if(b){/* status via checkbox */}
-  ind('escuta desligada');
-}
-function wakeStart(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ind('sem reconhecimento de voz');if($('wake'))$('wake').checked=false;return}
-  if(wakeRec){try{wakeRec.stop()}catch(e){}}
-  wakeOn=true;
-  wakeRec=new SR();
-  wakeRec.lang='pt-BR';
-  wakeRec.continuous=true;
-  wakeRec.interimResults=true;
-  wakeRec.onresult=(e)=>{
-    if(!wakeOn||busy)return;
-    let txt='';
-    for(let i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript+' ';
-    txt=txt.trim();
-    if(!txt)return;
-    const m=txt.match(WAKE_RE);
-    if(!m)return;
-    /* pega o que veio depois da palavra de ativação */
-    const after=txt.slice(txt.toLowerCase().indexOf(m[0].toLowerCase())+m[0].length).trim();
-    if(after.length>1){
-      $('q').value=after;
-      ind('ouvi: '+after);
-      try{wakeRec.stop()}catch(x){}
-      enviar();
-    }else{
-      wakeArmed=true;
-      ind('Pode falar o comando…');
-      try{if($('tts').checked)falar('Pode falar')}catch(x){}
-    }
-  };
-  /* se armou e o usuário falou sem a palavra */
-  const prev=wakeRec.onresult;
-  wakeRec.onresult=(e)=>{
-    if(wakeArmed&&!busy){
-      let final='';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
-      }
-      final=final.trim();
-      if(final&&!WAKE_RE.test(final)){
-        wakeArmed=false;
-        $('q').value=final;
-        try{wakeRec.stop()}catch(x){}
-        enviar();
-        return;
-      }
-    }
-    prev(e);
-  };
-  wakeRec.onerror=(e)=>{
-    if(e.error==='not-allowed'){ind('permita o microfone');if($('wake'))$('wake').checked=false;wakeOn=false}
-  };
-  wakeRec.onend=()=>{
-    if(wakeOn){
-      try{wakeRec.start()}catch(e){setTimeout(()=>{try{wakeRec&&wakeRec.start()}catch(x){}},400)}
-    }
-  };
-  try{wakeRec.start();ind('escuta ativa: diga Oi Foxia')}catch(e){ind('não deu para iniciar a escuta');if($('wake'))$('wake').checked=false;wakeOn=false}
+  wakeStatus('escuta desligada');
 }
 
-/* --- Permissões básicas do app --- */
-async function statusPerms(){
-  const st=[];
-  st.push('Notificações: '+(('Notification' in window)?Notification.permission:'n/d'));
-  try{
-    if(navigator.permissions){
-      for(const n of ['microphone','camera','geolocation','notifications']){
-        try{const x=await navigator.permissions.query({name:n});st.push(n+': '+x.state)}catch(e){}
-      }
-    }
-  }catch(e){}
-  try{
-    if(navigator.storage&&navigator.storage.persisted){
-      const p=await navigator.storage.persisted();
-      st.push('Armazenamento fixo: '+(p?'sim':'não'));
-    }
-  }catch(e){}
-  const el=$('permst');
-  if(el)el.textContent=st.join(' · ');
-  return st;
-}
-async function pedirPermissoesBasicas(){
-  const logs=[];
-  /* armazenamento persistente */
-  try{
-    if(navigator.storage&&navigator.storage.persist){
-      const ok=await navigator.storage.persist();
-      logs.push(ok?'armazenamento: ok':'armazenamento: limitado');
-    }
-  }catch(e){logs.push('armazenamento: falhou')}
-  /* notificações */
-  try{
-    if('Notification' in window){
-      const p=await Notification.requestPermission();
-      logs.push('notificações: '+p);
-      if(p==='granted'){
-        localStorage.setItem('foxia_notif','1');
-        if($('notif'))$('notif').checked=true;
-      }
-    }
-  }catch(e){logs.push('notificações: falhou')}
-  /* microfone */
+async function wakeEnsureMic(){
   try{
     const s=await navigator.mediaDevices.getUserMedia({audio:true});
-    s.getTracks().forEach(t=>t.stop());
-    logs.push('microfone: ok');
-  }catch(e){logs.push('microfone: '+(e.name==='NotAllowedError'?'negado':'falhou'))}
-  /* câmera */
-  try{
-    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    s.getTracks().forEach(t=>t.stop());
-    logs.push('câmera: ok');
-  }catch(e){logs.push('câmera: '+(e.name==='NotAllowedError'?'negada':'falhou'))}
-  /* localização */
-  try{
-    await new Promise((res,rej)=>{
-      if(!navigator.geolocation)return rej(new Error('n/d'));
-      navigator.geolocation.getCurrentPosition(()=>res(),err=>rej(err),{timeout:12000,maximumAge:60000});
-    });
-    logs.push('localização: ok');
-    localStorage.setItem('foxia_loc','1');
-    if($('loc'))$('loc').checked=true;
-  }catch(e){logs.push('localização: negada/indisponível')}
-  /* agenda/e-mail = Google OAuth, não é permissão do browser */
-  logs.push('agenda/e-mail: use Conectar Google');
-  ind(logs.join(' · '));
-  const el=$('permst');if(el)el.textContent=logs.join(' · ');
-  await statusPerms();
-  return logs;
+    s.getTracks().forEach(tr=>tr.stop());
+    return true;
+  }catch(e){
+    wakeStatus('microfone negado — permita nas configurações do app');
+    return false;
+  }
 }
-async function minhaLocalizacao(){
-  if(localStorage.getItem('foxia_loc')!=='1')return null;
-  if(!navigator.geolocation)return null;
-  try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:10000,maximumAge:300000}));
-    return {lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy};
-  }catch(e){return null}
-}
-if($('perms')){
-  $('perms').onclick=()=>pedirPermissoesBasicas();
-}
-if($('loc')){
-  $('loc').checked=localStorage.getItem('foxia_loc')==='1';
-  $('loc').onchange=async()=>{
-    if($('loc').checked){
-      try{
-        await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(()=>res(),e=>rej(e),{timeout:12000}));
-        localStorage.setItem('foxia_loc','1');
-        ind('localização on');
-      }catch(e){
-        $('loc').checked=false;localStorage.setItem('foxia_loc','0');
-        ind('localização negada');
-      }
-    }else{localStorage.setItem('foxia_loc','0');ind('localização off')}
-  };
-}
-/* pede permissões na primeira abertura do app (uma vez) */
-if(!localStorage.getItem('foxia_perm_asked')){
-  setTimeout(()=>{
-    localStorage.setItem('foxia_perm_asked','1');
-    pedirPermissoesBasicas().catch(()=>{});
-  },1800);
-}
-setTimeout(()=>statusPerms().catch(()=>{}),2000);
 
-if($('notif')){
-  $('notif').checked=localStorage.getItem('foxia_notif')==='1';
-  $('notif').onchange=async()=>{
-    if($('notif').checked){
-      const ok=await pedirNotif();
-      if(!ok){$('notif').checked=false;localStorage.setItem('foxia_notif','0');ind('notificação negada');return}
-      localStorage.setItem('foxia_notif','1');
-      notificar('F.O.X.I.A','Notificações ativadas.','foxia-test');
-      ind('notificações on');
-    }else{localStorage.setItem('foxia_notif','0');ind('notificações off')}
-  };
+function wakeHandleText(raw, isFinal){
+  if(!wakeOn||busy||wakeBusy)return;
+  const txt=String(raw||'').trim();
+  if(!txt)return;
+  const low=txt.toLowerCase();
+  const m=txt.match(WAKE_RE);
+  if(!m){
+    /* acumula pouco se armado por "foxia" sozinho antes */
+    return;
+  }
+  const idx=low.indexOf(m[0].toLowerCase());
+  let after=txt.slice(idx+m[0].length).replace(/^[\s,.\-!?]+/,'').trim();
+  if(!after){
+    wakeStatus('Oi! Pode falar o comando…');
+    try{if($('tts')&&$('tts').checked)falar('Pode falar')}catch(e){}
+    wakeBuf='ARMED';
+    return;
+  }
+  if(after.length<2)return;
+  wakeBusy=true;
+  wakeBuf='';
+  $('q').value=after;
+  wakeStatus('ouvi: '+after);
+  try{if(wakeRec)wakeRec.stop()}catch(e){}
+  setTimeout(()=>{try{enviar()}catch(e){}; wakeBusy=false},300);
 }
+
+function wakeStart(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    wakeStatus('sem reconhecimento de voz neste navegador');
+    if($('wake'))$('wake').checked=false;
+    localStorage.setItem('foxia_wake','0');
+    return;
+  }
+  wakeEnsureMic().then(ok=>{
+    if(!ok){if($('wake'))$('wake').checked=false;localStorage.setItem('foxia_wake','0');return}
+    try{if(wakeRec){wakeRec.onend=null;wakeRec.stop()}}catch(e){}
+    wakeOn=true; wakeBusy=false; wakeBuf='';
+    const r=new SR();
+    wakeRec=r;
+    r.lang='pt-BR';
+    r.continuous=true;
+    r.interimResults=true;
+    r.maxAlternatives=3;
+    r.onresult=(e)=>{
+      let interim='', final='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t0=e.results[i][0].transcript;
+        if(e.results[i].isFinal)final+=t0+' ';
+        else interim+=t0+' ';
+      }
+      if(wakeBuf==='ARMED'&&final.trim()&&!WAKE_RE.test(final)){
+        wakeBusy=true; wakeBuf='';
+        const cmd=final.trim();
+        $('q').value=cmd;
+        wakeStatus('comando: '+cmd);
+        try{r.stop()}catch(x){}
+        setTimeout(()=>{try{enviar()}catch(x){};wakeBusy=false},300);
+        return;
+      }
+      if(final.trim())wakeHandleText(final,true);
+      else if(interim.trim())wakeHandleText(interim,false);
+    };
+    r.onerror=(e)=>{
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        wakeStatus('microfone/reconhecimento bloqueado');
+        if($('wake'))$('wake').checked=false;
+        localStorage.setItem('foxia_wake','0');
+        wakeOn=false;
+      }
+      /* no-speech / aborted: reinicia */
+    };
+    r.onend=()=>{
+      if(!wakeOn)return;
+      setTimeout(()=>{
+        if(!wakeOn||!wakeRec)return;
+        try{wakeRec.start()}catch(e){
+          setTimeout(()=>{try{wakeOn&&wakeRec&&wakeRec.start()}catch(x){}},800);
+        }
+      },350);
+    };
+    try{
+      r.start();
+      wakeStatus('escuta ativa — diga: Oi Foxia + pedido');
+    }catch(e){
+      wakeStatus('falha ao iniciar escuta');
+      if($('wake'))$('wake').checked=false;
+      wakeOn=false;
+    }
+  });
+}
+
 if($('wake')){
   $('wake').checked=localStorage.getItem('foxia_wake')==='1';
   $('wake').onchange=()=>{
     localStorage.setItem('foxia_wake',$('wake').checked?'1':'0');
-    if($('wake').checked)wakeStart();else wakeStop();
+    if($('wake').checked)wakeStart(); else wakeStop();
   };
-  if($('wake').checked)setTimeout(()=>{try{wakeStart()}catch(e){}},1200);
+  if($('wake').checked)setTimeout(()=>{try{wakeStart()}catch(e){}},1500);
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&localStorage.getItem('foxia_wake')==='1'&&!wakeOn){
-    try{wakeStart()}catch(e){}
+  if(document.visibilityState==='visible'&&localStorage.getItem('foxia_wake')==='1'){
+    setTimeout(()=>{try{wakeStart()}catch(e){}},500);
+  }else if(document.visibilityState==='hidden'){
+    /* Android costuma matar continuous; marca para religar */
   }
 });
+
+/* --- Canva Connect (OAuth PKCE) --- */
+const CANVA_REDIRECT=location.origin+location.pathname.replace(/index\.html$/,'');
+function b64url(buf){
+  const b=String.fromCharCode(...new Uint8Array(buf));
+  return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function pkce(){
+  const ver=b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const dig=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver));
+  return {ver,chal:b64url(dig)};
+}
+function canvaCfg(){
+  return {
+    clientId:(localStorage.getItem('foxia_canva_id')||'').trim(),
+    token:localStorage.getItem('foxia_canva_token')||'',
+    refresh:localStorage.getItem('foxia_canva_refresh')||''
+  };
+}
+async function canvaLogin(){
+  const id=canvaCfg().clientId;
+  if(!id){add('k','Coloque o Client ID do Canva em ⚙ (conectores). Crie o app em https://www.canva.com/developers/');return}
+  const {ver,chal}=await pkce();
+  sessionStorage.setItem('foxia_canva_ver',ver);
+  const scope=encodeURIComponent('design:content:write design:meta:read asset:read folder:read');
+  const redir=encodeURIComponent(CANVA_REDIRECT);
+  const url='https://www.canva.com/api/oauth/authorize?code_challenge='+chal+'&code_challenge_method=s256&scope='+scope+'&response_type=code&client_id='+encodeURIComponent(id)+'&redirect_uri='+redir;
+  location.href=url;
+}
+async function canvaTrocaCodigo(code){
+  const id=canvaCfg().clientId;
+  const ver=sessionStorage.getItem('foxia_canva_ver')||'';
+  const body={grant_type:'authorization_code',code,code_verifier:ver,redirect_uri:CANVA_REDIRECT,client_id:id};
+  /* tenta via worker (recomendado) senão direto */
+  let r;
+  try{
+    r=await fetch((window.FOXIA_SRV||'')+'/canva/token',{method:'POST',headers:{'content-type':'application/json','x-foxia-token':window.FOXIA_TOKEN||''},body:JSON.stringify(body)});
+  }catch(e){r=null}
+  if(!r||!r.ok){
+    r=await fetch('https://api.canva.com/rest/v1/oauth/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams(body)});
+  }
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.message||j.error||('HTTP '+r.status));
+  localStorage.setItem('foxia_canva_token',j.access_token||'');
+  if(j.refresh_token)localStorage.setItem('foxia_canva_refresh',j.refresh_token);
+  sessionStorage.removeItem('foxia_canva_ver');
+  add('k','Canva conectado. Peça: "crie um design no Canva sobre X".');
+}
+async function canvaCriarDesign(titulo,tipo){
+  const tok=canvaCfg().token;
+  if(!tok){add('k','Conecte o Canva em ⚙ primeiro.');return null}
+  const payload={design_type:{type:'preset',name:tipo||'doc'},title:(titulo||'FOXIA').slice(0,200)};
+  let r=await fetch((window.FOXIA_SRV||'')+'/canva/design',{method:'POST',headers:{'content-type':'application/json','x-foxia-token':window.FOXIA_TOKEN||'','x-canva-token':tok},body:JSON.stringify(payload)});
+  if(!r.ok){
+    r=await fetch('https://api.canva.com/rest/v1/designs',{method:'POST',headers:{'content-type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify(payload)});
+  }
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.message||j.error||('HTTP '+r.status));
+  return j;
+}
+/* captura redirect OAuth Canva */
+(function(){
+  const u=new URL(location.href);
+  const code=u.searchParams.get('code');
+  const err=u.searchParams.get('error');
+  if(err&&u.searchParams.get('state')!==null||code){
+    /* limpa URL */
+    try{history.replaceState({},'',location.pathname)}catch(e){}
+  }
+  if(code){
+    canvaTrocaCodigo(code).catch(e=>add('k','Canva: falha no login — '+e.message));
+  }
+})();
 
 /* arquivos enviados */
 function peq(f){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b),'image/jpeg',.85)};im.onerror=no;im.src=URL.createObjectURL(f)})}
@@ -831,7 +841,15 @@ const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
-ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
+ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}
+if(/\bcanva\b|design no canva|crie (um )?design/i.test(q)&&canvaCfg().token){
+  try{
+    const j=await canvaCriarDesign((q.match(/sobre (.+)$/i)||[,q])[1].slice(0,80),'doc');
+    const link=(j.design&&j.design.urls&&j.design.urls.edit_url)||'';
+    ca+='\n[Canva: design criado'+(link?': '+link:'')+']\n';
+  }catch(e){ca+='\n[Canva erro: '+e.message+']\n'}
+}
+const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
@@ -1702,6 +1720,22 @@ if(localStorage.getItem('foxia_foco')=='1'){try{clearInterval(tm)}catch(e){}}
 
 </script></body>
 <script>
+
+if($('canvaid')){
+  $('canvaid').value=localStorage.getItem('foxia_canva_id')||'';
+  $('canvaid').onchange=$('canvaid').oninput=()=>localStorage.setItem('foxia_canva_id',$('canvaid').value.trim());
+}
+if($('canvalogin'))$('canvalogin').onclick=()=>canvaLogin();
+if($('canvatest'))$('canvatest').onclick=async()=>{
+  try{
+    $('canvatest').textContent='Criando…';
+    const j=await canvaCriarDesign('Design FOXIA '+new Date().toLocaleString('pt-BR'),'doc');
+    const link=(j.design&& (j.design.urls&&j.design.urls.edit_url||j.design.url))||j.urls&&j.urls.edit_url||'';
+    add('k','Design Canva criado.'+(link?'\\n'+link:('\\n'+JSON.stringify(j).slice(0,400))));
+  }catch(e){add('k','Canva erro: '+e.message)}
+  $('canvatest').textContent='Testar: criar design no Canva';
+};
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
