@@ -15,9 +15,9 @@
 /* Config embutida — GitHub Pages é público: qualquer um pode ver este arquivo no "Ver código-fonte" */
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -229,7 +229,7 @@ const SRVC=()=>{
   const k=K();
   const u=(window.FOXIA_SRV||k.svu||'').trim().replace(/\/+$/,'');
   const emb=window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0?String(window.FOXIA_TOKEN).trim():'';
-  const t=(k.svt||emb||'').trim();
+  const t=(String(k.svt||'').trim()||emb||'').trim();
   return u&&t?{u,t}:null;
 };
 const PB=[['https://api.groq.com','groq'],['https://generativelanguage.googleapis.com','gemini'],['https://api.openai.com','openai'],['https://api.anthropic.com','claude']];
@@ -756,13 +756,23 @@ async function canvaTrocaCodigo(code){
 async function canvaCriarDesign(titulo,tipo){
   const payload={design_type:{type:'preset',name:tipo||'doc'},title:String(titulo||'FOXIA').slice(0,200)};
   const S=typeof SRVC==='function'?SRVC():null;
-  const base=((S&&S.u)||window.FOXIA_SRV||'').replace(/\/+$/,'');
-  const token=((S&&S.t)||'');
+  const k=(typeof K==='function'?K():{})||{};
+  const base=((S&&S.u)||k.svu||window.FOXIA_SRV||'').replace(/\/+$/,'');
+  let token=((S&&S.t)||k.svt||'').trim();
+  if(!token && window.FOXIA_TOKEN && String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)token=String(window.FOXIA_TOKEN).trim();
   if(!base)throw new Error('Servidor FOXIA (Worker) não configurado');
-  if(!token)throw new Error('Token do Worker ausente. Em ⚙ → IAs e chaves, confira o Access Token (mesmo do ElevenLabs/Gemini).');
+  if(!token)throw new Error('Token do Worker ausente. Salve o Access Token em ⚙ ou coloque window.FOXIA_TOKEN no index.html.');
   const headers={'content-type':'application/json','x-foxia-token':token};
   const ctok=(canvaCfg().token||'').trim();
   if(ctok)headers['x-canva-token']=ctok;
+  /* precheck: mesmo token em /status */
+  try{
+    const st=await fetch(base+'/status',{headers:{'x-foxia-token':token}});
+    if(st.status===401)throw new Error('STATUS_401');
+  }catch(e){
+    if(String(e.message)==='STATUS_401'||/401/.test(String(e)))
+      throw new Error('Token não bate com o ACCESS_TOKEN do Worker. No Cloudflare, abra o secret ACCESS_TOKEN, copie de novo, e no app apague dados do site ou re-salve o token em ⚙. Sem espaços no início/fim.');
+  }
   const r=await fetch(base+'/canva/design',{method:'POST',headers,body:JSON.stringify(payload)});
   const raw=await r.text();
   let j=null;
@@ -770,9 +780,9 @@ async function canvaCriarDesign(titulo,tipo){
   if(!r.ok){
     const msg=(j&&(j.message||j.error||j.hint))||raw||('HTTP '+r.status);
     if(r.status===401 && /não autorizado|nao autorizado|unauthorized/i.test(String(msg)))
-      throw new Error('Worker recusou o token (401). Confira ACCESS_TOKEN no Cloudflare e o token salvo em ⚙ → IAs e chaves.');
+      throw new Error('Worker recusou o token no /canva/design (401). ACCESS_TOKEN diferente do app.');
     if(j&&j.error==='canva_token_failed')
-      throw new Error('Canva rejeitou o login do app: '+(j.message||'')+'. No Canva use Outside Canva + secret certo, ou app Service.');
+      throw new Error('Canva rejeitou credenciais: '+(j.message||'')+'. Confira CANVA_CLIENT_ID/SECRET (app Outside Canva).');
     if(j&&j.error==='missing_canva_auth')
       throw new Error('Faltam CANVA_CLIENT_ID e CANVA_CLIENT_SECRET no Worker.');
     throw new Error(String(msg).slice(0,300));
