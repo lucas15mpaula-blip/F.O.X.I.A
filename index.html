@@ -33,7 +33,26 @@ h1{margin:0;font-size:18px;letter-spacing:3px;background:linear-gradient(90deg,v
 #st{font-size:12px;opacity:.7;margin-top:2px}
 #fx{width:100%;height:110px;flex:none;display:block}
 #log{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:6px 10px;gap:8px}
-.m{padding:8px 12px;border-radius:12px;max-width:88%;white-space:pre-wrap;line-height:1.4;overflow-wrap:anywhere}
+.m{padding:8px 12px;border-radius:12px;max-width:92%;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
+.m .md-p{margin:0 0 .55em}
+.m .md-p:last-child{margin-bottom:0}
+.m h1,.m h2,.m h3,.m h4{margin:.7em 0 .35em;line-height:1.25;font-weight:700;color:#e8f0ff}
+.m h1{font-size:1.2em}.m h2{font-size:1.1em}.m h3{font-size:1.05em}
+.m strong{font-weight:700;color:#fff}
+.m em{font-style:italic;opacity:.95}
+.m ul,.m ol{margin:.35em 0 .55em;padding-left:1.25em}
+.m li{margin:.2em 0}
+.m hr{border:0;border-top:1px solid var(--ln);margin:.7em 0}
+.m .md-table-wrap{overflow-x:auto;margin:.55em 0;border-radius:10px;border:1px solid var(--ln)}
+.m table.md-table{width:100%;border-collapse:collapse;font-size:13px;min-width:280px;background:rgba(0,0,0,.15)}
+.m table.md-table th,.m table.md-table td{padding:8px 10px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}
+.m table.md-table th{background:rgba(59,130,255,.18);font-weight:600;color:#eaf2ff;white-space:nowrap}
+.m table.md-table tr:last-child td{border-bottom:0}
+.m table.md-table tr:nth-child(even) td{background:rgba(255,255,255,.03)}
+.m code{font-family:ui-monospace,monospace;font-size:.9em;background:rgba(0,0,0,.25);padding:.1em .35em;border-radius:4px}
+.m pre{background:rgba(0,0,0,.3);padding:8px 10px;border-radius:8px;overflow-x:auto;font-size:12px}
+.m blockquote{margin:.4em 0;padding-left:10px;border-left:3px solid var(--b);opacity:.9}
+
 .u{align-self:flex-end;background:#12306e}
 .k{align-self:flex-start;background:var(--pn);border-left:3px solid var(--r)}
 .bar,.row{display:flex;gap:6px;padding:6px 10px;align-items:center;flex-wrap:wrap}
@@ -333,7 +352,87 @@ $('ps').onclick=()=>{M.perfil={nome:$('p1').value.trim(),sobre:$('p2').value.tri
 /* memória fora do navegador (db), com o navegador como reserva */
 (async()=>{try{DB=await claude.use('db');const u=await claude.use('user');if(!DB||!u)return;const id=await u.id();if(!id)return;DOC=DB.doc('data/users/'+id+'/mem');carregarPesq();const s=await DOC.get();if(s.exists){const r=JSON.parse(JSON.stringify(s.data()));if((r.t||0)>(M.t||0)){M=r;try{ST().setItem('kit',JSON.stringify(M))}catch(e){}pintar()}}else if(M.t){DOC.set(JSON.parse(JSON.stringify(M))).catch(()=>{})}}catch(e){}})();
 const status=()=>{$('st').textContent='memória: '+M.fatos.length+' fatos · '+M.padroes.length+' padrões'+(typeof IND=='string'&&IND?' · '+IND:'')};
-function add(r,t){const d=document.createElement('div');d.className='m '+r;d.textContent=t;$('log').append(d);$('log').scrollTop=1e9;return d}
+
+function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function mdInline(s){
+  s=String(s||'');
+  s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/__([^_]+)__/g,'<strong>$1</strong>');
+  s=s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+function isTableSep(line){
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+}
+function parseTable(lines,i){
+  const rows=[];
+  while(i<lines.length && /^\s*\|/.test(lines[i])||(rows.length&&/\|/.test(lines[i])&&!/^\s*#/.test(lines[i]))){
+    const line=lines[i];
+    if(isTableSep(line)){i++;continue}
+    if(!/\|/.test(line))break;
+    const cells=line.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(c=>c.trim());
+    if(cells.length>=2)rows.push(cells);
+    i++;
+  }
+  if(rows.length<2)return null;
+  const head=rows[0];
+  const body=rows.slice(1);
+  let h='<div class="md-table-wrap"><table class="md-table"><thead><tr>'+head.map(c=>'<th>'+mdInline(escHtml(c))+'</th>').join('')+'</tr></thead><tbody>';
+  body.forEach(r=>{
+    while(r.length<head.length)r.push('');
+    h+='<tr>'+r.slice(0,head.length).map(c=>'<td>'+mdInline(escHtml(c))+'</td>').join('')+'</tr>';
+  });
+  h+='</tbody></table></div>';
+  return {html:h,next:i};
+}
+function md(src){
+  const raw=String(src??'').replace(/\r\n/g,'\n');
+  const lines=raw.split('\n');
+  const out=[];
+  let i=0;
+  let listType=null; // ul|ol
+  const closeList=()=>{if(listType){out.push(listType==='ul'?'</ul>':'</ol>');listType=null}};
+  while(i<lines.length){
+    const line=lines[i];
+    const tline=line.trim();
+    if(!tline){closeList();out.push('');i++;continue}
+    if(/^---+$/.test(tline)||/^\*\*\*+$/.test(tline)){closeList();out.push('<hr>');i++;continue}
+    if(/^\s*\|/.test(line)||(tline.includes('|')&&i+1<lines.length&&isTableSep(lines[i+1]))){
+      closeList();
+      const tb=parseTable(lines,i);
+      if(tb){out.push(tb.html);i=tb.next;continue}
+    }
+    const hm=tline.match(/^(#{1,4})\s+(.+)$/);
+    if(hm){closeList();const n=hm[1].length;out.push('<h'+n+'>'+mdInline(escHtml(hm[2]))+'</h'+n+'>');i++;continue}
+    const ul=tline.match(/^[-*•]\s+(.+)$/);
+    if(ul){
+      if(listType!=='ul'){closeList();out.push('<ul>');listType='ul'}
+      out.push('<li>'+mdInline(escHtml(ul[1]))+'</li>');i++;continue;
+    }
+    const ol=tline.match(/^\d+[.)]\s+(.+)$/);
+    if(ol){
+      if(listType!=='ol'){closeList();out.push('<ol>');listType='ol'}
+      out.push('<li>'+mdInline(escHtml(ol[1]))+'</li>');i++;continue;
+    }
+    if(/^>\s?/.test(tline)){closeList();out.push('<blockquote>'+mdInline(escHtml(tline.replace(/^>\s?/,'')))+'</blockquote>');i++;continue}
+    closeList();
+    out.push('<p class="md-p">'+mdInline(escHtml(tline))+'</p>');
+    i++;
+  }
+  closeList();
+  return out.join('\n');
+}
+function setMsg(el,text){
+  if(!el)return;
+  const s=String(text??'');
+  /* streaming: se parece markdown, renderiza; senão texto simples */
+  if(/[*#|`]|\n[-*]\s|\n\d+\./.test(s))el.innerHTML=md(s);
+  else el.textContent=s;
+}
+
+function add(r,t){const d=document.createElement('div');d.className='m '+r;if(r==='k'||r==='a')setMsg(d,t);else d.textContent=t;$('log').append(d);$('log').scrollTop=1e9;return d}
 /* partículas que formam palavras */
 const cv=$('fx'),cx=cv.getContext('2d');let Pt=[],T=[];
 function fit(){cv.width=innerWidth;cv.height=110}
@@ -379,14 +478,14 @@ const rico=/pdf|arquivo|documento|relat[oó]rio|resumo completo|trabalho|explica
 if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40||rico)return n>25||/expert|profund|completo/i.test(q)?'expert':'padrao';
 if(n<=8&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto|gera|cri[ea]|escreva|liste/i.test(q))return 'simples';
 return 'padrao'}
-const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras: priorize QUALIDADE e completude, não velocidade nem respostas curtas. Dê UMA única resposta completa e útil, sem repetir o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com profundidade (parágrafos, fatos, contexto), nunca só um resumo mínimo. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
+const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras de formatação: use títulos com # e ## (não espalhe ** no meio do texto). Tabelas só em formato markdown de pipes com cabeçalho. Listas com - . Evite asteriscos soltos. Regras: priorize QUALIDADE e completude, não velocidade nem respostas curtas. Dê UMA única resposta completa e útil, sem repetir o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com profundidade (parágrafos, fatos, contexto), nunca só um resumo mínimo. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
-try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{out.textContent=t.text;$('log').scrollTop=1e9}});
-const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
+try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsg(out,limpa(t.text));$('log').scrollTop=1e9}});
+const lt=limpa(r.text);setMsg(out,lt);fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
@@ -888,10 +987,10 @@ if(/\bcanva\b|design no canva|crie (um )?design/i.test(q)&&canvaCfg().token){
     ca+='\n[Canva: design criado'+(link?': '+link:'')+']\n';
   }catch(e){ca+='\n[Canva erro: '+e.message+']\n'}
 }
-const o={modelTier:tier,cache:false,web:true,onText:t=>{out.textContent=limpa(t.text);$('log').scrollTop=1e9}};
+const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsg(out,limpa(t.text));$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
-const lt=limpa(r.text);out.textContent=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
+const lt=limpa(r.text);setMsg(out,lt);fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
