@@ -755,15 +755,29 @@ async function canvaTrocaCodigo(code){
 }
 async function canvaCriarDesign(titulo,tipo){
   const payload={design_type:{type:'preset',name:tipo||'doc'},title:String(titulo||'FOXIA').slice(0,200)};
-  const headers={'content-type':'application/json','x-foxia-token':window.FOXIA_TOKEN||''};
-  const tok=(canvaCfg().token||'').trim();
-  if(tok)headers['x-canva-token']=tok;
-  const base=(window.FOXIA_SRV||'').replace(/\/+$/,'');
-  if(!base)throw new Error('FOXIA_SRV não configurado');
+  const S=typeof SRVC==='function'?SRVC():null;
+  const base=((S&&S.u)||window.FOXIA_SRV||'').replace(/\/+$/,'');
+  const token=((S&&S.t)||'');
+  if(!base)throw new Error('Servidor FOXIA (Worker) não configurado');
+  if(!token)throw new Error('Token do Worker ausente. Em ⚙ → IAs e chaves, confira o Access Token (mesmo do ElevenLabs/Gemini).');
+  const headers={'content-type':'application/json','x-foxia-token':token};
+  const ctok=(canvaCfg().token||'').trim();
+  if(ctok)headers['x-canva-token']=ctok;
   const r=await fetch(base+'/canva/design',{method:'POST',headers,body:JSON.stringify(payload)});
-  const j=await r.json().catch(()=>null);
-  if(!j)throw new Error('Resposta vazia do Canva (HTTP '+r.status+')');
-  if(!r.ok)throw new Error(j.message||j.error||j.hint||('HTTP '+r.status));
+  const raw=await r.text();
+  let j=null;
+  try{j=JSON.parse(raw)}catch(e){}
+  if(!r.ok){
+    const msg=(j&&(j.message||j.error||j.hint))||raw||('HTTP '+r.status);
+    if(r.status===401 && /não autorizado|nao autorizado|unauthorized/i.test(String(msg)))
+      throw new Error('Worker recusou o token (401). Confira ACCESS_TOKEN no Cloudflare e o token salvo em ⚙ → IAs e chaves.');
+    if(j&&j.error==='canva_token_failed')
+      throw new Error('Canva rejeitou o login do app: '+(j.message||'')+'. No Canva use Outside Canva + secret certo, ou app Service.');
+    if(j&&j.error==='missing_canva_auth')
+      throw new Error('Faltam CANVA_CLIENT_ID e CANVA_CLIENT_SECRET no Worker.');
+    throw new Error(String(msg).slice(0,300));
+  }
+  if(!j)throw new Error('Resposta inválida do Canva: '+String(raw).slice(0,200));
   return j;
 }
 function canvaLink(j){
