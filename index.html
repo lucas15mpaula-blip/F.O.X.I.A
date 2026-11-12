@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -786,13 +786,16 @@ async function canvaCriarDesign(titulo,tipo){
   try{j=JSON.parse(raw)}catch(e){}
   if(!r.ok){
     const msg=(j&&(j.message||j.error||j.hint))||raw||('HTTP '+r.status);
-    if(r.status===401 && /não autorizado|nao autorizado|unauthorized/i.test(String(msg)))
-      throw new Error('Worker recusou o token no /canva/design (401). ACCESS_TOKEN diferente do app.');
+    /* só texto puro do nosso Worker = falha de ACCESS_TOKEN */
+    if(r.status===401 && /^não autorizado/i.test(String(raw||'').trim()))
+      throw new Error('Worker ACCESS_TOKEN recusado (raro se a IA funciona).');
     if(j&&j.error==='canva_token_failed')
-      throw new Error('Canva rejeitou credenciais: '+(j.message||'')+'. Confira CANVA_CLIENT_ID/SECRET (app Outside Canva).');
+      throw new Error('Canva não aceitou o login do app: '+(j.message||'')+'. '+(j.hint||'Use CANVA_CLIENT_ID/SECRET de um app Outside Canva; client_credentials precisa tipo Service.'));
     if(j&&j.error==='missing_canva_auth')
       throw new Error('Faltam CANVA_CLIENT_ID e CANVA_CLIENT_SECRET no Worker.');
-    throw new Error(String(msg).slice(0,300));
+    if(j&&j.error==='canva_api_error')
+      throw new Error('API Canva ('+(j.status||r.status)+'): '+(j.message||'')+'. '+(j.hint||''));
+    throw new Error(String(msg).slice(0,400));
   }
   if(!j)throw new Error('Resposta inválida do Canva: '+String(raw).slice(0,200));
   return j;
