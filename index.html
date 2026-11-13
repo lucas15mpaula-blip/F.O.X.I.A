@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -158,12 +158,12 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eco">Economia de dados (menos pesquisa automática na web)</label><input type="checkbox" id="web" checked hidden><button id="ab">Conta</button><button id="bkall2">Backup completo (1 toque)</button><button id="gcon">Conectar Google (e-mail e agenda)</button>
-<button type="button" id="canvalogin">Conectar Canva</button>
-<button type="button" id="canvatest">Testar: criar design no Canva</button>
-<p class="fl" id="canvast" style="opacity:.85;font-size:12px;margin:4px 0 0"></p>
-<p class="fl" style="opacity:.75;font-size:12px">1) No Canva → Outside Canva → Redirect URL: a URL deste site. 2) Conectar Canva (autorizar). 3) Testar criar design. Client ID fica no Worker.</p>
+<button type="button" id="canvalogin" style="width:100%;margin-top:8px;padding:12px;font-size:16px;background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600" onclick="try{canvaLogin()}catch(e){alert(e.message)}">Conectar Canva</button>
+<button type="button" id="canvatest" style="width:100%;margin-top:6px;padding:12px;font-size:15px">Testar: criar design no Canva</button>
+<p class="fl" id="canvast" style="opacity:.9;font-size:13px;margin:6px 0 0">Canva: abra ⚙ e role até este botão roxo</p>
+<p class="fl" style="opacity:.75;font-size:12px">Redirect no Canva: https://lucas15mpaula-blip.github.io/F.O.X.I.A/ — depois Conectar Canva → autorizar → Testar.</p>
 
-<p class="fl" style="opacity:.75;font-size:12px">Crie um app em canva.com/developers → Authentication → Redirect URI: a URL deste site (ex. https://lucas15mpaula-blip.github.io/F.O.X.I.A/). Cole o Client ID acima. Scopes: design:content:write, design:meta:read.</p><label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <button id="ae" hidden>Baixar conta</button><button id="exall" hidden>Exportar conversas</button><button id="ke" hidden>Exportar backup</button>
 <h2>Comportamento da IA</h2>
 <div class="row" style="padding:0"><button class="ch">Personalizado</button><button class="ch" data-p="Responda de forma bem concisa, direta e sem enrolação.">Conciso</button><button class="ch" data-p="Use linguagem formal e profissional.">Formal</button><button class="ch" data-p="Não entregue a resposta pronta: guie com perguntas e dicas para o usuário chegar sozinho à resposta.">Socrático</button></div>
@@ -731,30 +731,46 @@ async function canvaClientId(){
   let id=(localStorage.getItem('foxia_canva_id')||'').trim();
   if(id)return id;
   const base=(window.FOXIA_SRV||'').replace(/\/+$/,'');
-  if(!base)return '';
-  try{
-    const r=await fetch(base+'/canva/config');
-    const j=await r.json();
-    id=(j.clientId||'').trim();
-    if(id)localStorage.setItem('foxia_canva_id',id);
-  }catch(e){}
+  if(base){
+    try{
+      const r=await fetch(base+'/canva/config');
+      const j=await r.json();
+      id=(j.clientId||'').trim();
+      if(id)localStorage.setItem('foxia_canva_id',id);
+    }catch(e){}
+  }
+  /* fallback: Client ID do app FOXIA Canva (Outside Canva) */
+  if(!id)id='OC-AaHE6l6ua_eW';
   return id;
 }
 async function canvaLogin(){
   try{
+    if($('canvast'))$('canvast').textContent='Canva: abrindo autorização…';
     const vp=document.querySelector('meta[name="viewport"]');
     if(vp)vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
     const id=await canvaClientId();
-    if(!id){add('k','Client ID do Canva não encontrado no Worker. Coloque CANVA_CLIENT_ID no Cloudflare.');return}
+    if(!id){
+      const m='Client ID do Canva não encontrado. Coloque CANVA_CLIENT_ID no Worker.';
+      if($('canvast'))$('canvast').textContent=m;
+      try{add('k',m)}catch(e){}
+      alert(m);
+      return;
+    }
     const {ver,chal}=await pkce();
     sessionStorage.setItem('foxia_canva_ver',ver);
     sessionStorage.setItem('foxia_canva_id',id);
-    const scope=encodeURIComponent('design:content:write design:meta:read asset:read folder:read profile:read');
+    const scope=encodeURIComponent('design:content:write design:content:read design:meta:read asset:read');
     const redir=canvaRedirect();
     sessionStorage.setItem('foxia_canva_redir',redir);
     const url='https://www.canva.com/api/oauth/authorize?code_challenge='+encodeURIComponent(chal)+'&code_challenge_method=s256&scope='+scope+'&response_type=code&client_id='+encodeURIComponent(id)+'&redirect_uri='+encodeURIComponent(redir);
-    location.assign(url);
-  }catch(e){add('k','Canva login: '+e.message)}
+    if($('canvast'))$('canvast').textContent='Canva: redirecionando…';
+    location.href=url;
+  }catch(e){
+    const m='Canva login falhou: '+(e&&e.message||e);
+    if($('canvast'))$('canvast').textContent=m;
+    try{add('k',m)}catch(x){}
+    alert(m);
+  }
 }
 async function canvaTrocaCodigo(code){
   const id=canvaCfg().clientId||sessionStorage.getItem('foxia_canva_id')||await canvaClientId();
@@ -852,6 +868,12 @@ function canvaLink(j){
   if(err&&u.searchParams.get('state')!==null||code){
     /* limpa URL */
     try{history.replaceState({},'',location.pathname)}catch(e){}
+  }
+  if(err){
+    try{history.replaceState({},'',location.pathname+(location.hash||''))}catch(e){}
+    const desc=u.searchParams.get('error_description')||err;
+    const msg='Canva recusou a autorização: '+decodeURIComponent(String(desc).replace(/\+/g,' '));
+    setTimeout(()=>{try{add('k',msg)}catch(e){} try{alert(msg)}catch(e){}},500);
   }
   if(code){
     const vp=document.querySelector('meta[name="viewport"]');
@@ -1931,7 +1953,7 @@ if(localStorage.getItem('foxia_foco')=='1'){try{clearInterval(tm)}catch(e){}}
 </script></body>
 <script>
 
-if($('canvalogin'))$('canvalogin').onclick=()=>canvaLogin();
+if($('canvalogin')){$('canvalogin').onclick=(ev)=>{try{ev&&ev.preventDefault&&ev.preventDefault()}catch(e){}canvaLogin()};$('canvalogin').setAttribute('type','button')}
 try{canvaStatusUI()}catch(e){}
 if($('canvatest'))$('canvatest').onclick=async()=>{
   try{
