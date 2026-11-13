@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -53,6 +53,12 @@ h1{margin:0;font-size:18px;letter-spacing:3px;background:linear-gradient(90deg,v
 .m code{font-family:ui-monospace,monospace;font-size:.9em;background:rgba(0,0,0,.25);padding:.1em .35em;border-radius:4px}
 .m pre{background:rgba(0,0,0,.3);padding:8px 10px;border-radius:8px;overflow-x:auto;font-size:12px}
 .m blockquote{margin:.4em 0;padding-left:10px;border-left:3px solid var(--b);opacity:.9}
+.m{position:relative}
+.m .copy-btn{position:absolute;top:6px;right:6px;font-size:11px;padding:4px 8px;border-radius:8px;opacity:.55;background:rgba(0,0,0,.35);border:1px solid var(--ln);color:var(--fg);cursor:pointer;z-index:2}
+.m .copy-btn:active,.m .copy-btn.ok{opacity:1;background:var(--b);border-color:var(--b);color:#fff}
+.m a{color:#7db4ff;text-decoration:underline;word-break:break-all}
+.m .md-body{padding-right:52px}
+
 
 .u{align-self:flex-end;background:#12306e}
 .k{align-self:flex-start;background:var(--pn);border-left:3px solid var(--r)}
@@ -143,7 +149,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="offb" class="bar" style="display:none;background:#3a2008;border-top:1px solid #a65;font-size:13px">📡 Sem internet — você pode ler chats e memória; respostas da IA voltam com a rede.</div>
 <div id="gp" hidden><h2>Configurações</h2>
 <button id="pb">Perfil</button><button id="mv">Memória: o que ela sabe</button><button id="kb">IAs e chaves</button>
-<span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto">Automático</option><option value="simples">Simples</option><option value="padrao" selected>Padrão</option><option value="expert">Expert</option></select>
+<span class="fl">Modo de pesquisa</span><select id="mode" aria-label="Modo de pesquisa"><option value="auto" selected>Automático</option><option value="simples">Simples</option><option value="padrao">Padrão</option><option value="expert">Expert</option></select>
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" type="hidden">
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
@@ -365,6 +371,7 @@ function mdInline(s){
   s=s.replace(/__([^_]+)__/g,'<strong>$1</strong>');
   s=s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
   s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
   return s;
 }
 function isTableSep(line){
@@ -436,7 +443,46 @@ function setMsg(el,text){
   else el.textContent=s;
 }
 
-function add(r,t){const d=document.createElement('div');d.className='m '+r;if(r==='k'||r==='a')setMsg(d,t);else d.textContent=t;$('log').append(d);$('log').scrollTop=1e9;return d}
+function add(r,t){
+  const d=document.createElement('div');
+  d.className='m '+r;
+  const body=document.createElement('div');
+  body.className='md-body';
+  if(r==='k'||r==='a')setMsg(body,t);
+  else body.textContent=t;
+  d.appendChild(body);
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='copy-btn';
+  b.textContent='Copiar';
+  b.title='Copiar mensagem';
+  b.onclick=async e=>{
+    e.stopPropagation();
+    const txt=String(t||body.innerText||'');
+    try{
+      await navigator.clipboard.writeText(txt);
+      b.textContent='Copiado';
+      b.classList.add('ok');
+      setTimeout(()=>{b.textContent='Copiar';b.classList.remove('ok')},1200);
+    }catch(err){
+      try{
+        const ta=document.createElement('textarea');
+        ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+        b.textContent='Copiado';
+        setTimeout(()=>b.textContent='Copiar',1200);
+      }catch(e2){b.textContent='Erro'}
+    }
+  };
+  d.appendChild(b);
+  $('log').append(d);
+  $('log').scrollTop=1e9;
+  return d;
+}
+function setMsgEl(el,text){
+  /* setMsg em bubble antiga (só texto) ou no .md-body */
+  const target=el.querySelector&&el.querySelector('.md-body')?el.querySelector('.md-body'):el;
+  setMsg(target,text);
+}
 /* partículas que formam palavras */
 const cv=$('fx'),cx=cv.getContext('2d');let Pt=[],T=[];
 function fit(){cv.width=innerWidth;cv.height=110}
@@ -488,8 +534,8 @@ async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
-try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsg(out,limpa(t.text));$('log').scrollTop=1e9}});
-const lt=limpa(r.text);setMsg(out,lt);fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
+try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}});
+const lt=limpa(r.text);setMsgEl(out,lt);fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
@@ -1120,10 +1166,10 @@ if(/\bcanva\b|design no canva|crie (um )?design/i.test(q)&&canvaCfg().token){
     ca+='\n[Canva: design criado'+(link?': '+link:'')+']\n';
   }catch(e){ca+='\n[Canva erro: '+e.message+']\n'}
 }
-const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsg(out,limpa(t.text));$('log').scrollTop=1e9}};
+const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
-const lt=limpa(r.text);setMsg(out,lt);fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
+const lt=limpa(r.text);setMsgEl(out,lt);fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
@@ -1992,6 +2038,11 @@ if(localStorage.getItem('foxia_foco')=='1'){try{clearInterval(tm)}catch(e){}}
 </script></body>
 <script>
 
+if($('mode')){
+  const mv=localStorage.getItem('foxia_mode')||'auto';
+  $('mode').value=mv;
+  $('mode').onchange=()=>localStorage.setItem('foxia_mode',$('mode').value);
+}
 if($('canvalogin')){$('canvalogin').onclick=(ev)=>{try{ev&&ev.preventDefault&&ev.preventDefault()}catch(e){}canvaLogin()};$('canvalogin').setAttribute('type','button')}
 try{canvaStatusUI()}catch(e){}
 if($('canvatest'))$('canvatest').onclick=async()=>{
@@ -1999,7 +2050,7 @@ if($('canvatest'))$('canvatest').onclick=async()=>{
     $('canvatest').textContent='Criando…';
     const j=await canvaCriarDesign('Design FOXIA '+new Date().toLocaleString('pt-BR'),'doc');
     const link=canvaLink(j);
-    add('k','Design Canva criado.'+(link?(' Abrir: '+link):(' '+JSON.stringify(j).slice(0,400))));
+    add('k','Design Canva criado.'+(link?('\n\n[Abrir no Canva]('+link+')\n\n'+link):(' '+JSON.stringify(j).slice(0,400))));
   }catch(e){add('k','Canva erro: '+e.message)}
   $('canvatest').textContent='Testar: criar design no Canva';
 };
