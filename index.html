@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -725,7 +725,8 @@ function canvaStatusUI(){
   const el=$('canvast');
   if(!el)return;
   const t=(canvaCfg().token||'').trim();
-  el.textContent=t?'Canva: conectado':'Canva: não conectado — toque em Conectar Canva';
+  const rf=(canvaCfg().refresh||'').trim();
+  el.textContent=t?(rf?'Canva: conectado (renova automático)':'Canva: conectado'):'Canva: não conectado — toque em Conectar Canva';
 }
 async function canvaClientId(){
   let id=(localStorage.getItem('foxia_canva_id')||'').trim();
@@ -804,10 +805,52 @@ async function canvaTrocaCodigo(code){
   if(!j.access_token)throw new Error('Canva não devolveu access_token');
   localStorage.setItem('foxia_canva_token',j.access_token);
   if(j.refresh_token)localStorage.setItem('foxia_canva_refresh',j.refresh_token);
+  if(j.expires_in)localStorage.setItem('foxia_canva_exp',String(Date.now()+Number(j.expires_in)*1000));
   if(id)localStorage.setItem('foxia_canva_id',id);
   sessionStorage.removeItem('foxia_canva_ver');
   canvaStatusUI();
-  add('k','Canva conectado. Agora use Testar ou peça: "crie um design no Canva sobre X".');
+  add('k','Canva conectado de forma duradoura neste aparelho. Só precisa conectar de novo se apagar dados do site ou o Canva revogar o acesso.');
+}
+async function canvaRefresh(){
+  const refresh=(canvaCfg().refresh||'').trim();
+  if(!refresh)return false;
+  const id=canvaCfg().clientId||sessionStorage.getItem('foxia_canva_id')||await canvaClientId();
+  const body={grant_type:'refresh_token',refresh_token:refresh,client_id:id};
+  const base=(window.FOXIA_SRV||'').replace(/\/+$/,'');
+  const wtok=canvaWorkerToken();
+  let r=null,raw='';
+  if(base){
+    try{
+      r=await fetch(base+'/canva/token?token='+encodeURIComponent(wtok),{
+        method:'POST',
+        headers:{'content-type':'application/json','x-foxia-token':wtok},
+        body:JSON.stringify(body)
+      });
+      raw=await r.text();
+    }catch(e){r=null}
+  }
+  if(!r||!r.ok){
+    try{
+      r=await fetch('https://api.canva.com/rest/v1/oauth/token',{
+        method:'POST',
+        headers:{'content-type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams(body)
+      });
+      raw=await r.text();
+    }catch(e){return false}
+  }
+  let j={};try{j=JSON.parse(raw)}catch(e){}
+  if(!r.ok||!j.access_token)return false;
+  localStorage.setItem('foxia_canva_token',j.access_token);
+  if(j.refresh_token)localStorage.setItem('foxia_canva_refresh',j.refresh_token);
+  canvaStatusUI();
+  return true;
+}
+async function canvaEnsureToken(){
+  let t=(canvaCfg().token||'').trim();
+  if(t)return t;
+  if(await canvaRefresh())return (canvaCfg().token||'').trim();
+  return '';
 }
 async function canvaCriarDesign(titulo,tipo){
   const payload={design_type:{type:'preset',name:tipo||'doc'},title:String(titulo||'FOXIA').slice(0,200)};
@@ -818,37 +861,33 @@ async function canvaCriarDesign(titulo,tipo){
   if(window.FOXIA_TOKEN && String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)token=String(window.FOXIA_TOKEN).trim();
   if(!token)token=((S&&S.t)||k.svt||'').trim();
   if(!base)throw new Error('Servidor FOXIA (Worker) não configurado');
-  if(!token)throw new Error('Token do Worker ausente. Salve o Access Token em ⚙ ou coloque window.FOXIA_TOKEN no index.html.');
-  const headers={'content-type':'application/json','x-foxia-token':token};
-  const ctok=(canvaCfg().token||'').trim();
-  if(ctok)headers['x-canva-token']=ctok;
-  /* precheck: mesmo token em /status */
-  try{
-    const st=await fetch(base+'/status?token='+encodeURIComponent(token),{headers:{'x-foxia-token':token}});
-    const stTxt=await st.text();
-    if(st.status===401){
-      throw new Error('Token recusado em /status. Worker disse: '+stTxt.slice(0,80)+'. ACCESS_TOKEN no Cloudflare deve ser IDÊNTICO ao do app (copie e cole de novo nos dois lados).');
-    }
-  }catch(e){
-    if(/Token recusado|STATUS_401|não autorizado|nao autorizado/i.test(String(e.message)))
-      throw e;
-    /* rede: segue e tenta design */
+  if(!token)throw new Error('Token do Worker ausente no index.html (FOXIA_TOKEN).');
+  let ctok=await canvaEnsureToken();
+  if(!ctok)throw new Error('Canva não conectado. Toque em Conectar Canva em ⚙.');
+  async function once(ct){
+    const headers={'content-type':'application/json','x-foxia-token':token,'x-canva-token':ct};
+    const r=await fetch(base+'/canva/design?token='+encodeURIComponent(token),{method:'POST',headers,body:JSON.stringify(payload)});
+    const raw=await r.text();
+    let j=null;try{j=JSON.parse(raw)}catch(e){}
+    return {r,raw,j};
   }
-  const r=await fetch(base+'/canva/design?token='+encodeURIComponent(token),{method:'POST',headers,body:JSON.stringify(payload)});
-  const raw=await r.text();
-  let j=null;
-  try{j=JSON.parse(raw)}catch(e){}
+  let {r,raw,j}=await once(ctok);
+  if(!r.ok && j && (j.error==='canva_api_error'||j.status===401||/unauthor/i.test(String(j.message||'')))){
+    if(await canvaRefresh()){
+      ctok=(canvaCfg().token||'').trim();
+      if(ctok)({r,raw,j}=await once(ctok));
+    }
+  }
   if(!r.ok){
     const msg=(j&&(j.message||j.error||j.hint))||raw||('HTTP '+r.status);
-    /* só texto puro do nosso Worker = falha de ACCESS_TOKEN */
     if(r.status===401 && /^não autorizado/i.test(String(raw||'').trim()))
       throw new Error('Worker ACCESS_TOKEN recusado (raro se a IA funciona).');
     if(j&&j.error==='canva_token_failed')
-      throw new Error('Canva não aceitou o login do app: '+(j.message||'')+'. '+(j.hint||'Use CANVA_CLIENT_ID/SECRET de um app Outside Canva; client_credentials precisa tipo Service.'));
+      throw new Error('Canva não aceitou o login do app: '+(j.message||'')+'. '+(j.hint||''));
     if(j&&j.error==='missing_canva_auth')
       throw new Error('Faltam CANVA_CLIENT_ID e CANVA_CLIENT_SECRET no Worker.');
     if(j&&j.error==='canva_api_error')
-      throw new Error('API Canva ('+(j.status||r.status)+'): '+(j.message||'')+'. '+(j.hint||''));
+      throw new Error('API Canva ('+(j.status||r.status)+'): '+(j.message||'')+'. '+(j.hint||'')+' Se persistir, Conectar Canva de novo.');
     throw new Error(String(msg).slice(0,400));
   }
   if(!j)throw new Error('Resposta inválida do Canva: '+String(raw).slice(0,200));
