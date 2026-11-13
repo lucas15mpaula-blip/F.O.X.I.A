@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -94,7 +94,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 .tg{appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:14px;background:#3a4668;position:relative;flex:none;border:0;padding:0}.tg::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}.tg:checked{background:var(--b)}.tg:checked::after{left:23px}
 .nt{font-size:12px;opacity:.6;margin-top:6px}
 .cd{margin-top:8px;padding:8px;border:1px solid var(--ln);border-radius:10px;white-space:pre-wrap}.cd button{margin:8px 6px 0 0}
-.ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:2px 9px;font-size:14px;opacity:.75;border-radius:8px}
+.ac{display:flex;gap:6px;margin-top:6px}.ac button{padding:4px 10px;font-size:13px;opacity:.9;border-radius:8px;margin-top:4px}
 .cd{position:relative}.cd .row-ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .cd .row-ac button{flex:1;min-width:120px;padding:12px 14px;font-size:15px;border-radius:12px}
 .cd .row-ac button.ok{background:var(--b);border-color:var(--b);color:#fff;font-weight:600}
@@ -159,7 +159,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <button type="button" id="perms" style="margin-top:8px">Pedir permissões do app</button>
 <p class="fl" id="permst" style="opacity:.8;font-size:12px;margin:4px 0 0"></p>
 <p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Aviso: no Android, apps web não conseguem ouvir com a tela desligada como o &quot;Ok Google&quot;. A escuta funciona com o app aberto. Gmail, Agenda e Drive usam o botão Conectar Google.</p>
-<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Conectores: Gmail, Agenda, Drive (backup), Canva (Client ID no Worker). Câmera/arquivos: botão anexar.</p>
+<p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Conectores: Gmail, Agenda, Drive e Canva. Câmera e arquivos: botão de anexar.</p>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="aev">Ações rápidas: criar/editar eventos e enviar e-mail sem cartão (excluir ainda pergunta)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Lembretes e notificações neste aparelho</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="foco">Modo foco (só interrompe se for urgente — sem mensagens sozinhas)</label>
@@ -451,29 +451,7 @@ function add(r,t){
   if(r==='k'||r==='a')setMsg(body,t);
   else body.textContent=t;
   d.appendChild(body);
-  const b=document.createElement('button');
-  b.type='button';
-  b.className='copy-btn';
-  b.textContent='Copiar';
-  b.title='Copiar mensagem';
-  b.onclick=async e=>{
-    e.stopPropagation();
-    const txt=String(t||body.innerText||'');
-    try{
-      await navigator.clipboard.writeText(txt);
-      b.textContent='Copiado';
-      b.classList.add('ok');
-      setTimeout(()=>{b.textContent='Copiar';b.classList.remove('ok')},1200);
-    }catch(err){
-      try{
-        const ta=document.createElement('textarea');
-        ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
-        b.textContent='Copiado';
-        setTimeout(()=>b.textContent='Copiar',1200);
-      }catch(e2){b.textContent='Erro'}
-    }
-  };
-  d.appendChild(b);
+  d.dataset.t=String(t||'');
   $('log').append(d);
   $('log').scrollTop=1e9;
   return d;
@@ -535,7 +513,7 @@ const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}});
-const lt=limpa(r.text);setMsgEl(out,lt);fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);if(M.n%4==0)aprender()}
+const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);try{acoes(out,M.hist.length-1,'k')}catch(e){}if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
@@ -1159,17 +1137,31 @@ if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
 ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}
-if(/\bcanva\b|design no canva|crie (um )?design/i.test(q)&&canvaCfg().token){
+if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )?design/i.test(q)){
   try{
-    const j=await canvaCriarDesign((q.match(/sobre (.+)$/i)||[,q])[1].slice(0,80),'doc');
-    const link=(j.design&&j.design.urls&&j.design.urls.edit_url)||'';
-    ca+='\n[Canva: design criado'+(link?': '+link:'')+']\n';
-  }catch(e){ca+='\n[Canva erro: '+e.message+']\n'}
+    out.append(document.createTextNode(' 🎨 criando no Canva…'));
+    let titulo=q.replace(/^(crie|cria|fa[cç]a|gere|gerar|criar)\s+(um\s+)?design\s+(no\s+canva\s+)?(para\s+|de\s+|sobre\s+)?/i,'').trim();
+    titulo=(titulo||q).slice(0,80);
+    const tipo=/festa|convite|banner|apresenta|slide|post|story/i.test(q)?'presentation':'doc';
+    const j=await canvaCriarDesign(titulo,tipo);
+    const link=typeof canvaLink==='function'?canvaLink(j):((j&&j.design&&j.design.urls&&j.design.urls.edit_url)||'');
+    if(link){
+      const msg='Pronto! Criei o design no Canva.\n\n**Título:** '+titulo+'\n\n[Abrir e editar no Canva]('+link+')\n\n'+link+'\n\nAbra o link, personalize cores, textos e imagens. Se quiser outra versão (ex.: convite 1080x1920), diga o formato.';
+      const lt=msg;
+      setMsgEl(out,lt);out.dataset.t=lt;
+      document.body.classList.remove('think');busy=false;
+      M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();
+      try{acoes(out,M.hist.length-1,'k')}catch(e){}
+      falar(lt);
+      return;
+    }
+    ca+='\n[Canva: design criado sem link na resposta]\n';
+  }catch(e){ca+='\n[Canva erro: '+e.message+'. Se não estiver conectado, use ⚙ → Conectar Canva.]\n'}
 }
 const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
-const lt=limpa(r.text);setMsgEl(out,lt);fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
+const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);try{acoes(out,(M.hist||[]).length,'k')}catch(e){}if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
@@ -1221,8 +1213,43 @@ $('mic').onclick=()=>{if(!SR){add('k','Este navegador não tem reconhecimento de
 function dizer(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(VZ)u.voice=VZ;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 function falar(t){if($('tts').checked)dizer(t)}
 const SEMANEXO=t=>t.replace(/\s*\[anexos:[^\]]*\]$/,'');
-function acoes(d,i,r){const a=document.createElement('div');a.className='ac';const mk=(x,ti,f)=>{const b=document.createElement('button');b.textContent=x;b.title=ti;b.onclick=f;a.append(b)};
-if(r=='u')mk('✎','Editar',()=>editar(i));else{mk('🔈','Ouvir',()=>{if(window.speechSynthesis&&speechSynthesis.speaking)speechSynthesis.cancel();else dizer(d.dataset.t||'')});if(i==M.hist.length-1)mk('↻','Refazer',refazer)}d.append(a)}
+function acoes(d,i,r){
+  if(d.querySelector('.ac'))return;
+  const a=document.createElement('div');a.className='ac';
+  const mk=(x,ti,f,html)=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.title=ti;
+    if(html)b.innerHTML=html;else b.textContent=x;
+    b.onclick=f;
+    a.append(b);
+    return b;
+  };
+  const texto=()=>String(d.dataset.t||(d.querySelector('.md-body')||d).innerText||'').trim();
+  const iconCopy='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  const bc=mk('','Copiar',async()=>{
+    const txt=texto();
+    try{await navigator.clipboard.writeText(txt);ind('mensagem copiada')}catch(e){
+      try{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();ind('mensagem copiada')}catch(e2){ind('não deu para copiar')}
+    }
+  },iconCopy);
+  bc.setAttribute('aria-label','Copiar');
+  if(r=='u'){
+    mk('✎','Editar',()=>editar(i));
+  }else{
+    mk('🔈','Ouvir',()=>{if(window.speechSynthesis&&speechSynthesis.speaking)speechSynthesis.cancel();else dizer(texto())});
+    mk('✏️','Corrigir texto',()=>{
+      if(busy)return;
+      const orig=texto();
+      if(!orig)return;
+      const pedido='Corrija o texto abaixo: melhore gramática, clareza e formatação em português do Brasil, sem mudar o sentido. Devolva só o texto corrigido, pronto para usar.\n\n---\n'+orig;
+      add('u','Corrigir texto');
+      resp(pedido);
+    });
+    if(i==M.hist.length-1)mk('↻','Refazer',refazer);
+  }
+  d.append(a);
+}
 function editar(i){if(busy)return;const m=M.hist[i];if(!m)return;M.hist=M.hist.slice(0,i);save();pintar();$('q').value=SEMANEXO(m.t);$('q').focus()}
 function refazer(){if(busy)return;const h=M.hist;if(h.length<2||h[h.length-1].r!='k')return;const u=h[h.length-2];M.hist=h.slice(0,-2);save();pintar();add('u',u.t);resp(SEMANEXO(u.t))}
 function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const o=Math.max(0,h.length-20);h.slice(o).forEach((m,k)=>{const d=add(m.r,m.t);d.dataset.t=m.t;acoes(d,o+k,m.r)})}else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
