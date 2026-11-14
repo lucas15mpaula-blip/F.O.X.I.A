@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -776,6 +776,7 @@ async function pedirPermissoesBasicas(){
     localStorage.setItem('foxia_loc','1');
   }catch(e){logs.push('localização: negada')}
   localStorage.setItem('foxia_perms_asked','1');
+  try{if(logs.some(x=>/notificações: granted/.test(x)))await foxiaEnablePush()}catch(e){}
   const msg='Permissões: '+logs.join(' · ');
   if($('permst'))$('permst').textContent=msg;
   try{ind(msg)}catch(e){}
@@ -1525,7 +1526,7 @@ $('bk').checked=localStorage.getItem('foxia_bk')=='1';$('bk').onchange=()=>{loca
 $('rg').onclick=async()=>{try{$('am').textContent='Procurando suas contas no Google Drive…';const ns=await driveRestore();$('am').textContent=ns.length?'Contas restauradas: '+ns.join(', ')+'. Agora entre com a senha.':'Nenhum backup encontrado nesse Google.'}catch(e){$('am').textContent='Não consegui restaurar: '+e.message}};
 $('aev').checked=localStorage.getItem('foxia_aev')=='1';$('aev').onchange=()=>localStorage.setItem('foxia_aev',$('aev').checked?'1':'0');
 $('notif').checked=localStorage.getItem('foxia_notif')=='1';
-$('notif').onchange=async()=>{localStorage.setItem('foxia_notif',$('notif').checked?'1':'0');if($('notif').checked){try{const p=await Notification.requestPermission();if(p!=='granted'){ind('notificações bloqueadas neste navegador');$('notif').checked=false;localStorage.setItem('foxia_notif','0')}else ind('notificações ativadas')}catch(e){ind('notificações indisponíveis')}}};
+$('notif').onchange=async()=>{localStorage.setItem('foxia_notif',$('notif').checked?'1':'0');if($('notif').checked){try{await foxiaEnablePush();ind('notificações + sync ativados')}catch(e){ind(e.message||'notificações indisponíveis');$('notif').checked=false;localStorage.setItem('foxia_notif','0')}}};
 /* ===== v4: projetos e fixados, geradores de arquivo, imagens e voz ===== */
 const projTxt=()=>{const c=(M.chats||[]).find(x=>x.id==M.cur),p=c&&c.p&&(M.proj||[]).find(x=>x.id==c.p);return p&&p.instr?'\nInstruções do projeto "'+p.nome+'" (siga neste chat): '+p.instr:''};
 const ABR={};
@@ -2224,10 +2225,52 @@ if($('canvatest'))$('canvatest').onclick=async()=>{
 
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('./sw.js');
+      /* Background Sync */
+      try{
+        if('sync' in reg){
+          await reg.sync.register('foxia-sync');
+        }
+      }catch(e){}
+      /* Periodic Background Sync (Android/Chrome; exige permissão) */
+      try{
+        if('periodicSync' in reg){
+          const st=await navigator.permissions.query({name:'periodic-background-sync'});
+          if(st.state==='granted'||Notification.permission==='granted'){
+            await reg.periodicSync.register('foxia-periodic',{minInterval:12*60*60*1000});
+          }
+        }
+      }catch(e){}
+      /* Push: assina se já tiver permissão (sem VAPID do servidor = local/SW pronto) */
+      try{
+        if('PushManager' in window && Notification.permission==='granted'){
+          const sub=await reg.pushManager.getSubscription();
+          if(!sub){
+            /* chave VAPID pública opcional no futuro; por ora só garante suporte no SW */
+          }
+        }
+      }catch(e){}
+    }catch(e){}
   });
 }
+async function foxiaEnablePush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Push não suportado neste aparelho');
+  const p=await Notification.requestPermission();
+  if(p!=='granted')throw new Error('Notificações negadas');
+  const reg=await navigator.serviceWorker.ready;
+  try{
+    if('periodicSync' in reg){
+      await reg.periodicSync.register('foxia-periodic',{minInterval:12*60*60*1000});
+    }
+  }catch(e){}
+  try{
+    if('sync' in reg)await reg.sync.register('foxia-sync');
+  }catch(e){}
+  return true;
+}
+
 </script>
 
 </html>
