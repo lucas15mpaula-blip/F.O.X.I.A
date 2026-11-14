@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -167,7 +167,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <button type="button" id="canvalogin" style="width:100%;margin-top:8px;padding:12px;font-size:16px;background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600" onclick="try{canvaLogin()}catch(e){alert(e.message)}">Conectar Canva</button>
 <button type="button" id="canvatest" style="width:100%;margin-top:6px;padding:12px;font-size:15px">Testar: criar design no Canva</button>
 <p class="fl" id="canvast" style="opacity:.9;font-size:13px;margin:6px 0 0">Canva: abra ⚙ e role até este botão roxo</p>
-<p class="fl" style="opacity:.75;font-size:12px">Redirect no Canva: https://lucas15mpaula-blip.github.io/F.O.X.I.A/ — depois Conectar Canva → autorizar → Testar.</p>
+<p class="fl" style="opacity:.75;font-size:12px">Redirect no Canva: https://lucas15mpaula-blip.github.io/F.O.X.I.A/ — Conectar Canva → pedidos de design usam a IA do Canva (créditos da conta) para montar o layout.</p>
 
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bk">Backup automático da conta no Google Drive</label><button id="sy">Sincronizar agora</button>
 <button id="ae" hidden>Baixar conta</button><button id="exall" hidden>Exportar conversas</button><button id="ke" hidden>Exportar backup</button>
@@ -917,6 +917,55 @@ async function canvaCriarDesign(titulo,tipo){
   if(!j)throw new Error('Resposta inválida do Canva: '+String(raw).slice(0,200));
   return j;
 }
+
+async function canvaGenerateDesign(brief,tipo){
+  const S=typeof SRVC==='function'?SRVC():null;
+  const k=(typeof K==='function'?K():{})||{};
+  const base=((S&&S.u)||k.svu||window.FOXIA_SRV||'').replace(/\/+$/,'');
+  let wtok='';
+  if(window.FOXIA_TOKEN && String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)wtok=String(window.FOXIA_TOKEN).trim();
+  if(!wtok)wtok=((S&&S.t)||k.svt||'').trim();
+  let ctok=await canvaEnsureToken();
+  if(!ctok)throw new Error('Canva não conectado. Toque em Conectar Canva em ⚙.');
+  if(!base)throw new Error('Worker não configurado');
+  const payload={
+    brief:String(brief||'').slice(0,4500),
+    design_type:{type:'preset',name:tipo||'presentation'}
+  };
+  const headers={'content-type':'application/json','x-foxia-token':wtok,'x-canva-token':ctok};
+  let r=await fetch(base+'/canva/generate?token='+encodeURIComponent(wtok),{method:'POST',headers,body:JSON.stringify(payload)});
+  let raw=await r.text();
+  let j=null;try{j=JSON.parse(raw)}catch(e){}
+  if(!r.ok){
+    const msg=(j&&(j.message||j.error||j.hint))||raw.slice(0,300);
+    throw new Error(String(msg));
+  }
+  const jobId=(j&&(j.job&&j.job.id||j.id||j.job_id))||'';
+  if(!jobId){
+    /* resposta já final? */
+    const link=canvaLink(j);
+    if(link)return {j,link,mode:'instant'};
+    throw new Error('Canva não devolveu id do job de geração');
+  }
+  /* poll até 90s */
+  for(let i=0;i<30;i++){
+    await new Promise(res=>setTimeout(res,3000));
+    const pr=await fetch(base+'/canva/generate/'+encodeURIComponent(jobId)+'?token='+encodeURIComponent(wtok),{headers:{'x-foxia-token':wtok,'x-canva-token':ctok}});
+    const pt=await pr.text();
+    let pj=null;try{pj=JSON.parse(pt)}catch(e){}
+    const st=(pj&&(pj.job&&pj.job.status||pj.status))||'';
+    if(st==='success'||st==='completed'||st==='done'){
+      const design=(pj.job&&(pj.job.design||pj.job.result))||pj.design||pj;
+      const link=canvaLink({design})||canvaLink(pj);
+      return {j:pj,link,mode:'generated'};
+    }
+    if(st==='failed'||st==='error'){
+      throw new Error((pj&&pj.job&&pj.job.error&&pj.job.error.message)||'Geração Canva falhou');
+    }
+  }
+  throw new Error('Geração Canva demorou demais. Tente de novo.');
+}
+
 function canvaLink(j){
   if(!j||typeof j!=='object')return '';
   const d=j.design||j;
@@ -1139,14 +1188,28 @@ try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[A
 ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}
 if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )?design/i.test(q)){
   try{
-    out.append(document.createTextNode(' 🎨 criando no Canva…'));
+    out.append(document.createTextNode(' 🎨 gerando design completo no Canva (IA)…'));
     let titulo=q.replace(/^(crie|cria|fa[cç]a|gere|gerar|criar)\s+(um\s+)?design\s+(no\s+canva\s+)?(para\s+|de\s+|sobre\s+)?/i,'').trim();
-    titulo=(titulo||q).slice(0,80);
-    const tipo=/festa|convite|banner|apresenta|slide|post|story/i.test(q)?'presentation':'doc';
-    const j=await canvaCriarDesign(titulo,tipo);
-    const link=typeof canvaLink==='function'?canvaLink(j):((j&&j.design&&j.design.urls&&j.design.urls.edit_url)||'');
+    titulo=(titulo||q).slice(0,120);
+    const tipo=/doc|documento|texto longo|relat[oó]rio/i.test(q)?'doc':'presentation';
+    const brief='Crie um design completo e pronto para usar, com layout profissional, textos legíveis, hierarquia visual, cores harmoniosas e elementos decorativos adequados ao tema. Tema do usuário: '+q+'. Título sugerido: '+titulo+'. Idioma: português do Brasil. Preencha o design de verdade (não deixe em branco).';
+    let link='', mode='';
+    try{
+      const gen=await canvaGenerateDesign(brief,tipo);
+      link=gen.link||'';
+      mode=gen.mode||'generated';
+    }catch(ge){
+      /* fallback: design base se geração IA não disponível */
+      out.append(document.createTextNode(' (IA Canva indisponível, criando base…) '));
+      const j=await canvaCriarDesign(titulo,tipo);
+      link=typeof canvaLink==='function'?canvaLink(j):'';
+      mode='blank';
+      if(!link)throw ge;
+    }
     if(link){
-      const msg='Pronto! Criei o design no Canva.\n\n**Título:** '+titulo+'\n\n[Abrir e editar no Canva]('+link+')\n\n'+link+'\n\nAbra o link, personalize cores, textos e imagens. Se quiser outra versão (ex.: convite 1080x1920), diga o formato.';
+      const msg=mode==='blank'
+        ?('Criei um design base no Canva (a geração automática completa não está disponível na sua conta/plano).\n\n**Título:** '+titulo+'\n\n[Abrir no Canva]('+link+')\n\n'+link+'\n\nA API do Canva só monta o layout inteiro sozinha via geração por IA (créditos Magic Design). Sem isso, o editor abre para você completar.')
+        :('Pronto! Montei o design no Canva com a IA deles.\n\n**Tema:** '+titulo+'\n\n[Abrir no Canva]('+link+')\n\n'+link+'\n\nRevise no editor: a IA do Canva monta textos/layout; personagens de anime licenciados podem não aparecer iguais à obra original.');
       const lt=msg;
       setMsgEl(out,lt);out.dataset.t=lt;
       document.body.classList.remove('think');busy=false;
@@ -1155,8 +1218,8 @@ if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )
       falar(lt);
       return;
     }
-    ca+='\n[Canva: design criado sem link na resposta]\n';
-  }catch(e){ca+='\n[Canva erro: '+e.message+'. Se não estiver conectado, use ⚙ → Conectar Canva.]\n'}
+    ca+='\n[Canva: sem link]\n';
+  }catch(e){ca+='\n[Canva erro: '+e.message+'. Conecte em ⚙ se precisar.]\n'}
 }
 const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
