@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 </script>
 <style>
@@ -714,6 +714,75 @@ document.addEventListener('visibilitychange',()=>{
     /* Android costuma matar continuous; marca para religar */
   }
 });
+
+
+/* --- Permissões do app (PWA/TWA) --- */
+async function statusPerms(){
+  const st=[];
+  try{st.push('Notificações: '+(('Notification' in window)?Notification.permission:'n/d'))}catch(e){}
+  try{
+    if(navigator.permissions){
+      for(const n of ['microphone','camera','geolocation','notifications']){
+        try{const x=await navigator.permissions.query({name:n});st.push(n+': '+x.state)}catch(e){}
+      }
+    }
+  }catch(e){}
+  try{
+    if(navigator.storage&&navigator.storage.persisted){
+      const p=await navigator.storage.persisted();
+      st.push('Armazenamento fixo: '+(p?'sim':'não'));
+    }
+  }catch(e){}
+  const el=$('permst');
+  if(el)el.textContent=st.join(' · ')||'toque em Pedir permissões';
+  return st;
+}
+async function pedirPermissoesBasicas(){
+  const logs=[];
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      const ok=await navigator.storage.persist();
+      logs.push(ok?'armazenamento: ok':'armazenamento: limitado');
+    }
+  }catch(e){logs.push('armazenamento: falhou')}
+  try{
+    if('Notification' in window){
+      const p=await Notification.requestPermission();
+      logs.push('notificações: '+p);
+      if(p==='granted'){
+        localStorage.setItem('foxia_notif','1');
+        if($('notif'))$('notif').checked=true;
+        try{new Notification('F.O.X.I.A',{body:'Notificações ativadas neste aparelho.',tag:'foxia-perm'})}catch(e){}
+      }
+    }else logs.push('notificações: n/d');
+  }catch(e){logs.push('notificações: erro')}
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    s.getTracks().forEach(tr=>tr.stop());
+    logs.push('microfone: ok');
+  }catch(e){logs.push('microfone: negado')}
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:true});
+    s.getTracks().forEach(tr=>tr.stop());
+    logs.push('câmera: ok');
+  }catch(e){logs.push('câmera: negado')}
+  try{
+    await new Promise((res,rej)=>{
+      if(!navigator.geolocation)return rej(0);
+      navigator.geolocation.getCurrentPosition(()=>res(1),()=>rej(0),{timeout:8000,maximumAge:60000});
+    });
+    logs.push('localização: ok');
+    if($('loc'))$('loc').checked=true;
+    localStorage.setItem('foxia_loc','1');
+  }catch(e){logs.push('localização: negada')}
+  localStorage.setItem('foxia_perms_asked','1');
+  const msg='Permissões: '+logs.join(' · ');
+  if($('permst'))$('permst').textContent=msg;
+  try{ind(msg)}catch(e){}
+  try{add('k',msg)}catch(e){}
+  await statusPerms();
+  return logs;
+}
 
 /* --- Canva Connect (OAuth PKCE) --- */
 const CANVA_REDIRECT=location.origin+location.pathname.replace(/index\.html$/,'');
@@ -2133,6 +2202,13 @@ if($('mode')){
   $('mode').value=mv;
   $('mode').onchange=()=>localStorage.setItem('foxia_mode',$('mode').value);
 }
+
+if($('perms'))$('perms').onclick=()=>pedirPermissoesBasicas();
+try{statusPerms()}catch(e){}
+if(localStorage.getItem('foxia_perms_asked')!=='1'){
+  setTimeout(()=>{try{pedirPermissoesBasicas()}catch(e){}},1800);
+}
+
 if($('canvalogin')){$('canvalogin').onclick=(ev)=>{try{ev&&ev.preventDefault&&ev.preventDefault()}catch(e){}canvaLogin()};$('canvalogin').setAttribute('type','button')}
 try{canvaStatusUI()}catch(e){}
 if($('canvatest'))$('canvatest').onclick=async()=>{
