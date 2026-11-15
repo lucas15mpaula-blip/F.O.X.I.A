@@ -16,10 +16,12 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
+function foxiaIcon(n){try{return new URL(n||'icon-192.png',location.href).href}catch(e){return n||'icon-192.png'}}
+
 window.FOXIA_VAPID_PUBLIC='BOYVATPud_yebtV1Vh4DGbayADeTk57YmmQULoQ0tvJiyXMUgjWQZs1Cu6gUIHJRKEIWTpKYeh5dI47JCeAPagk';
 </script>
 <style>
@@ -578,9 +580,9 @@ async function notificar(titulo,corpo,tag){
     if(reg&&reg.active){
       reg.active.postMessage({type:'notify',title:titulo,body:corpo||'',tag:tag||'foxia',url:'./'});
     }else if(reg){
-      await reg.showNotification(titulo,{body:corpo||'',icon:'./icon-192.png',tag:tag||'foxia'});
+      await reg.showNotification(titulo,{body:corpo||'',icon:foxiaIcon('icon-192.png'),badge:foxiaIcon('icon-192.png'),tag:tag||'foxia'});
     }else{
-      new Notification(titulo,{body:corpo||'',icon:'./icon-192.png'});
+      new Notification(titulo,{body:corpo||'',icon:foxiaIcon('icon-192.png'),badge:foxiaIcon('icon-192.png')});
     }
   }catch(e){try{new Notification(titulo,{body:corpo||''})}catch(x){}}
 }
@@ -1406,36 +1408,73 @@ const GID=()=>'457343475171-p69odqmp2lbfrui1le28qmk8q0anf7tc.apps.googleusercont
 const GON=()=>localStorage.getItem('foxia_gc')=='1';
 function gsi(){if(!document.querySelector('script[src*="gsi/client"]')){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';document.head.append(s)}}
 if(GID())gsi();
-const gtkKey=sc=>'foxia_gtk_'+String(sc).length;
-function gtkLoad(sc){try{const s=JSON.parse(localStorage.getItem(gtkKey(sc))||'null');if(s&&s.t&&Date.now()<s.x){TK[sc]=s;return s}}catch(e){}return null}
-function gtkSave(sc,tok){TK[sc]=tok;try{localStorage.setItem(gtkKey(sc),JSON.stringify(tok))}catch(e){}}
-function gtoken(sc=ESC1,opts={}){return new Promise((ok,no)=>{
-  const id=GID();if(!id)return no(new Error('ID do Google não configurado.'));
-  const mem=TK[sc];if(mem&&Date.now()<mem.x)return ok(mem.t);
-  const saved=gtkLoad(sc);if(saved)return ok(saved.t);
-  if(!(window.google&&google.accounts&&google.accounts.oauth2))return no(new Error('O login do Google ainda não carregou. Aguarde um instante e tente de novo.'));
-  const silent=!!opts.silent;
-  const client=google.accounts.oauth2.initTokenClient({
-    client_id:id,scope:sc,
-    callback:r=>{
-      if(r.error){if(silent)return no(new Error(r.error));return no(new Error(r.error_description||r.error))}
-      const tok={t:r.access_token,x:Date.now()+((r.expires_in||3600)-90)*1000};
-      gtkSave(sc,tok);
-      if(sc==ESC1)localStorage.setItem('foxia_gc','1');
-      ok(r.access_token);
-    },
-    error_callback:e=>{if(silent)return no(new Error('silent'));no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'))}
+const gtkKey=sc=>'foxia_gtk_'+String(sc).replace(/\W+/g,'_').slice(0,48);
+function gtkLoad(sc){
+  try{
+    const s=JSON.parse(localStorage.getItem(gtkKey(sc))||'null');
+    if(s&&s.t){TK[sc]=s;return s}
+  }catch(e){}
+  return null;
+}
+function gtkSave(sc,tok){
+  TK[sc]=tok;
+  try{localStorage.setItem(gtkKey(sc),JSON.stringify(tok))}catch(e){}
+  try{localStorage.setItem('foxia_gc','1')}catch(e){}
+}
+function gtoken(sc=ESC1,opts={}){
+  return new Promise((ok,no)=>{
+    const id=GID();
+    if(!id)return no(new Error('ID do Google não configurado.'));
+    const mem=TK[sc];
+    if(mem&&mem.t&&Date.now()<mem.x)return ok(mem.t);
+    const saved=gtkLoad(sc);
+    if(saved&&saved.t&&Date.now()<saved.x)return ok(saved.t);
+    const waitGsi=(n)=>{
+      if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+      if(n<=0)return Promise.reject(new Error('O login do Google ainda não carregou. Aguarde e tente de novo.'));
+      return new Promise(r=>setTimeout(r,200)).then(()=>waitGsi(n-1));
+    };
+    /* Se já conectou antes, tenta sempre silent primeiro */
+    const wantSilent=opts.silent===true||(opts.silent!==false&&localStorage.getItem('foxia_gc')=='1');
+    waitGsi(30).then(()=>{
+      const client=google.accounts.oauth2.initTokenClient({
+        client_id:id,
+        scope:sc,
+        callback:r=>{
+          if(r&&r.error){
+            if(wantSilent&&!opts.force)return no(new Error(r.error));
+            return no(new Error(r.error_description||r.error));
+          }
+          if(!(r&&r.access_token))return no(new Error('Google não devolveu token'));
+          const tok={t:r.access_token,x:Date.now()+((r.expires_in||3600)-120)*1000,sc:sc};
+          gtkSave(sc,tok);
+          ok(r.access_token);
+        },
+        error_callback:e=>{
+          if(wantSilent&&!opts.force)return no(new Error((e&&e.type)||'silent'));
+          no(new Error('Login do Google cancelado ou bloqueado ('+(e&&e.type||'erro')+').'));
+        }
+      });
+      try{
+        client.requestAccessToken(wantSilent&&!opts.force?{prompt:''}:{});
+      }catch(e){
+        try{client.requestAccessToken()}catch(e2){no(e2)}
+      }
+    }).catch(no);
   });
-  /* prompt vazio tenta renovar sem popup se o Google ainda reconhecer o usuário */
-  try{client.requestAccessToken(silent||localStorage.getItem('foxia_gc')=='1'?{prompt:''}:{})}catch(e){try{client.requestAccessToken()}catch(e2){no(e2)}}
-})}
-/* renova o token do Google em background antes de expirar */
-setInterval(()=>{
+}
+function gKeepAlive(){
   if(localStorage.getItem('foxia_gc')!='1')return;
-  const c=TK[ESC1]||gtkLoad(ESC1);
-  if(c&&c.x-Date.now()<5*60*1000)gtoken(ESC1,{silent:true}).catch(()=>{});
-},60*1000);
-if(localStorage.getItem('foxia_gc')=='1')setTimeout(()=>gtoken(ESC1,{silent:true}).catch(()=>{}),1500);
+  const s=TK[ESC1]||gtkLoad(ESC1);
+  /* renova se falta menos de 20 min ou se não tem token */
+  if(s&&s.t&&s.x-Date.now()>20*60*1000)return;
+  gtoken(ESC1,{silent:true}).catch(()=>{});
+}
+setInterval(gKeepAlive,3*60*1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')gKeepAlive()});
+window.addEventListener('focus',gKeepAlive);
+if(localStorage.getItem('foxia_gc')=='1')setTimeout(gKeepAlive,1200);
+gsi();
 const b64=s=>{let x='';new TextEncoder().encode(s).forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
 const dec64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)));
 const GM='https://gmail.googleapis.com/gmail/v1/users/me',GC='https://www.googleapis.com/calendar/v3/calendars/primary/events';

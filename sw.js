@@ -1,5 +1,14 @@
 /* F.O.X.I.A Service Worker — offline + sync + push */
-const CACHE = 'foxia-v3';
+const CACHE = 'foxia-v4';
+
+function swIcon(name){
+  try{
+    return new URL(name||'icon-192.png', self.registration.scope).href;
+  }catch(e){
+    return './icon-192.png';
+  }
+}
+
 const ASSETS = [
   './',
   './index.html',
@@ -98,8 +107,8 @@ async function flushQueue() {
       if (it.type === 'notify') {
         await self.registration.showNotification(it.title || 'F.O.X.I.A', {
           body: it.body || '',
-          icon: './icon-192.png',
-          badge: './icon-192.png',
+          icon: swIcon('icon-192.png'),
+          badge: swIcon('icon-192.png'),
           tag: it.tag || 'foxia-sync',
           data: { url: it.url || './' }
         });
@@ -127,7 +136,7 @@ self.addEventListener('periodicsync', (e) => {
         try {
           await self.registration.showNotification('F.O.X.I.A', {
             body: 'Sincronização periódica — abra o app se quiser conversar.',
-            icon: './icon-192.png',
+            icon: swIcon('icon-192.png'),
             tag: 'foxia-periodic',
             data: { url: './' }
           });
@@ -153,8 +162,8 @@ self.addEventListener('push', (e) => {
   e.waitUntil(
     self.registration.showNotification(data.title || 'F.O.X.I.A', {
       body: data.body || '',
-      icon: data.icon || './icon-192.png',
-      badge: './icon-192.png',
+      icon: data.icon || swIcon('icon-192.png'),
+      badge: swIcon('icon-192.png'),
       tag: data.tag || 'foxia-push',
       data: { url: data.url || './' },
       renotify: true
@@ -187,8 +196,8 @@ self.addEventListener('message', (e) => {
     e.waitUntil(
       self.registration.showNotification(d.title, {
         body: d.body || '',
-        icon: './icon-192.png',
-        badge: './icon-192.png',
+        icon: swIcon('icon-192.png'),
+        badge: swIcon('icon-192.png'),
         data: { url: d.url || './' },
         tag: d.tag || 'foxia',
         renotify: !!d.renotify
