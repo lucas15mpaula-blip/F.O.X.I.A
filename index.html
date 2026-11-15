@@ -16,10 +16,11 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
+window.FOXIA_VAPID_PUBLIC='BOYVATPud_yebtV1Vh4DGbayADeTk57YmmQULoQ0tvJiyXMUgjWQZs1Cu6gUIHJRKEIWTpKYeh5dI47JCeAPagk';
 </script>
 <style>
 :root{--bg:#050a1c;--fg:#dbe6ff;--b:#3b82ff;--r:#ff3b4e;--pn:#0c1634;--ln:#1d3a7a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
@@ -157,6 +158,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="wake">Escutar palavra de ativação (Oi Foxia) enquanto o app estiver aberto</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="loc">Usar localização quando eu pedir (clima, perto de mim…)</label>
 <button type="button" id="perms" style="margin-top:8px">Pedir permissões do app</button>
+<button type="button" id="pushtest" style="margin-top:6px;width:100%;padding:10px">Testar notificação push</button>
 <p class="fl" id="permst" style="opacity:.8;font-size:12px;margin:4px 0 0"></p>
 <p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Aviso: no Android, apps web não conseguem ouvir com a tela desligada como o &quot;Ok Google&quot;. A escuta funciona com o app aberto. Gmail, Agenda e Drive usam o botão Conectar Google.</p>
 <p class="fl" style="opacity:.75;font-size:12px;margin:4px 0 0">Conectores: Gmail, Agenda, Drive e Canva. Câmera e arquivos: botão de anexar.</p>
@@ -2205,6 +2207,15 @@ if($('mode')){
 }
 
 if($('perms'))$('perms').onclick=()=>pedirPermissoesBasicas();
+if($('pushtest'))$('pushtest').onclick=async()=>{
+  try{
+    $('pushtest').textContent='Enviando…';
+    await foxiaTestPush();
+    ind('Push enviado — veja a notificação');
+    add('k','Push remoto de teste enviado. Se o app estiver em segundo plano, a notificação deve aparecer.');
+  }catch(e){ind(e.message);add('k','Push: '+e.message)}
+  $('pushtest').textContent='Testar notificação push';
+};
 try{statusPerms()}catch(e){}
 if(localStorage.getItem('foxia_perms_asked')!=='1'){
   setTimeout(()=>{try{pedirPermissoesBasicas()}catch(e){}},1800);
@@ -2255,6 +2266,24 @@ if('serviceWorker' in navigator){
     }catch(e){}
   });
 }
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base64);
+  const out=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);
+  return out;
+}
+async function foxiaVapidPublic(){
+  if(window.FOXIA_VAPID_PUBLIC)return window.FOXIA_VAPID_PUBLIC;
+  try{
+    const base=(window.FOXIA_SRV||'').replace(/\/+$/,'');
+    const r=await fetch(base+'/push/vapid');
+    const j=await r.json();
+    if(j.publicKey){window.FOXIA_VAPID_PUBLIC=j.publicKey;return j.publicKey}
+  }catch(e){}
+  return '';
+}
 async function foxiaEnablePush(){
   if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Push não suportado neste aparelho');
   const p=await Notification.requestPermission();
@@ -2268,7 +2297,39 @@ async function foxiaEnablePush(){
   try{
     if('sync' in reg)await reg.sync.register('foxia-sync');
   }catch(e){}
+  const vapid=await foxiaVapidPublic();
+  if(vapid){
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(vapid)
+      });
+    }
+    localStorage.setItem('foxia_push_sub',JSON.stringify(sub.toJSON()));
+  }
+  localStorage.setItem('foxia_notif','1');
+  if($('notif'))$('notif').checked=true;
   return true;
+}
+async function foxiaTestPush(){
+  await foxiaEnablePush();
+  const raw=localStorage.getItem('foxia_push_sub');
+  if(!raw)throw new Error('Sem inscrição push. Ative notificações e tente de novo.');
+  const sub=JSON.parse(raw);
+  const S=typeof SRVC==='function'?SRVC():null;
+  const base=((S&&S.u)||window.FOXIA_SRV||'').replace(/\/+$/,'');
+  let token='';
+  if(window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)token=String(window.FOXIA_TOKEN).trim();
+  if(!token&&S)token=S.t;
+  const r=await fetch(base+'/push/send?token='+encodeURIComponent(token),{
+    method:'POST',
+    headers:{'content-type':'application/json','x-foxia-token':token},
+    body:JSON.stringify({subscription:sub,title:'F.O.X.I.A',body:'Push remoto ok — notificações funcionando.',tag:'foxia-test'})
+  });
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.message||j.error||('HTTP '+r.status));
+  return j;
 }
 
 </script>
