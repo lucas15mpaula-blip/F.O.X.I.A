@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 function foxiaIcon(n){try{return new URL(n||'icon-192.png',location.href).href}catch(e){return n||'icon-192.png'}}
 
@@ -141,7 +141,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="sp" class="sh" hidden><div id="spb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="spx" aria-label="Fechar">✕</button><b>Mover para projeto</b></div><div id="spl"></div></div></div>
 <div id="jp" hidden><h2 id="jt">Novo projeto</h2><input id="jn" placeholder="Nome do projeto"><textarea id="ji" placeholder="Instruções do projeto (valem para todos os chats dele)"></textarea><div class="row" style="padding:0"><button id="js">Salvar</button><button id="jd">Excluir projeto</button></div><button id="jc" class="x" aria-label="Fechar">✕</button></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
-<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave(s) Gemini — várias separadas por vírgula"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option></select></div></details>
+<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave(s) Gemini — várias separadas por vírgula"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="tk" type="password" placeholder="Chave Together.ai (pago)"><input id="tm" placeholder="Modelo Together"><input id="rk" type="password" placeholder="Chave OpenRouter (tem modelos free)"><input id="rm" placeholder="Modelo OpenRouter (openrouter/auto ou ...:free)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option><option value="t">Together</option><option value="r">OpenRouter</option></select></div></details>
 <input id="svu" type="hidden"><input id="svt" type="hidden"><input id="gm" type="hidden" value="gemini-3.8-flash">
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="bkall">Backup completo (1 toque)</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="mp" hidden><h2>Memória</h2><p class="fl">Fatos estáveis ficam guardados. Temporários somem em ~7 dias. Diga “esquece X” no chat para apagar.</p><div class="fl">Estáveis</div><div id="ml"></div><div class="fl">Temporários</div><div id="mlt"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
@@ -246,7 +246,7 @@ const SRVC=()=>{
   const t=(emb||String(k.svt||'').trim()||'').trim();
   return u&&t?{u,t}:null;
 };
-const PB=[['https://api.groq.com','groq'],['https://generativelanguage.googleapis.com','gemini'],['https://api.openai.com','openai'],['https://api.anthropic.com','claude']];
+const PB=[['https://api.groq.com','groq'],['https://generativelanguage.googleapis.com','gemini'],['https://api.openai.com','openai'],['https://api.anthropic.com','claude'],['https://api.together.xyz','together'],['https://openrouter.ai/api','openrouter']];
 async function srvInit(){const S=SRVC();if(!S){window.SRVOK=null;return null}if(window.SRVOK)return window.SRVOK;try{const r=await fetch(S.u+'/status',{headers:{'x-foxia-token':S.t}});if(!r.ok)throw 0;window.SRVOK=await r.json()}catch(e){window.SRVOK=null}return window.SRVOK}
 const ft=(u,o={})=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),window.FOXIA_TO||45000),S=SRVC();let h=o.headers||{},via=false;
 if(S&&JSON.stringify(h).includes('__srv')){const m=PB.find(x=>u.startsWith(x[0]));if(m){const nh={};if(h['content-type'])nh['content-type']=h['content-type'];nh['x-foxia-token']=S.t;h=nh;via=true;u=S.u+'/'+m[1]+u.slice(m[0].length)}}
@@ -267,6 +267,19 @@ async function gq0(k,m,t,im){
 }
 async function op(k,m,t,im){const r=await ft('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model:m,max_tokens:window.FOXIA_LONG?8000:4000,messages:[{role:'user',content:[...im.map(i=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+i}})),{type:'text',text:t}]}]})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content}
+async function tg(k,m,t,im){
+  const model=m||'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo';
+  const content=[];
+  if(im&&im.length){/* together texto puro se sem visão garantida */}
+  const r=await ft('https://api.together.xyz/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k},body:JSON.stringify({model,max_tokens:window.FOXIA_LONG?8192:4096,messages:[{role:'user',content:t}]})});
+  const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices[0].message.content;
+}
+async function orOpen(k,m,t,im){
+  const model=m||'openrouter/auto';
+  /* modelos free comuns: meta-llama/llama-3.2-3b-instruct:free , google/gemma-2-9b-it:free */
+  const r=await ft('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+k,'HTTP-Referer':'https://foxia.app','X-Title':'F.O.X.I.A'},body:JSON.stringify({model,max_tokens:window.FOXIA_LONG?8192:4096,messages:[{role:'user',content:t}]})});
+  const j=await r.json();if(!r.ok)throw er(r.status,j);return j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'';
+}
 async function ge0(k,m,t,im,w){const r=await ft('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{parts:[...im.map(i=>({inline_data:{mime_type:'image/jpeg',data:i}})),{text:t}]}],tools:w?[{google_search:{}}]:undefined,generationConfig:{maxOutputTokens:window.FOXIA_LONG?8192:4096,temperature:0.7}})});
 const j=await r.json();if(!r.ok)throw er(r.status,j);return (j.candidates[0].content.parts||[]).map(x=>x.text||'').join('')}
 async function lm(u,h){const r=await ft(u,{headers:h});const j=await r.json();if(!r.ok)throw er(r.status,j);return j}
@@ -313,10 +326,10 @@ const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){
   if(i<2&&wait)await new Promise(r=>setTimeout(r,(e.code=='rate_limited'?4000:2500)*(i+1)));
   else throw e;
 }}};
-const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv'}}
+const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk,t:k.tk,r:k.rk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv';if(!keys.t&&SO.together)keys.t='__srv';if(!keys.r&&SO.openrouter)keys.r='__srv'}}
 const temImg=!!(o.images&&o.images.length);
 /* com foto: prioriza quem lê imagem (Claude, OpenAI, Groq-visão). Gemini por último (cota de visão costuma falhar no plano free). */
-const base=temImg?['c','o','q','g']:(t=='quick'?['q','o','c','g']:['q','c','o','g']);
+const base=temImg?['c','o','q','g']:(t=='quick'?['q','r','t','o','c','g']:['q','r','t','c','o','g']);
 let ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
 if(o.web&&!temImg)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
 if(temImg)ord=ord.filter(x=>x!=='g').concat(ord.filter(x=>x==='g')); /* Gemini só se os outros falharem */
@@ -324,8 +337,8 @@ if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o
 let im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
 let inputFinal=input;
 /* se tem imagem: tenta ler direto; se todos falharem, descreve via Worker AI e responde em texto */
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
-if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
+for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,im):p=='r'?await orOpen(keys.r,k.rm||'openrouter/auto',inputFinal,im):p=='t'?await tg(keys.t,k.tm||'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
+if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq',t:'Together',r:'OpenRouter'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
 if(temImg&&im.length){
   try{
     const desc=await verImagem(im, 'Descreva a imagem em português do Brasil com detalhes. Se houver texto, transcreva.');
@@ -341,7 +354,7 @@ sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
 window.claude={use:async n=>n=='sample'?sample:n=='downloads'?{save:async({filename,data})=>dl(filename,data)}:null};
-const F=['ck','ok','gk','qk','cm','om','qm'];
+const F=['ck','ok','gk','qk','cm','om','qm','tk','tm','rk','rm'];
 function abrir(){const k=K();F.forEach(f=>{if($$(f))$$(f).value=k[f]||''});$$('kpref').value=k.pref||'auto';$$('kp').hidden=false}
 $$('kb').onclick=abrir;$$('kc').onclick=()=>{$$('kp').hidden=true};
 $$('ks').onclick=()=>{const k=K();k.pref=$$('kpref').value;F.forEach(f=>{if($$(f))k[f]=$$(f).value.trim()});k.gm='gemini-3.8-flash';if(window.FOXIA_TOKEN&&String(window.FOXIA_TOKEN).indexOf('COLE_')!==0)k.svt=window.FOXIA_TOKEN;if(window.FOXIA_SRV)k.svu=window.FOXIA_SRV;try{ST().setItem('foxia_k',JSON.stringify(k))}catch(e){}window.SRVOK=undefined;$$('kp').hidden=true};
@@ -479,7 +492,7 @@ requestAnimationFrame(loop)}
 function formar(t){const ws=t.replace(/[^\p{L}\s]/gu,'').split(/\s+/).filter(w=>w.length>3).slice(0,8);
 ws.forEach((w,i)=>setTimeout(()=>word(w.toUpperCase()),i*700))}
 /* voz de saída */
-function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}
+function falar(t){if(!$('tts')||!$('tts').checked)return;if(typeof window.foxiaDizer==='function')return window.foxiaDizer(t);}
 /* modos de pesquisa */
 function pedidoLongo(q){
   q=String(q||'');
@@ -1759,56 +1772,85 @@ $('vzc').onchange=()=>{localStorage.setItem('foxia_vzc',$('vzc').value);dizerCel
 $('vz').value=localStorage.getItem('foxia_vz')||'';
 $('vz').onchange=()=>{localStorage.setItem('foxia_vz',$('vz').value);$('vid').hidden=$('vz').value!='eleven';if($('vz').value=='eleven'){ind('testando ElevenLabs…');dizer('Olá! Esta é a minha nova voz.')}else dizerCelular('Voz do celular ativada.')};
 $('vid').value=localStorage.getItem('foxia_vid')||((window.FOXIA_VOICE_ID&&window.FOXIA_VOICE_ID.indexOf('COLE_')!==0)?window.FOXIA_VOICE_ID:'');
+
+try{
+  const vid=foxiaVoiceId();
+  if(vid&&window.FOXIA_USE_ELEVEN!==false){
+    if(!localStorage.getItem('foxia_vz')||localStorage.getItem('foxia_vz')==='')localStorage.setItem('foxia_vz','eleven');
+    if($('vz'))$('vz').value=localStorage.getItem('foxia_vz')||'eleven';
+  }
+}catch(e){}
+
 $('vid').hidden=$('vz').value!='eleven';
 $('vid').onchange=()=>{localStorage.setItem('foxia_vid',$('vid').value.trim());if(localStorage.getItem('foxia_vz')=='eleven'&&$('vid').value.trim()){ind('testando voz…');dizer('Olá! Testando esta voz.')}};
 function dizerCelular(t){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const nome=localStorage.getItem('foxia_vzc'),v=speechSynthesis.getVoices().find(x=>x.name==nome)||VZ;(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
-async function elevenFalar(t){
-  const S=window.SRVC&&window.SRVC();
+function foxiaVoiceId(){
   let id=(localStorage.getItem('foxia_vid')||window.FOXIA_VOICE_ID||'').trim();
-  if(id.indexOf('COLE_')===0)id='';
-  // se colar um link do ElevenLabs, extrai o ID final
+  if(!id||id.indexOf('COLE_')===0)id='';
   const m=id.match(/([A-Za-z0-9_\-]{10,})$/);
   if(m)id=m[1];
-  if(!S)throw new Error('servidor não configurado (salve o token em ⚙ > IAs e chaves)');
-  if(!id)throw new Error('cole o Voice ID em ⚙ (não é a API key)');
-  if(/^sk[_-]|^xi\./i.test(id))throw new Error('isso parece API key. No app vai só o Voice ID; a API key é o segredo ELEVEN_KEY na Cloudflare');
-  window.SRVOK=undefined;
-  const st=window.srvInit?await window.srvInit():null;
-  if(st&&st.eleven===false)throw new Error('falta o segredo ELEVEN_KEY na Cloudflare (API key do ElevenLabs)');
-  const body=JSON.stringify({text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'});
+  return id;
+}
+async function elevenFalar(t){
+  const S=window.SRVC&&window.SRVC();
+  const id=foxiaVoiceId();
+  if(!S||!S.u||!S.t)throw new Error('Worker/token ausente. Confira FOXIA_SRV e FOXIA_TOKEN no index.html (iguais ao ACCESS_TOKEN).');
+  if(!id)throw new Error('Voice ID vazio. No index.html: window.FOXIA_VOICE_ID="seu_id". Não use a API key aqui.');
+  if(/^sk[_-]|^xi\./i.test(id))throw new Error('Isso é API key. Voice ID é outro código no ElevenLabs → Voice → ID.');
+  const texto=String(t||'').replace(/[*#`_~>\[\]]/g,' ').replace(/\s+/g,' ').trim().slice(0,1200);
+  if(!texto)return;
   const h={'x-foxia-token':S.t,'content-type':'application/json'};
-  let r=await fetch(S.u+'/tts',{method:'POST',headers:h,body:JSON.stringify({voice_id:id,text:t.replace(/[*#`_]/g,'').slice(0,1200),model_id:'eleven_multilingual_v2'})});
+  let r=await fetch(S.u+'/tts?token='+encodeURIComponent(S.t),{
+    method:'POST',headers:h,
+    body:JSON.stringify({voice_id:id,text:texto,model_id:'eleven_multilingual_v2'})
+  });
   if(r.status===404){
-    r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id),{method:'POST',headers:h,body});
+    r=await fetch(S.u+'/eleven/v1/text-to-speech/'+encodeURIComponent(id)+'?token='+encodeURIComponent(S.t),{
+      method:'POST',headers:h,
+      body:JSON.stringify({text:texto,model_id:'eleven_multilingual_v2'})
+    });
   }
   if(!r.ok){
-    const err=(await r.text()).slice(0,240);
-    if(/rota inválida/i.test(err))throw new Error('Deploy antigo. Abra '+S.u+'/version — tem que aparecer foxia-worker-2026-11-06-v4');
-    if(/não está configurada|chave de eleven/i.test(err))throw new Error('falta o segredo ELEVEN_KEY na Cloudflare');
+    const err=(await r.text()).slice(0,280);
+    if(/não autorizado/i.test(err))throw new Error('ACCESS_TOKEN do Worker não bate com o do app');
+    if(/não está configurada|chave de eleven/i.test(err))throw new Error('Falta ELEVEN_KEY no Cloudflare Worker');
+    if(/voice_id|not_found|404/i.test(err))throw new Error('Voice ID inválido ou voz não existe na sua conta ElevenLabs');
+    if(/quota|rate|limit|402|429/i.test(err))throw new Error('Cota ElevenLabs esgotada ou limite de uso');
     throw new Error(err||('HTTP '+r.status));
   }
   const bl=await r.blob();
-  if(!bl||!bl.size)throw new Error('resposta de áudio vazia');
-  if(AUD)try{AUD.pause()}catch(e){}
-  AUD=new Audio(URL.createObjectURL(bl));
-  await new Promise((ok,no)=>{AUD.onended=ok;AUD.onerror=ok;AUD.play().catch(ok)});
+  if(!bl||!bl.size)throw new Error('Áudio vazio do ElevenLabs');
+  if(AUD){try{AUD.pause();URL.revokeObjectURL(AUD.src)}catch(e){}}
+  const url=URL.createObjectURL(bl);
+  AUD=new Audio(url);
+  AUD.playsInline=true;
+  await new Promise((ok)=>{
+    AUD.onended=()=>{try{URL.revokeObjectURL(url)}catch(e){}ok()};
+    AUD.onerror=()=>{try{URL.revokeObjectURL(url)}catch(e){}ok()};
+    AUD.play().catch(()=>ok());
+  });
 }
 async function dizer(t){
   if(AUD){try{AUD.pause()}catch(e){}AUD=null}
-  if(localStorage.getItem('foxia_vz')=='eleven'){
+  const useEleven=localStorage.getItem('foxia_vz')=='eleven'||(window.FOXIA_USE_ELEVEN&&foxiaVoiceId()&&localStorage.getItem('foxia_vz')!=='device');
+  if(useEleven){
     try{
-      if(window.srvInit)await window.srvInit();
       await elevenFalar(t);
       if(typeof liveAfterSpeak==='function'&&LIVE)liveAfterSpeak();
       return;
     }catch(e){
-      ind('ElevenLabs: '+(e&&e.message||e));
+      const msg='ElevenLabs: '+(e&&e.message||e);
+      try{ind(msg)}catch(x){}
+      try{add('k',msg)}catch(x){}
       dizerCelular(t);
       return;
     }
   }
   dizerCelular(t);
 }
+window.foxiaDizer=dizer;
+function falar(t){if(!$('tts')||!$('tts').checked)return;return dizer(t)}
+
 /* v5: folhas de baixo (anexar, projetos) e painel de projeto, sem caixas de diálogo */
 const shOpen=id=>{$(id).hidden=false},shClose=id=>{$(id).hidden=true};
 const projNome=c=>{const p=(M.proj||[]).find(x=>x.id==(c&&c.p));return p?p.nome:'Nenhum'};
