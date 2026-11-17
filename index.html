@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 function foxiaIcon(n){try{return new URL(n||'icon-192.png',location.href).href}catch(e){return n||'icon-192.png'}}
 
@@ -141,7 +141,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <div id="sp" class="sh" hidden><div id="spb" class="shb"></div><div class="shc"><div class="gr"></div><div class="top"><button id="spx" aria-label="Fechar">✕</button><b>Mover para projeto</b></div><div id="spl"></div></div></div>
 <div id="jp" hidden><h2 id="jt">Novo projeto</h2><input id="jn" placeholder="Nome do projeto"><textarea id="ji" placeholder="Instruções do projeto (valem para todos os chats dele)"></textarea><div class="row" style="padding:0"><button id="js">Salvar</button><button id="jd">Excluir projeto</button></div><button id="jc" class="x" aria-label="Fechar">✕</button></div>
 <div id="rp" hidden><h2>Pesquisas do Claude</h2><div id="rl"></div><button id="rc" class="x" aria-label="Fechar">✕</button></div>
-<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave(s) Gemini — várias separadas por vírgula"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="tk" type="password" placeholder="Chave Together.ai (pago)"><input id="tm" placeholder="Modelo Together"><input id="rk" type="password" placeholder="Chave OpenRouter (tem modelos free)"><input id="rm" placeholder="Modelo OpenRouter (openrouter/auto ou ...:free)"><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option><option value="t">Together</option><option value="r">OpenRouter</option></select></div></details>
+<div id="kp" hidden><h2>Servidor e IAs</h2><p class="fl">Token e servidor já estão no código. Aqui você só mexe se quiser chaves extras neste aparelho.</p><details><summary class="fl" style="cursor:pointer">Avançado: chaves minhas neste aparelho</summary><div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input id="ck" type="password" placeholder="Chave do Claude (Anthropic)"><input id="ok" type="password" placeholder="Chave do ChatGPT (OpenAI)"><input id="gk" type="password" placeholder="Chave(s) Gemini — várias separadas por vírgula"><input id="qk" type="password" placeholder="Chave do Groq (gratuita)"><input id="tk" type="password" placeholder="Chave Together.ai (pago)"><input id="tm" placeholder="Modelo Together"><input id="rk" type="password" placeholder="Chave OpenRouter (tem modelos free)"><input id="rm" placeholder="Modelos de TEXTO OpenRouter (...:free, vários com vírgula)"><p class="fl" style="opacity:.75;font-size:12px">Imagens (texto→imagem): no Worker use a secret <b>OPENROUTER_IMAGE_MODELS</b> com IDs como <code>recraft/recraft-v4.1-flash-v2:free</code> (separados por vírgula). A mesma OPENROUTER_KEY serve.</p><input id="cm" placeholder="Modelo Claude (claude-sonnet-5-5)"><input id="om" placeholder="Modelo ChatGPT (gpt-5-mini)"><input id="qm" placeholder="Modelo Groq (llama-3.3-70b-versatile)"><select id="kpref"><option value="auto">Cérebro: automático</option><option value="c">Claude</option><option value="o">ChatGPT</option><option value="g">Gemini</option><option value="q">Groq</option><option value="t">Together</option><option value="r">OpenRouter</option></select></div></details>
 <input id="svu" type="hidden"><input id="svt" type="hidden"><input id="gm" type="hidden" value="gemini-3.8-flash">
 <div class="row" style="padding:0"><button id="ks">Salvar</button><button id="bkall">Backup completo (1 toque)</button><button id="ki">Importar backup</button><button id="kc" class="x" aria-label="Fechar">✕</button></div><input type="file" id="kf" hidden accept=".json"></div>
 <div id="mp" hidden><h2>Memória</h2><p class="fl">Fatos estáveis ficam guardados. Temporários somem em ~7 dias. Diga “esquece X” no chat para apagar.</p><div class="fl">Estáveis</div><div id="ml"></div><div class="fl">Temporários</div><div id="mlt"></div><input id="mn" placeholder="Adicionar um fato (ex.: Meu nome é…)"><div class="row" style="padding:0"><button id="ma">Adicionar</button><button id="mw">Limpar toda a memória</button><button id="mc" class="x" aria-label="Fechar">✕</button></div></div>
@@ -1665,6 +1665,34 @@ async function imagens(el,t){
     'digital art, '+base+', warm light, detailed, wholesome',
     'stylized illustration of a lumberjack smiling next to a tree, forest background, no axe visible, kids-friendly'
   ];
+
+  /* 0) OpenRouter Image API (modelos texto→imagem, ex. recraft/...:free) */
+  try{
+    const S=SRVC();
+    const SO=window.SRVOK||await (window.srvInit?window.srvInit():null);
+    if(S&&SO&&SO.openrouter){
+      d.textContent='🎨 Gerando com OpenRouter…';
+      const pr=variantes[0]||base;
+      const r=await fetch(S.u+'/openrouter/v1/images?token='+encodeURIComponent(S.t),{
+        method:'POST',
+        headers:{'content-type':'application/json','x-foxia-token':S.t},
+        body:JSON.stringify({prompt:pr,aspect_ratio:'1:1'})
+      });
+      if(r.ok){
+        const j=await r.json();
+        const item=(j.data&&j.data[0])||j;
+        let src='';
+        if(item.url)src=item.url;
+        else if(item.b64_json)src='data:image/png;base64,'+item.b64_json;
+        else if(item.image_url)src=typeof item.image_url==='string'?item.image_url:(item.image_url.url||'');
+        if(src){
+          const mod=r.headers.get('x-foxia-image-model')||'OpenRouter';
+          mostrar(src,'OpenRouter ('+mod+')');
+          return;
+        }
+      }
+    }
+  }catch(e){}
 
   /* 1) Cloudflare Workers AI (Flux) — melhor opção se o binding AI estiver ativo */
   try{
