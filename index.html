@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 function foxiaIcon(n){try{return new URL(n||'icon-192.png',location.href).href}catch(e){return n||'icon-192.png'}}
 
@@ -156,6 +156,7 @@ label{font-size:13px;display:flex;align-items:center;gap:4px}
 <span class="fl">Mensagens próprias</span><select id="auto" aria-label="Mensagens próprias"><option value="0">Desligadas</option><option value="6">Ocasional</option><option value="2">Frequente</option></select>
 <span class="fl">Voz da IA</span><select id="vz"><option value="">Voz do celular (grátis)</option><option value="eleven">ElevenLabs (mais natural)</option></select><select id="vzc"><option value="">Voz do celular: automática</option></select><input id="vid" type="hidden">
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="tts">Ler as respostas em voz alta automaticamente</label>
+<label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ensemble" checked>Usar várias IAs e fundir a melhor resposta (gasta mais cota)</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="notif">Permitir notificações da F.O.X.I.A</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="wake">Escutar palavra de ativação (Oi Foxia) enquanto o app estiver aberto</label>
 <label class="fl" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="loc">Usar localização quando eu pedir (clima, perto de mim…)</label>
@@ -326,30 +327,121 @@ const tent=async f=>{for(let i=0;;i++){try{return await f()}catch(e){
   if(i<2&&wait)await new Promise(r=>setTimeout(r,(e.code=='rate_limited'?4000:2500)*(i+1)));
   else throw e;
 }}};
-const sample=async(input,o={})=>{const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk,t:k.tk,r:k.rk},t=o.modelTier||'default';await srvInit();{const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv';if(!keys.t&&SO.together)keys.t='__srv';if(!keys.r&&SO.openrouter)keys.r='__srv'}}
-const temImg=!!(o.images&&o.images.length);
-/* com foto: prioriza quem lê imagem (Claude, OpenAI, Groq-visão). Gemini por último (cota de visão costuma falhar no plano free). */
-const base=temImg?['c','o','q','g']:(t=='quick'?['q','r','t','o','c','g']:['q','r','t','c','o','g']);
-let ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
-if(o.web&&!temImg)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
-if(temImg)ord=ord.filter(x=>x!=='g').concat(ord.filter(x=>x==='g')); /* Gemini só se os outros falharem */
-if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o servidor não respondeu: confira se o token é igual ao ACCESS_TOKEN da Cloudflare e se o Worker está publicado':'sem chave');e.code='sem_chave';throw e}
-let im=await Promise.all((o.images||[]).map(b64));let err;const errs=[];
-let inputFinal=input;
-/* se tem imagem: tenta ler direto; se todos falharem, descreve via Worker AI e responde em texto */
-for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,im):p=='r'?await orOpen(keys.r,k.rm||'openrouter/auto',inputFinal,im):p=='t'?await tg(keys.t,k.tm||'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
-if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){e.message=({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq',t:'Together',r:'OpenRouter'})[p]+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));errs.push(e.message);err=e}}
-if(temImg&&im.length){
-  try{
-    const desc=await verImagem(im, 'Descreva a imagem em português do Brasil com detalhes. Se houver texto, transcreva.');
-    if(desc){
-      im=[];inputFinal=input+'\n\n[Descrição automática da imagem anexada]\n'+desc+'\n[Fim da descrição]\nResponda ao usuário com base nessa descrição.';
-      for(const p of ord){try{const txt=await tent(async()=>p=='c'?await cl(keys.c,t=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,[],t=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,[]):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,[]):await ge(keys.g,'gemini-3.8-flash',inputFinal,[],o.web));
-      if(!txt)throw new Error('resposta vazia');o.onText&&o.onText({text:txt,delta:txt});return{text:txt}}catch(e){errs.push('texto:'+(({c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq'})[p]||p)+' '+(e.message||e));err=e}}
+const sample=async(input,o={})=>{
+  const k=K(),keys={c:k.ck,o:k.ok,g:k.gk,q:k.qk,t:k.tk,r:k.rk},tier=o.modelTier||'default';
+  await srvInit();
+  {const SO=window.SRVOK||{};if(SRVC()){if(!keys.c&&SO.claude)keys.c='__srv';if(!keys.o&&SO.openai)keys.o='__srv';if(!keys.g&&SO.gemini)keys.g='__srv';if(!keys.q&&SO.groq)keys.q='__srv';if(!keys.t&&SO.together)keys.t='__srv';if(!keys.r&&SO.openrouter)keys.r='__srv'}}
+  const temImg=!!(o.images&&o.images.length);
+  const nomes={c:'Claude',o:'ChatGPT',g:'Gemini',q:'Groq',t:'Together',r:'OpenRouter'};
+  const base=temImg?['c','o','q','g']:(tier=='quick'?['q','r','t','o','c','g']:['q','r','t','c','o','g']);
+  let ord=(k.pref&&k.pref!='auto'?[k.pref,...base.filter(x=>x!=k.pref)]:base).filter(x=>keys[x]);
+  if(o.web&&!temImg)ord.sort((a,b)=>(b=='c'||b=='g')-(a=='c'||a=='g'));
+  if(temImg)ord=ord.filter(x=>x!=='g').concat(ord.filter(x=>x==='g'));
+  if(!ord.length){$$('kp').hidden=false;const e=new Error(SRVC()&&!window.SRVOK?'o servidor não respondeu: confira se o token é igual ao ACCESS_TOKEN da Cloudflare e se o Worker está publicado':'sem chave');e.code='sem_chave';throw e}
+  let im=await Promise.all((o.images||[]).map(b64));
+  let inputFinal=input;
+  const chamar=async(p)=>{
+    const txt=await tent(async()=>p=='c'?await cl(keys.c,tier=='quick'?'claude-haiku-5-5':(k.cm||'claude-sonnet-5-5'),inputFinal,im,tier=='complex'||o.web):p=='o'?await op(keys.o,k.om||'gpt-5-mini',inputFinal,im):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),inputFinal,im):p=='r'?await orOpen(keys.r,k.rm||'openrouter/auto',inputFinal,im):p=='t'?await tg(keys.t,k.tm||'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',inputFinal,im):await ge(keys.g,'gemini-3.8-flash',inputFinal,im,o.web));
+    if(!txt)throw new Error('resposta vazia');
+    return String(txt);
+  };
+  /* quick / 1 provedor / imagem: um por vez (economia de cota) */
+  const ensemble=localStorage.getItem('foxia_ensemble')!=='0' && !temImg && tier!=='quick' && ord.length>1 && !(k.pref&&k.pref!=='auto');
+  if(!ensemble){
+    let err,errs=[];
+    for(const p of ord){
+      try{
+        const txt=await chamar(p);
+        o.onText&&o.onText({text:txt,delta:txt});
+        return{text:txt,fonte:nomes[p]};
+      }catch(e){
+        e.message=(nomes[p]||p)+': '+(e.name=='AbortError'?'tempo esgotado':(e.message||e));
+        errs.push(e.message);err=e;
+      }
     }
-  }catch(e){errs.push('visão:'+(e.message||e))}
-}
-err.message=(temImg?'Não consegui ler a imagem. Detalhe: ':'')+errs.join(' | ');throw err};
+    if(temImg&&im.length){
+      try{
+        const desc=await verImagem(im,'Descreva a imagem em português do Brasil com detalhes. Se houver texto, transcreva.');
+        if(desc){
+          im=[];inputFinal=input+'\n\n[Descrição automática da imagem anexada]\n'+desc+'\n[Fim da descrição]\nResponda ao usuário com base nessa descrição.';
+          for(const p of ord){
+            try{
+              const txt=await chamar(p);
+              o.onText&&o.onText({text:txt,delta:txt});
+              return{text:txt};
+            }catch(e){errs.push((nomes[p]||p)+': '+(e.message||e));err=e}
+          }
+        }
+      }catch(e){}
+    }
+    err=err||new Error('falha');
+    err.message=(temImg?'Não consegui ler a imagem. Detalhe: ':'')+errs.join(' | ');
+    throw err;
+  }
+  /* --- Ensemble: consulta várias APIs em paralelo e funde a melhor resposta --- */
+  o.onText&&o.onText({text:'Consultando várias IAs em paralelo…'});
+  const resultados=await Promise.all(ord.map(async p=>{
+    try{
+      const txt=await Promise.race([
+        chamar(p),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado')),28000))
+      ]);
+      return{p,nome:nomes[p]||p,txt:String(txt).trim(),ok:true};
+    }catch(e){
+      return{p,nome:nomes[p]||p,ok:false,err:String(e&&e.message||e)};
+    }
+  }));
+  const ok=resultados.filter(x=>x.ok&&x.txt);
+  const falhas=resultados.filter(x=>!x.ok);
+  if(!ok.length){
+    const e=new Error(falhas.map(x=>x.nome+': '+x.err).join(' | ')||'nenhuma IA respondeu');
+    throw e;
+  }
+  if(ok.length===1){
+    o.onText&&o.onText({text:ok[0].txt,delta:ok[0].txt});
+    return{text:ok[0].txt,fonte:ok[0].nome,ensemble:1};
+  }
+  /* funde com um dos provedores que funcionou (preferência: r, q, g, c, o, t) */
+  const prefFusao=['r','q','g','c','o','t'];
+  const fusor=prefFusao.map(id=>ok.find(x=>x.p===id)).find(Boolean)||ok[0];
+  const blocos=ok.map((x,i)=>'### Resposta '+(i+1)+' ('+x.nome+')\n'+x.txt.slice(0,6000)).join('\n\n');
+  const promptFusao=
+    'Você é a F.O.X.I.A. Várias IAs responderam à mesma pergunta do usuário.\n'+
+    'Sua tarefa: montar UMA resposta final em português do Brasil, a melhor possível.\n'+
+    'Regras:\n'+
+    '- Una o que houver de mais correto, completo e útil em cada resposta.\n'+
+    '- Se houver conflito de fatos, prefira o consenso ou indique a incerteza com honestidade.\n'+
+    '- Não cite os nomes das IAs nem diga que está fundindo respostas, a menos que o usuário pergunte.\n'+
+    '- Mantenha formatação clara (títulos, listas) quando ajudar.\n'+
+    '- Não invente dados que nenhuma resposta trouxe.\n'+
+    '- Se o usuário pediu arquivo/imagem/ação, preserve instruções e blocos especiais (<<<ARQUIVO>>> etc.) se alguma resposta trouxe.\n\n'+
+    'Pergunta original (contexto resumido no prompt acima).\n\n'+
+    blocos+'\n\n'+
+    'Escreva agora só a resposta final para o usuário:';
+  o.onText&&o.onText({text:'Fundindo '+ok.length+' respostas ('+ok.map(x=>x.nome).join(', ')+')…'});
+  let final='';
+  try{
+    /* reutiliza o mesmo provedor fusor sem ensemble recursivo */
+    const prev=localStorage.getItem('foxia_ensemble');
+    localStorage.setItem('foxia_ensemble','0');
+    try{
+      const one=await (async()=>{
+        const p=fusor.p;
+        const txt=await tent(async()=>p=='c'?await cl(keys.c,k.cm||'claude-sonnet-5-5',promptFusao,[],false):p=='o'?await op(keys.o,k.om||'gpt-5-mini',promptFusao,[]):p=='q'?await gq(keys.q,(k.qm&&!/120b/i.test(k.qm)?k.qm:''),promptFusao,[]):p=='r'?await orOpen(keys.r,k.rm||'openrouter/auto',promptFusao,[]):p=='t'?await tg(keys.t,k.tm||'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',promptFusao,[]):await ge(keys.g,'gemini-3.8-flash',promptFusao,[],false));
+        return String(txt||'');
+      })();
+      final=one;
+    }finally{
+      if(prev===null)localStorage.removeItem('foxia_ensemble');else localStorage.setItem('foxia_ensemble',prev);
+    }
+  }catch(e){
+    /* se fusão falhar, pega a resposta mais longa */
+    final=ok.slice().sort((a,b)=>b.txt.length-a.txt.length)[0].txt;
+  }
+  if(!final||final.length<20)final=ok.slice().sort((a,b)=>b.txt.length-a.txt.length)[0].txt;
+  o.onText&&o.onText({text:final,delta:final});
+  return{text:final,fonte:'ensemble:'+ok.map(x=>x.nome).join('+'),ensemble:ok.length};
+};
 sample.limits=async()=>({images:true});
 sample.json=async(i,o)=>{const r=await sample(i,o);return JSON.parse(r.text.match(/[\[{][\s\S]*[\]}]/)[0])};
 const dl=(n,d)=>{const a=document.createElement('a');a.href=URL.createObjectURL(d instanceof Blob?d:new Blob([d]));a.download=n;document.body.append(a);a.click();a.remove()};
@@ -523,13 +615,79 @@ const rico=/pdf|arquivo|documento|relat[oó]rio|resumo completo|trabalho|explica
 if(/profund|detalh|analis|expert|completo|compare|pesquise|explique melhor/i.test(q)||n>40||rico)return n>25||/expert|profund|completo/i.test(q)?'expert':'padrao';
 if(n<=8&&!/https?:\/\//.test(q)&&!/agenda|e-?mail|arquivo|pdf|imagem|foto|gera|cri[ea]|escreva|liste/i.test(q))return 'simples';
 return 'padrao'}
+
+/* Memória semântica: embedding + rerank via OpenRouter */
+async function orFetch(path, body){
+  const S=SRVC(); if(!S)throw new Error('sem worker');
+  await srvInit();
+  const r=await fetch(S.u+'/openrouter'+path+'?token='+encodeURIComponent(S.t),{
+    method:'POST',
+    headers:{'content-type':'application/json','x-foxia-token':S.t},
+    body:JSON.stringify(body)
+  });
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error((j.error&&(j.error.message||j.error))||j.message||('HTTP '+r.status));
+  return j;
+}
+function cosine(a,b){
+  let d=0,na=0,nb=0; const n=Math.min(a.length,b.length);
+  for(let i=0;i<n;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i]}
+  if(!na||!nb)return 0; return d/(Math.sqrt(na)*Math.sqrt(nb));
+}
+async function fatosRelevantes(q, maxN=8){
+  const fatos=(M.fatos||[]).map(x=>String(x).trim()).filter(Boolean);
+  if(!fatos.length)return [];
+  if(fatos.length<=maxN)return fatos;
+  const SO=window.SRVOK||{};
+  if(!(SRVC()&&SO.openrouter))return fatos.slice(-maxN);
+  const embModel=(window.FOXIA_EMBED_MODEL||'nvidia/nemotron-3.5-embed-8b:free');
+  const rrModel=(window.FOXIA_RERANK_MODEL||'nvidia/nemotron-3.5-rerank-8b:free');
+  /* 1) tenta rerank direto (melhor para poucos docs) */
+  try{
+    const j=await orFetch('/v1/rerank',{model:rrModel,query:String(q).slice(0,500),documents:fatos.slice(0,40),top_n:maxN});
+    const res=j.results||j.data||[];
+    if(res.length){
+      const out=[];
+      for(const item of res){
+        const text=(item.document&&(item.document.text||item.document))||fatos[item.index];
+        if(text&&!out.includes(text))out.push(String(text));
+      }
+      if(out.length)return out.slice(0,maxN);
+    }
+  }catch(e){}
+  /* 2) embedding + similaridade */
+  try{
+    const inputs=[String(q).slice(0,500),...fatos.slice(0,30)];
+    const j=await orFetch('/v1/embeddings',{model:embModel,input:inputs});
+    const data=(j.data||[]).slice().sort((a,b)=>(a.index||0)-(b.index||0));
+    if(data.length<2)return fatos.slice(-maxN);
+    const qv=data[0].embedding;
+    const scored=fatos.slice(0,30).map((f,i)=>({f,s:cosine(qv,data[i+1]&&data[i+1].embedding||[])}));
+    scored.sort((a,b)=>b.s-a.s);
+    return scored.filter(x=>x.s>0.05).slice(0,maxN).map(x=>x.f);
+  }catch(e){}
+  return fatos.slice(-maxN);
+}
+
+
+async function ctxComMemoria(q){
+  let base=ctx();
+  try{
+    const rel=await fatosRelevantes(q,8);
+    if(rel&&rel.length){
+      base+='\nFatos mais relevantes para ESTA pergunta (priorize estes): '+rel.join('; ')+'\n';
+    }
+  }catch(e){}
+  return base;
+}
+
 const ctx=()=>'Você é F.O.X.I.A, uma IA-raposa futurista. Fale português do Brasil. Você TEM memória permanente: o aplicativo salva automaticamente o que o usuário conta e mostra a você abaixo, em "O que você sabe do usuário", a cada conversa. Nunca diga que não consegue guardar ou lembrar informações; quando o usuário pedir para lembrar algo, confirme que guardou. Se algo não estiver na memória, diga que ainda não sabe e pergunte. Regras de formatação: use títulos com # e ## (não espalhe ** no meio do texto). Tabelas só em formato markdown de pipes com cabeçalho. Listas com - . Evite asteriscos soltos. Regras: priorize QUALIDADE e completude, não velocidade nem respostas curtas. Dê UMA única resposta completa e útil, sem repetir o que já disse. Quando o pedido for educativo, lista, PDF ou arquivo, desenvolva com profundidade (parágrafos, fatos, contexto), nunca só um resumo mínimo. Antes de indicar algo (anime, filme, música, produto, curso), se não souber o gosto do usuário, faça só UMA pergunta curta sobre preferências e indique depois que ele responder; nunca presuma gosto nem sugira conteúdo pesado sem saber. Personalidade atual: '+M.persona+projTxt()+'\nComportamento definido pelo usuário (siga sempre; tem prioridade sobre a personalidade): '+(M.comp||'nenhum')+'\nPerfil informado pelo usuário: '+perfilTxt()+'\nTrechos recentes de outras conversas do usuário: '+outras()+'\nO que você sabe do usuário: '+(M.fatos.join('; ')||'ainda nada')+'\nPadrões observados: '+(M.padroes.join('; ')||'nenhum')+'\n';
 const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).join('\n');
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
 busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
-try{const r=await s(ctx()+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}});
+try{const r=await s(await ctxComMemoria(q)+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}});
 const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);try{acoes(out,M.hist.length-1,'k')}catch(e){}if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
@@ -576,6 +734,8 @@ function vozes(){const v=speechSynthesis.getVoices();VZ=v.find(x=>/pt[-_]BR/i.te
 if(window.speechSynthesis){vozes();speechSynthesis.onvoiceschanged=vozes}
 function falar(t){if(!$('tts').checked||!window.speechSynthesis)return;try{speechSynthesis.cancel();(t.replace(/[*#`_]/g,'').match(/[^.!?\n]+[.!?\n]*/g)||[]).slice(0,12).forEach(p=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='pt-BR';if(VZ)u.voice=VZ;speechSynthesis.speak(u)})}catch(e){ind('voz indisponível neste navegador')}}
 $('tts').checked=localStorage.getItem('foxia_tts')=='1';
+if($('ensemble')){$('ensemble').checked=localStorage.getItem('foxia_ensemble')!=='0';$('ensemble').onchange=()=>localStorage.setItem('foxia_ensemble',$('ensemble').checked?'1':'0')}
+
 $('tts').onchange=()=>{localStorage.setItem('foxia_tts',$('tts').checked?'1':'0');if($('tts').checked)falar('Voz ativada.')};
 
 /* --- Notificações + palavra de ativação --- */
@@ -1310,7 +1470,7 @@ if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )
 }
 const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}};
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
-const r=await agente(s,ctx()+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
+const r=await agente(s,await ctxComMemoria(q)+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);try{acoes(out,(M.hist||[]).length,'k')}catch(e){}if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
 M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
