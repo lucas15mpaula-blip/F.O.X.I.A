@@ -16,9 +16,9 @@
 window.FOXIA_SRV='https://foxia-v4.lucas15mpaula.workers.dev';
 /* Mesmo valor do segredo ACCESS_TOKEN na Cloudflare */
 /* Cole abaixo o MESMO valor do secret ACCESS_TOKEN do Cloudflare Worker */
-window.FOXIA_TOKEN='25RdbnrwRFseGgumuG61R7U0RWdiN8PGH94DqD3xxWLXq';
+window.FOXIA_TOKEN='COLE_SEU_ACCESS_TOKEN_AQUI';
 /* Voice ID do ElevenLabs (NÃO é a API key sk_...) */
-window.FOXIA_VOICE_ID='v7LGMCLy1nCzzwfLLm7g';
+window.FOXIA_VOICE_ID='COLE_SEU_VOICE_ID_AQUI';
 window.FOXIA_USE_ELEVEN=true;
 function foxiaIcon(n){try{return new URL(n||'icon-192.png',location.href).href}catch(e){return n||'icon-192.png'}}
 
@@ -65,6 +65,17 @@ h1{margin:0;font-size:18px;letter-spacing:3px;background:linear-gradient(90deg,v
 
 .u{align-self:flex-end;background:#12306e}
 .k{align-self:flex-start;background:var(--pn);border-left:3px solid var(--r)}
+.m .md-body{white-space:pre-wrap;word-break:break-word}
+.m.k .md-body{white-space:normal} /* markdown define os espaços */
+.m.u .md-body{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.m .msg-time{display:block;text-align:right;font-size:11px;opacity:.6;margin-top:6px;line-height:1;color:rgba(255,255,255,.7)}
+.m.k .msg-time{text-align:left;color:rgba(234,242,255,.55)}
+.m.u .msg-time{color:rgba(200,220,255,.7)}
+/* hora colada no canto estilo WhatsApp */
+.m{padding-bottom:4px}
+.m .msg-meta{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:4px}
+.m.k .msg-meta{justify-content:flex-start}
+
 .bar,.row{display:flex;gap:6px;padding:6px 10px;align-items:center;flex-wrap:wrap}
 select,input,button{background:var(--pn);color:var(--fg);border:1px solid var(--ln);border-radius:10px;padding:8px;font:inherit}
 select,button{font-size:13px}
@@ -346,9 +357,23 @@ const sample=async(input,o={})=>{
     return String(txt);
   };
   /* quick / 1 provedor / imagem: um por vez (economia de cota) */
-  const ensemble=localStorage.getItem('foxia_ensemble')!=='0' && !temImg && tier!=='quick' && ord.length>1 && !(k.pref&&k.pref!=='auto');
+  let _ensFlag=localStorage.getItem('foxia_ensemble');
+  const _once=localStorage.getItem('foxia_ensemble_once');
+  if(_once==='0'||_once==='1'){ _ensFlag=_once; try{localStorage.removeItem('foxia_ensemble_once')}catch(e){} }
+  /* ensemble só em respostas densas — qualidade sem esperar 5 IAs em pergunta simples */
+  const ensemble=_ensFlag!=='0' && !temImg && tier==='complex' && ord.length>1 && !(k.pref&&k.pref!=='auto');
   if(!ensemble){
     let err,errs=[];
+    /* padrão: corre em paralelo e usa a 1ª resposta boa (mais rápido, mesma qualidade do modelo que responder) */
+    if(tier!=='quick'&&ord.length>1){
+      try{
+        const txt=await Promise.any(ord.map(p=>chamar(p).then(x=>{if(!x||String(x).trim().length<2)throw new Error('vazia');return x})));
+        o.onText&&o.onText({text:txt,delta:txt});
+        return{text:String(txt)};
+      }catch(e){
+        /* se todos falharem, cai no loop sequencial abaixo para mensagens de erro */
+      }
+    }
     for(const p of ord){
       try{
         const txt=await chamar(p);
@@ -384,7 +409,7 @@ const sample=async(input,o={})=>{
     try{
       const txt=await Promise.race([
         chamar(p),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado')),28000))
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('tempo esgotado')),14000))
       ]);
       return{p,nome:nomes[p]||p,txt:String(txt).trim(),ok:true};
     }catch(e){
@@ -465,7 +490,7 @@ let DB,DOC,sv;
 const save=()=>{sync();M.t=Date.now();window.SV=true;try{ST().setItem('kit',JSON.stringify(M));window.SV=ST().getItem('kit')!=null}catch(e){window.SV=false}clearTimeout(sv);sv=setTimeout(()=>{prune();if(DOC)DOC.set(JSON.parse(JSON.stringify(M))).then(()=>ind('salvo na nuvem')).catch(e=>ind('erro ao salvar na nuvem: '+(e&&e.code||'?')));else ind(window.SV===false?'⚠ o navegador bloqueou o salvamento (aba anônima ou dados desativados)':'salvo neste aparelho')},800)};
 const SK={resumir:'Habilidade: resuma o texto do usuário em tópicos curtos.',escrever:'Habilidade: escreva o texto pedido, pronto para usar.',revisar:'Habilidade: revise e corrija o texto do usuário; mostre a versão final primeiro e depois até 3 mudanças.',plano:'Habilidade: monte um plano de ação em passos curtos, com prioridade.',simples15:'Habilidade: explique como se o usuário tivesse 15 anos — linguagem simples, exemplos do dia a dia, sem jargão.',essencial:'Habilidade: responda só o essencial, no máximo 5 linhas curtas, sem introdução nem enrolação.',lista:'Habilidade: responda em lista numerada ou com marcadores, clara e objetiva.',decidir:'Habilidade: ajude o usuário a decidir — mostre prós e contras e uma recomendação clara no final.'};
 const perfilTxt=()=>{const p=M.perfil||{};return [p.nome&&'chamar de '+p.nome,p.sobre,p.metas&&'objetivos: '+p.metas,p.rotina&&'rotina: '+p.rotina].filter(Boolean).join('; ')||'não informado'};
-function pintar(){$('log').textContent='';if(M.hist.length)M.hist.slice(-20).forEach(m=>add(m.r,m.t));else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
+function pintar(){$('log').textContent='';if(M.hist.length)M.hist.slice(-20).forEach(m=>add(m.r,m.t,m.ts||Date.now()));else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
 $('pb').onclick=()=>{$('pf').hidden=false};$('pc').onclick=()=>{$('pf').hidden=true};
 $('ps').onclick=()=>{M.perfil={nome:$('p1').value.trim(),sobre:$('p2').value.trim(),metas:$('p3').value.trim(),rotina:$('p4').value.trim()};save();$('pf').hidden=true};
 /* memória fora do navegador (db), com o navegador como reserva */
@@ -517,7 +542,7 @@ function md(src){
   while(i<lines.length){
     const line=lines[i];
     const tline=line.trim();
-    if(!tline){closeList();out.push('');i++;continue}
+    if(!tline){closeList();out.push('<div class="md-sp" style="height:.45em"></div>');i++;continue}
     if(/^---+$/.test(tline)||/^\*\*\*+$/.test(tline)){closeList();out.push('<hr>');i++;continue}
     if(/^\s*\|/.test(line)||(tline.includes('|')&&i+1<lines.length&&isTableSep(lines[i+1]))){
       closeList();
@@ -546,21 +571,40 @@ function md(src){
 }
 function setMsg(el,text){
   if(!el)return;
-  const s=String(text??'');
-  /* streaming: se parece markdown, renderiza; senão texto simples */
-  if(/[*#|`]|\n[-*]\s|\n\d+\./.test(s))el.innerHTML=md(s);
+  const s=String(text??'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  /* markdown ou várias linhas: renderiza; senão texto simples */
+  if(/[*#|`]|\n[-*]\s|\n\d+\./.test(s)||(s.includes('\n')&&s.length>40))el.innerHTML=md(s);
   else el.textContent=s;
 }
 
-function add(r,t){
+function fmtHora(ts){
+  const d=ts?new Date(ts):new Date();
+  if(isNaN(d.getTime()))return '';
+  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function add(r,t,ts){
   const d=document.createElement('div');
   d.className='m '+r;
   const body=document.createElement('div');
   body.className='md-body';
-  if(r==='k'||r==='a')setMsg(body,t);
-  else body.textContent=t;
+  const raw=String(t??'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  if(r==='k'||r==='a')setMsg(body,raw);
+  else{
+    /* usuário: preservar quebras de linha de forma à prova de CSS */
+    body.innerHTML=escHtml(raw).replace(/\n/g,'<br>');
+  }
   d.appendChild(body);
-  d.dataset.t=String(t||'');
+  const meta=document.createElement('div');
+  meta.className='msg-meta';
+  const time=document.createElement('span');
+  time.className='msg-time';
+  const when=ts?Number(ts):Date.now();
+  time.textContent=fmtHora(when);
+  time.title=new Date(when).toLocaleString('pt-BR');
+  meta.appendChild(time);
+  d.appendChild(meta);
+  d.dataset.t=raw;
+  d.dataset.ts=String(when);
   $('log').append(d);
   $('log').scrollTop=1e9;
   return d;
@@ -670,6 +714,43 @@ async function fatosRelevantes(q, maxN=8){
 }
 
 
+
+async function decidirRota(q){
+  const out={tier:null,ensemble:null,web:null,motivo:''};
+  const n=String(q||'').trim().split(/\s+/).filter(Boolean).length;
+  /* mensagens curtas: não gasta cota/tempo no decider */
+  if(n>0&&n<=6&&!/pdf|arquivo|pesquise|compare|detalh/i.test(q)){
+    out.tier='simples';out.ensemble=false;out.web=false;out.motivo='curta';
+    return out;
+  }
+  try{
+    const SO=window.SRVOK||{};
+    if(!(SRVC()&&SO.openrouter))return out;
+    const model=(window.SRVOK&&window.SRVOK.openrouter_decider)||window.FOXIA_DECIDER_MODEL||'perplexity/pplx-decider-flash-v1.3:free';
+    const prompt=
+      'Classifique a mensagem do usuário. Responda SOMENTE JSON válido, sem markdown:\n'+
+      '{"tier":"simples|padrao|expert","ensemble":true|false,"web":true|false,"motivo":"frase curta"}\n'+
+      'Regras:\n'+
+      '- simples: cumprimento, ok, sim/não, pergunta muito curta sem profundidade\n'+
+      '- padrao: pedido normal de explicação, lista, ajuda\n'+
+      '- expert: PDF, arquivo, análise longa, compare, detalhe, trabalho escolar completo\n'+
+      '- ensemble true: vale juntar várias IAs (tema aberto, opinião, explicação importante)\n'+
+      '- ensemble false: resposta rápida basta (cumprimento, fato simples, memória)\n'+
+      '- web true: precisa informação atual, notícia, preço, data recente, "pesquise"\n'+
+      '- web false: conhecimento geral ou memória do usuário\n'+
+      'Mensagem: '+String(q).slice(0,600);
+    const raw=await orOpen('__srv', model, prompt, []);
+    const m=String(raw||'').match(/\{[\s\S]*\}/);
+    if(!m)return out;
+    const j=JSON.parse(m[0]);
+    if(/^(simples|padrao|expert)$/.test(j.tier))out.tier=j.tier;
+    if(typeof j.ensemble==='boolean')out.ensemble=j.ensemble;
+    if(typeof j.web==='boolean')out.web=j.web;
+    if(j.motivo)out.motivo=String(j.motivo).slice(0,120);
+  }catch(e){}
+  return out;
+}
+
 async function ctxComMemoria(q){
   let base=ctx();
   try{
@@ -686,9 +767,18 @@ const hist=n=>M.hist.slice(-n).map(m=>(m.r=='u'?'Usuário: ':'FOXIA: ')+m.t).joi
 async function resp(q){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
+busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);
+let _dec={};
+try{_dec=await decidirRota(q)}catch(e){_dec={}}
+let _modo=window.FOXIA_LONG?'expert':(_dec.tier||escolher(q));
+if($('mode')&&$('mode').value&&$('mode').value!='auto')_modo=$('mode').value;
+const [tier,ins]=MODOS[_modo]||MODOS.padrao;
+if(_dec.ensemble===true)localStorage.setItem('foxia_ensemble_once','1');
+if(_dec.ensemble===false)localStorage.setItem('foxia_ensemble_once','0');
+if(_dec.web===true){try{if($('web'))$('web').checked=true}catch(e){}}
+const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{const r=await s(await ctxComMemoria(q)+ins+' '+(SK[$('sk').value]||'')+instrucaoArquivo(q)+'\n\nConversa:\n'+hist(10)+'\nUsuário: '+q+'\nFOXIA:',{modelTier:tier,cache:false,onText:t=>{setMsgEl(out,limpa(t.text));$('log').scrollTop=1e9}});
-const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);try{acoes(out,M.hist.length-1,'k')}catch(e){}if(M.n%4==0)aprender()}
+const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);imagens(out,r.text);M.hist.push({r:'u',t:q,ts:Date.now()},{r:'k',t:lt,ts:Date.now()});M.hist=M.hist.slice(-60);M.n++;save();falar(lt);formar(lt);try{acoes(out,M.hist.length-1,'k')}catch(e){}if(M.n%4==0)aprender()}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
 document.body.classList.remove('think');busy=false}
 /* memória, padrões e personalidade */
@@ -699,7 +789,7 @@ if(j&&j.fatos){M.fatos=j.fatos.slice(0,12).map(String);M.padroes=(j.padroes||[])
 let tm;
 async function proativa(){if(document.hidden||busy)return;if(localStorage.getItem('foxia_foco')=='1')return;try{const s=await window.claude?.use('sample');if(!s)return;
 const r=await s(ctx()+'Escreva por conta própria uma mensagem curta (1 a 2 frases) para o usuário: uma dica, curiosidade ligada aos interesses dele ou um lembrete gentil. Não repita o que já disse.\nConversa recente:\n'+hist(6),{modelTier:'quick',cache:false});
-add('k','✦ '+r.text);M.hist.push({r:'k',t:r.text});save();falar(r.text);formar(r.text)}catch(e){}}
+add('k','✦ '+r.text);M.hist.push({r:'k',t:r.text,ts:Date.now()});save();falar(r.text);formar(r.text)}catch(e){}}
 $('auto').onchange=()=>{clearInterval(tm);const v=+$('auto').value;if(v)tm=setInterval(proativa,v*60000)};
 /* voz de entrada (fala vira texto) */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
@@ -1430,7 +1520,16 @@ resp(q||'Analise o arquivo anexado.',a)}
 async function resp(q,a=[]){
 const s=await window.claude?.use('sample');
 if(!s){add('k','Não consegui acessar o motor de resposta agora.');return}
-busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);const [tier,ins]=MODOS[window.FOXIA_LONG?'expert':escolher(q)];const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
+busy=true;try{await window.srvInit()}catch(e){}window.FOXIA_LONG=pedidoLongo(q);
+let _dec={};
+try{_dec=await decidirRota(q)}catch(e){_dec={}}
+let _modo=window.FOXIA_LONG?'expert':(_dec.tier||escolher(q));
+if($('mode')&&$('mode').value&&$('mode').value!='auto')_modo=$('mode').value;
+const [tier,ins]=MODOS[_modo]||MODOS.padrao;
+if(_dec.ensemble===true)localStorage.setItem('foxia_ensemble_once','1');
+if(_dec.ensemble===false)localStorage.setItem('foxia_ensemble_once','0');
+if(_dec.web===true){try{if($('web'))$('web').checked=true}catch(e){}}
+const out=add('k','…');out.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';document.body.classList.add('think');
 try{let imgs=[],ca='';for(const x of a){if(x.img)imgs.push(x.img);else ca+='\n[Arquivo: '+x.n+']\n'+x.tx+'\n[Fim do arquivo]\n'}
 ca+=await sites(q);ca+=await webAuto(q,out);try{const pos=await minhaLocalizacao();if(pos)ca+='\n[Localização aproximada do usuário: '+pos.lat.toFixed(4)+','+pos.lon.toFixed(4)+']\n'}catch(e){}
 if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )?design/i.test(q)){
@@ -1460,7 +1559,7 @@ if(/\bcanva\b|design no canva|crie (um )?design|fa[cç]a (um )?design|gere (um )
       const lt=msg;
       setMsgEl(out,lt);out.dataset.t=lt;
       document.body.classList.remove('think');busy=false;
-      M.hist.push({r:'u',t:q},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;save();
+      M.hist.push({r:'u',t:q,ts:Date.now()},{r:'k',t:lt,ts:Date.now()});M.hist=M.hist.slice(-60);M.n++;save();
       try{acoes(out,M.hist.length-1,'k')}catch(e){}
       falar(lt);
       return;
@@ -1472,7 +1571,7 @@ const o={modelTier:tier,cache:false,web:true,onText:t=>{setMsgEl(out,limpa(t.tex
 if(imgs.length){const L=await s.limits();if(L&&L.images)o.images=imgs;else ca+='\n(O usuário anexou fotos, mas a visão não está disponível aqui.)'}
 const r=await agente(s,await ctxComMemoria(q)+ins+' '+(SK[$('sk').value]||'')+PES(q)+ARQ+instrucaoArquivo(q)+ACAO()+'\n\nConversa:\n'+hist(10)+ca+'\nUsuário: '+q,'\nFOXIA:',o,out);
 const lt=limpa(r.text);setMsgEl(out,lt);out.dataset.t=lt;fx(out,r.text);cartoes(out,r.text);imagens(out,r.text);try{acoes(out,(M.hist||[]).length,'k')}catch(e){}if(r.usos&&r.usos.length){const nt=document.createElement('div');nt.className='nt';nt.textContent='🔧 Usei: '+r.usos.join(' · ');out.append(nt)}
-M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':'')},{r:'k',t:lt});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
+M.hist.push({r:'u',t:q+(a.length?' [anexos: '+a.map(x=>x.n).join(', ')+']':''),ts:Date.now()},{r:'k',t:lt,ts:Date.now()});M.hist=M.hist.slice(-60);M.n++;if(document.hidden)notificar('F.O.X.I.A',String(lt).replace(/\s+/g,' ').slice(0,120),'foxia-reply');if(/lembr|guard[ae]|anot[ae]|memoriz/i.test(q)){const f='Pedido do usuário para lembrar: '+q.slice(0,200);if(!M.fatos.includes(f))M.fatos.push(f);M.fatos=M.fatos.slice(-40)}save();falar(lt);formar(lt);out.dataset.t=lt;document.querySelectorAll('.ac button[title="Refazer"]').forEach(x=>x.remove());{const n=M.hist.length;acoes(out,n-1,'k');const pv=out.previousElementSibling;if(pv&&pv.classList.contains('u'))acoes(pv,n-2,'u')}
 aprender();
 if(/https?:\/\//.test(q)||escolher(q)=='expert')pedir(out,q)}
 catch(e){const msg=String(e&&e.message||e||'');const rate=e.code=='rate_limited'||/rate limit|quota|tpm|exceeded/i.test(msg);out.textContent=rate?'As IAs gratuitas estão no limite agora. Espere cerca de 1 minuto e tente de novo. (Gemini e Groq costumam resetar a cota com o tempo.)':'Não consegui responder agora. Motivo: '+msg}
@@ -1562,7 +1661,7 @@ function acoes(d,i,r){
 }
 function editar(i){if(busy)return;const m=M.hist[i];if(!m)return;M.hist=M.hist.slice(0,i);save();pintar();$('q').value=SEMANEXO(m.t);$('q').focus()}
 function refazer(){if(busy)return;const h=M.hist;if(h.length<2||h[h.length-1].r!='k')return;const u=h[h.length-2];M.hist=h.slice(0,-2);save();pintar();add('u',u.t);resp(SEMANEXO(u.t))}
-function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const o=Math.max(0,h.length-20);h.slice(o).forEach((m,k)=>{const d=add(m.r,m.t);d.dataset.t=m.t;acoes(d,o+k,m.r)})}else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
+function pintar(){$('log').textContent='';const h=M.hist||[];if(h.length){const o=Math.max(0,h.length-20);h.slice(o).forEach((m,k)=>{const d=add(m.r,m.t,m.ts||Date.now());d.dataset.t=m.t;acoes(d,o+k,m.r)})}else add('k','Olá. Sou a F.O.X.I.A. Fale ou escreva: eu aprendo com nossas conversas.');const p=M.perfil||{};$('p1').value=p.nome||'';$('p2').value=p.sobre||'';$('p3').value=p.metas||'';$('p4').value=p.rotina||'';status()}
 async function sites(q){const us=(q.match(/https?:\/\/[^\s)]+/g)||[]).slice(0,3);let r='';for(const u of us){try{r+='\n[Conteúdo do site '+u+']\n'+(await lerSite(u)).slice(0,8000)+'\n[Fim do site]\n'}catch(e){r+='\n[Não consegui abrir '+u+': '+e.message+']\n'}}return r}
 /* microfone: grava e transcreve com o Whisper do Groq; sem chave do Groq, usa o reconhecimento do Chrome */
 let MR=null,CH=[];
